@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      svg, symbol {
+        overflow: visible;
+      }
+
+      #smith {
+        margin: 40px
+      }
+    </style>
+  </head>
+  <body>
+    <form action="">
+      <input type="radio" id="impedance"  name="plot-type" value="impedance" checked>Impedance </input>
+      <input type="radio" id="admittance" name="plot-type" value="admittance"       >Admittance</input>
+    </form>
+    <div id="smith"></div>
+    <script src="./node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./node_modules/d3/build/d3.min.js"></script>
+    <script src="./dist/smith.js"></script>
+  </body>
+</html>

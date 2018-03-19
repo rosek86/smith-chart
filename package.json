@@ -1,0 +1,31 @@
+{
+  "name": "d3_smith",
+  "version": "1.0.0",
+  "description": "",
+  "main": "smith.js",
+  "dependencies": {
+    "d3": "^4.13.0",
+    "jquery": "^3.3.1",
+    "sprintf-js": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/d3": "^5.0.0",
+    "@types/jquery": "^3.3.1",
+    "@types/node": "^9.4.7",
+    "@types/sprintf-js": "^1.1.0",
+    "@types/webpack": "^4.1.0",
+    "ts-loader": "^4.1.0",
+    "ts-node": "^5.0.1",
+    "typescript": "^2.7.2",
+    "uglifyjs-webpack-plugin": "^1.2.4",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.12"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "webpack --mode production",
+    "pack-watch": "webpack --mode production --watch"
+  },
+  "author": "",
+  "license": "ISC"
+}
