@@ -12,10 +12,11 @@ interface TextOptions {
   fontFamily?: string;
   fontSize?: string;
   textAnchor?: string;
+  rotate?: number;
 }
 
 export class SmithText extends SmithShape {
-  public constructor(p: Point, text: string, opts?: TextOptions) {
+  public constructor(private p: Point, text: string, opts?: TextOptions) {
     super(d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'text')
     ));
@@ -27,8 +28,9 @@ export class SmithText extends SmithShape {
     this.move(p);
   }
 
-  public move(p1: Point): SmithText {
-    this.element.attr('x', p1[0]).attr('y', p1[1]);
+  public move(p: Point): SmithText {
+    this.element.attr('x', p[0]).attr('y', p[1]);
+    this.p = p;
     return this;
   }
 
@@ -45,6 +47,13 @@ export class SmithText extends SmithShape {
     opts.fontFamily !== undefined && this.element.attr('font-family', opts.fontFamily);
     opts.fontSize   !== undefined && this.element.attr('font-size',   opts.fontSize  );
     opts.textAnchor !== undefined && this.element.attr('text-anchor', opts.textAnchor);
+
+    if (opts.rotate !== undefined) {
+      this.element.attr(
+        'transform',
+        `rotate(${opts.rotate}, ${this.p[0]}, ${this.p[1]}) translate(0, 0) scale(1, -1)`
+      );
+    }
     return this;
   }
 }
