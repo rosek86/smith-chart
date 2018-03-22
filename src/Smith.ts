@@ -12,6 +12,8 @@ import { SmithCircle } from './draw/SmithCircle';
 import { SmithLine } from './draw/SmithLine';
 import { SmithText } from './draw/SmithText';
 
+import { SmithConstantCircle } from './SmithConstantCircle';
+
 enum ArcEntry { circle, clipCircles, arcOptions }
 
 type ArcDefinition = [
@@ -33,6 +35,8 @@ export class Smith {
   private mainGroup: SmithGroup|null = null;
   private interactionGroup: SmithGroup|null = null;
 
+  private constantCircle: SmithConstantCircle;
+
   constructor(private selector: string, private size: number) {
     this.svg = new SmithSvg(size);
     this.container = new SmithGroup().rotateY();
@@ -45,6 +49,8 @@ export class Smith {
 
     this.svg.append(this.container);
     this.container.append(this.textGroup);
+
+    this.constantCircle = new SmithConstantCircle();
 
     d3.select(selector).append(() => this.svg.Node);
   }
@@ -102,13 +108,13 @@ export class Smith {
     const group = new SmithGroup();
 
     const resistanceCircle = new SmithCircle(
-      this.resistanceCircleFromPoint([0, 0]),
+      this.constantCircle.resistanceFromPoint([0, 0]),
       { stroke: 'red', strokeWidth: '0.005', fill: 'transparent', }
     );
     group.append(resistanceCircle);
 
     const admittanceCircle = new SmithCircle(
-      this.admittanceCircleFromPoint([0, 0]),
+      this.constantCircle.conductanceFromPoint([0, 0]),
       { stroke: 'green', strokeWidth: '0.005', fill: 'transparent', }
     );
     group.append(admittanceCircle);
@@ -142,7 +148,7 @@ export class Smith {
 
       point.move({ p: [ x, y ], r: 0.015 });
 
-      const resistance = this.resistanceCircleFromPoint([ x, y ]);
+      const resistance = this.constantCircle.resistanceFromPoint([ x, y ]);
 
       if (Number.isNaN(resistance.r) || !Number.isFinite(resistance.r)) {
         resistanceText.move([x, -y]).text('∞');
@@ -151,7 +157,7 @@ export class Smith {
         resistanceText.move([x, -y]).text(sprintf('%5.2f', 1 / resistance.r - 1));
       }
 
-      const reactance  = this.admittanceCircleFromPoint ([ x, y ]);
+      const reactance  = this.constantCircle.conductanceFromPoint([ x, y ]);
 
       if (Number.isNaN(reactance.r) || !Number.isFinite(reactance.r)) {
         reactanceText.move([x, -y]).text('∞');
@@ -169,7 +175,7 @@ export class Smith {
   }
 
   private drawReactanceAxis(opts: SmithCirclesDrawOptions): SmithShape {
-    return new SmithCircle(this.resistanceCircle(0),
+    return new SmithCircle(this.constantCircle.resistance(0),
       { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'transparent' }
     );
   }
@@ -248,7 +254,7 @@ export class Smith {
 
   private drawResistanceCircle(def: ArcDefinition): SmithShape|null {
     if (def[ArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.resistanceCircle(def[ArcEntry.circle]));
+      return new SmithCircle(this.constantCircle.resistance(def[ArcEntry.circle]));
     }
     return this.resistanceArc(def);
   }
@@ -259,7 +265,7 @@ export class Smith {
 
   private drawConductanceCircle(def: ArcDefinition): SmithShape|null {
     if (def[ArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.conductanceCircle(def[ArcEntry.circle]));
+      return new SmithCircle(this.constantCircle.conductance(def[ArcEntry.circle]));
     }
     return this.conductanceArc(def);
   }
@@ -268,48 +274,17 @@ export class Smith {
     return this.susceptanceArc(def);
   }
 
-  private resistanceCircle(n: number): Circle {
-    const x = n / (n + 1);
-    const r = 1 / (n + 1);
-    return { p: [ x, 0 ], r };
-  }
-
-  private reactanceCircle(reactance: number): Circle {
-    const y = 1 / reactance;
-    const r = 1 / reactance;
-    return { p: [ 1, y ], r };
-  }
-
-  private conductanceCircle(n: number): Circle {
-    const x = n / (n + 1);
-    const r = 1 / (n + 1);
-    return { p: [ -x, 0 ], r };
-  }
-
-  private susceptanceCircle(n: number): Circle {
-    const y = 1 / n;
-    const r = 1 / n;
-    return { p: [ -1, y ], r };
-  }
-
   private resistanceArc(def: ArcDefinition): SmithShape|null {
     const cc = def[ArcEntry.clipCircles];
     const arcOpts = def[ArcEntry.arcOptions];
 
     if (cc === undefined || arcOpts === undefined) { return null; }
 
-    const c  = this.resistanceCircle(def[ArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.reactanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.reactanceCircle(cc[1][0]));
+    const c  = this.constantCircle.resistance(def[ArcEntry.circle]);
+    const i1 = this.circleCircleIntersection(c, this.constantCircle.reactance(cc[0][0]));
+    const i2 = this.circleCircleIntersection(c, this.constantCircle.reactance(cc[1][0]));
 
-    const p1 = i1[cc[0][1]];
-    const p2 = i2[cc[1][1]];
-    const r  = c.r;
-
-    const largeArc = arcOpts[0] ? '1' : '0';
-    const sweep    = arcOpts[1] ? '1' : '0';
-
-    return new SmithArc(p1, p2, r, largeArc, sweep);
+    return this.drawArc(def, c, i1, i2);
   }
 
   private reactanceArc(def: ArcDefinition): SmithShape|null {
@@ -318,9 +293,42 @@ export class Smith {
 
     if (cc === undefined || arcOpts === undefined) { return null; }
 
-    const c  = this.reactanceCircle(def[ArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.resistanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.resistanceCircle(cc[1][0]));
+    const c  = this.constantCircle.reactance(def[ArcEntry.circle]);
+    const i1 = this.circleCircleIntersection(c, this.constantCircle.resistance(cc[0][0]));
+    const i2 = this.circleCircleIntersection(c, this.constantCircle.resistance(cc[1][0]));
+
+    return this.drawArc(def, c, i1, i2);
+  }
+
+  private conductanceArc(def: ArcDefinition): SmithShape|null {
+      const cc = def[ArcEntry.clipCircles];
+      const arcOpts = def[ArcEntry.arcOptions];
+  
+      if (cc === undefined || arcOpts === undefined) { return null; }
+  
+      const c  = this.constantCircle.conductance(def[ArcEntry.circle]);
+      const i1 = this.circleCircleIntersection(c, this.constantCircle.susceptance(cc[0][0]));
+      const i2 = this.circleCircleIntersection(c, this.constantCircle.susceptance(cc[1][0]));
+  
+      return this.drawArc(def, c, i1, i2);
+  }
+
+  private susceptanceArc(def: ArcDefinition): SmithShape|null {
+    const cc = def[ArcEntry.clipCircles];
+    const arcOpts = def[ArcEntry.arcOptions];
+
+    if (cc === undefined || arcOpts === undefined) { return null; }
+
+    const c  = this.constantCircle.susceptance(def[ArcEntry.circle]);
+    const i1 = this.circleCircleIntersection(c, this.constantCircle.conductance(cc[0][0]));
+    const i2 = this.circleCircleIntersection(c, this.constantCircle.conductance(cc[1][0]));
+
+    return this.drawArc(def, c, i1, i2);
+  };
+
+  private drawArc(def: ArcDefinition, c: Circle, i1: Point[], i2: Point[]): SmithArc {
+    const cc = def[ArcEntry.clipCircles]!;
+    const arcOpts = def[ArcEntry.arcOptions]!;
 
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
@@ -332,83 +340,9 @@ export class Smith {
     return new SmithArc(p1, p2, r, largeArc, sweep);
   }
 
-  private conductanceArc(def: ArcDefinition): SmithShape|null {
-      const cc = def[ArcEntry.clipCircles];
-      const arcOpts = def[ArcEntry.arcOptions];
-  
-      if (cc === undefined || arcOpts === undefined) { return null; }
-  
-      const c  = this.conductanceCircle(def[ArcEntry.circle]);
-      const i1 = this.circleCircleIntersection(c, this.susceptanceCircle(cc[0][0]));
-      const i2 = this.circleCircleIntersection(c, this.susceptanceCircle(cc[1][0]));
-  
-      const p1 = i1[cc[0][1] === 1 ? 0 : 1];
-      const p2 = i2[cc[1][1] === 1 ? 0 : 1];
-      const r  = c.r;
-  
-      const largeArc = arcOpts[0] ? '1' : '0';
-      const sweep    = !arcOpts[1] ? '1' : '0';
-  
-      return new SmithArc(p1, p2, r, largeArc, sweep);
-  }
-
-  private susceptanceArc(def: ArcDefinition): SmithShape|null {
-    const cc = def[ArcEntry.clipCircles];
-    const arcOpts = def[ArcEntry.arcOptions];
-
-    if (cc === undefined || arcOpts === undefined) { return null; }
-
-    const c  = this.susceptanceCircle(def[ArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.conductanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.conductanceCircle(cc[1][0]));
-
-    const p1 = i1[cc[0][1] ? 0 : 1];
-    const p2 = i2[cc[1][1] ? 0 : 1];
-    const r  = c.r;
-
-    const largeArc = arcOpts[0] ? '1' : '0';
-    const sweep    = arcOpts[1] ? '0' : '1';
-
-    return new SmithArc(p1, p2, r, largeArc, sweep);
-  };
-
   private isWithinPlot(p: Point): boolean {
-    const c = this.resistanceCircle(0);
+    const c = this.constantCircle.resistance(0);
     return (Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2)) <= (Math.pow(c.r, 2));
-  }
-
-  private resistanceCircleFromPoint(p: Point): Circle {
-    const v1: Vector = [ p[0] - 1, p[1] - 0 ];
-    const v2: Vector = [ 0    - 1, 0    - 0 ];
-
-    const cosA = this.cosAlfaBetweenVectors(v1, v2);
-
-    const m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const a = m / 2;
-    const r = Math.abs(a / cosA);
-
-    return { p: [ 1 - r, 0 ], r };
-  }
-
-  private admittanceCircleFromPoint(p: Point): Circle {
-    const v1: Vector = [ p[0] + 1, p[1] - 0 ];
-    const v2: Vector = [ 0    + 1, 0    - 0 ];
-
-    const cosA = this.cosAlfaBetweenVectors(v1, v2);
-
-    const m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const a = m / 2;
-    const r = Math.abs(a / cosA);
-
-    return { p: [ -1 + r, 0 ], r };
-  }
-
-  private cosAlfaBetweenVectors(v1: [number, number], v2: [number, number]): number {
-    const scalar = v1[0] * v2[0] + v1[1] * v2[1];
-    const v1m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const v2m = Math.sqrt(Math.pow(v2[0], 2) + Math.pow(v2[1], 2));
-    const cosAlfa = scalar / (v1m * v2m);
-    return cosAlfa;
   }
 
   private circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
