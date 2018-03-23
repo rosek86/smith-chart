@@ -107,26 +107,28 @@ export class Smith {
 
     const group = new SmithGroup();
 
+    let c = this.constantCircle.resistanceFromPoint([0, 0]);
+
     const resistanceCircle = new SmithCircle(
-      this.constantCircle.resistanceFromPoint([0, 0]),
+      this.constantCircle.resistanceFromPoint([0, 0]) || { p: [0,0], r: 0 },
       { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
     );
     group.append(resistanceCircle);
 
     const reactanceCircle = new SmithCircle(
-      this.constantCircle.reactanceFromPoint([0, 0]),
+      this.constantCircle.reactanceFromPoint([0, 0]) || { p: [0,0], r: 0 },
       { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
     );
     group.append(reactanceCircle);
 
     const conductanceCircle = new SmithCircle(
-      this.constantCircle.conductanceFromPoint([0, 0]),
+      this.constantCircle.conductanceFromPoint([0, 0]) || { p: [0,0], r: 0 },
       { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
     );
     group.append(conductanceCircle);
 
     const susceptanceCircle = new SmithCircle(
-      this.constantCircle.susceptanceFromPoint([0, 0]),
+      this.constantCircle.susceptanceFromPoint([0, 0]) || { p: [0,0], r: 0 },
       { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
     );
     group.append(susceptanceCircle);
@@ -162,7 +164,7 @@ export class Smith {
 
       const resistance = this.constantCircle.resistanceFromPoint([ x, y ]);
 
-      if (Number.isNaN(resistance.r) || !Number.isFinite(resistance.r)) {
+      if (!resistance) {
         resistanceText.move([x, -y]).text('∞');
       } else {
         resistanceCircle.move(resistance);
@@ -171,7 +173,7 @@ export class Smith {
 
       const reactance = this.constantCircle.reactanceFromPoint([ x, y ]);
 
-      if (Number.isNaN(reactance.r) || !Number.isFinite(reactance.r)) {
+      if (!reactance) {
         // draw line
         // reactanceText.move([x, -y]).text('∞');
       } else {
@@ -181,7 +183,7 @@ export class Smith {
 
       const conductance = this.constantCircle.conductanceFromPoint([ x, y ]);
 
-      if (Number.isNaN(conductance.r) || !Number.isFinite(conductance.r)) {
+      if (!conductance) {
         conductanceText.move([x, -y]).text('∞');
       } else {
         conductanceCircle.move(conductance);
@@ -190,7 +192,7 @@ export class Smith {
 
       const susceptance = this.constantCircle.susceptanceFromPoint([ x, y ]);
 
-      if (Number.isNaN(susceptance.r) || !Number.isFinite(susceptance.r)) {
+      if (!susceptance) {
         // draw line
         // susceptanceText.move([x, -y]).text('∞');
       } else {

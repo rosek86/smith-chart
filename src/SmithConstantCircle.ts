@@ -20,33 +20,41 @@ export class SmithConstantCircle {
     return { p: [ -1, -(1 / n) ], r: 1 / n };
   }
 
-  public resistanceFromPoint(p: Point): Circle {
+  public resistanceFromPoint(p: Point): Circle|undefined {
     const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ -1, 0 ]);
-    return { p: [ 1 - r, 0 ], r };
+    if (r !== undefined) {
+      return { p: [ 1 - r, 0 ], r };
+    }
   }
 
-  public reactanceFromPoint(p: Point): Circle {
+  public reactanceFromPoint(p: Point): Circle|undefined {
     const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ 0, 1 ]);
-    const y = p[1] >= 0 ? r : -r;
-    return { p: [ 1, y ], r };
+    if (r !== undefined) {
+      const y = p[1] >= 0 ? r : -r;
+      return { p: [ 1, y ], r };
+    }
   }
 
-  public conductanceFromPoint(p: Point): Circle {
+  public conductanceFromPoint(p: Point): Circle|undefined {
     const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 1, 0 ]);
-    return { p: [ -1 + r, 0 ], r };
+    if (r !== undefined) {
+      return { p: [ -1 + r, 0 ], r };
+    }
   }
 
-  public susceptanceFromPoint(p: Point): Circle {
+  public susceptanceFromPoint(p: Point): Circle|undefined {
     const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 0, 1 ]);
-    const y = p[1] >= 0 ? r : -r;
-    return { p: [ -1, y ], r };
+    if (r !== undefined) {
+      const y = p[1] >= 0 ? r : -r;
+      return { p: [ -1, y ], r };
+    }
   }
 
-  private constantCircleRadiusFromVectors(v1: Vector, v2: Vector): number {
+  private constantCircleRadiusFromVectors(v1: Vector, v2: Vector): number|undefined {
     const cosA = this.cosAlfaBetweenVectors(v1, v2);
-
-    const a = this.vectorLength(v1) / 2;
-    return Math.abs(a / cosA);
+    if (cosA !== 0) {
+      return Math.abs(this.vectorLength(v1) / (2 * cosA));
+    }
   }
 
   private cosAlfaBetweenVectors(v1: Vector, v2: Vector): number {
