@@ -21,36 +21,41 @@ export class SmithConstantCircle {
   }
 
   public resistanceFromPoint(p: Point): Circle {
-    const v1: Vector = [ p[0] - 1, p[1] - 0 ];
-    const v2: Vector = [ 0    - 1, 0    - 0 ];
-
-    const cosA = this.cosAlfaBetweenVectors(v1, v2);
-
-    const m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const a = m / 2;
-    const r = Math.abs(a / cosA);
-
+    const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ -1, 0 ]);
     return { p: [ 1 - r, 0 ], r };
   }
 
+  public reactanceFromPoint(p: Point): Circle {
+    const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ 0, 1 ]);
+    const y = p[1] >= 0 ? r : -r;
+    return { p: [ 1, y ], r };
+  }
+
   public conductanceFromPoint(p: Point): Circle {
-    const v1: Vector = [ p[0] + 1, p[1] - 0 ];
-    const v2: Vector = [ 0    + 1, 0    - 0 ];
-
-    const cosA = this.cosAlfaBetweenVectors(v1, v2);
-
-    const m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const a = m / 2;
-    const r = Math.abs(a / cosA);
-
+    const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 1, 0 ]);
     return { p: [ -1 + r, 0 ], r };
   }
 
-  private cosAlfaBetweenVectors(v1: [number, number], v2: [number, number]): number {
-    const scalar = v1[0] * v2[0] + v1[1] * v2[1];
-    const v1m = Math.sqrt(Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
-    const v2m = Math.sqrt(Math.pow(v2[0], 2) + Math.pow(v2[1], 2));
-    const cosAlfa = scalar / (v1m * v2m);
-    return cosAlfa;
+  public susceptanceFromPoint(p: Point): Circle {
+    const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 0, 1 ]);
+    const y = p[1] >= 0 ? r : -r;
+    return { p: [ -1, y ], r };
+  }
+
+  private constantCircleRadiusFromVectors(v1: Vector, v2: Vector): number {
+    const cosA = this.cosAlfaBetweenVectors(v1, v2);
+
+    const a = this.vectorLength(v1) / 2;
+    return Math.abs(a / cosA);
+  }
+
+  private cosAlfaBetweenVectors(v1: Vector, v2: Vector): number {
+    const l1 = this.vectorLength(v1);
+    const l2 = this.vectorLength(v2);
+    return (v1[0] * v2[0] + v1[1] * v2[1]) / (l1 * l2);
+  }
+
+  private vectorLength(v: Vector): number {
+    return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
   }
 }

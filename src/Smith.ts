@@ -109,15 +109,27 @@ export class Smith {
 
     const resistanceCircle = new SmithCircle(
       this.constantCircle.resistanceFromPoint([0, 0]),
-      { stroke: 'red', strokeWidth: '0.005', fill: 'transparent', }
+      { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
     );
     group.append(resistanceCircle);
 
-    const admittanceCircle = new SmithCircle(
-      this.constantCircle.conductanceFromPoint([0, 0]),
-      { stroke: 'green', strokeWidth: '0.005', fill: 'transparent', }
+    const reactanceCircle = new SmithCircle(
+      this.constantCircle.reactanceFromPoint([0, 0]),
+      { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
     );
-    group.append(admittanceCircle);
+    group.append(reactanceCircle);
+
+    const conductanceCircle = new SmithCircle(
+      this.constantCircle.conductanceFromPoint([0, 0]),
+      { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
+    );
+    group.append(conductanceCircle);
+
+    const susceptanceCircle = new SmithCircle(
+      this.constantCircle.susceptanceFromPoint([0, 0]),
+      { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
+    );
+    group.append(susceptanceCircle);
 
     const point = new SmithCircle(
       { p: [0, 0], r: 0.015 },
@@ -131,11 +143,11 @@ export class Smith {
     });
     group.append(resistanceText);
 
-    const reactanceText = new SmithText([0, 0], '1.00', {
+    const conductanceText = new SmithText([0, 0], '1.00', {
       dx: '-0.01', dy: '0.03', stroke: 'none', fill: 'green',
       fontFamily: 'Verdana', fontSize: '0.04', textAnchor: 'end'
     });
-    group.append(reactanceText);
+    group.append(conductanceText);
 
     this.interactionGroup = group;
     this.container.append(this.interactionGroup);
@@ -157,13 +169,33 @@ export class Smith {
         resistanceText.move([x, -y]).text(sprintf('%5.2f', 1 / resistance.r - 1));
       }
 
-      const reactance  = this.constantCircle.conductanceFromPoint([ x, y ]);
+      const reactance = this.constantCircle.reactanceFromPoint([ x, y ]);
 
       if (Number.isNaN(reactance.r) || !Number.isFinite(reactance.r)) {
-        reactanceText.move([x, -y]).text('∞');
+        // draw line
+        // reactanceText.move([x, -y]).text('∞');
       } else {
-        admittanceCircle.move(reactance);
-        reactanceText.move([x, -y]).text(sprintf('%5.2f', 1 / reactance.r - 1));
+        reactanceCircle.move(reactance);
+        // reactanceText.move([x, -y]).text(sprintf('%5.2f', 1 / reactance.r - 1));
+      }
+
+      const conductance = this.constantCircle.conductanceFromPoint([ x, y ]);
+
+      if (Number.isNaN(conductance.r) || !Number.isFinite(conductance.r)) {
+        conductanceText.move([x, -y]).text('∞');
+      } else {
+        conductanceCircle.move(conductance);
+        conductanceText.move([x, -y]).text(sprintf('%5.2f', 1 / conductance.r - 1));
+      }
+
+      const susceptance = this.constantCircle.susceptanceFromPoint([ x, y ]);
+
+      if (Number.isNaN(susceptance.r) || !Number.isFinite(susceptance.r)) {
+        // draw line
+        // susceptanceText.move([x, -y]).text('∞');
+      } else {
+        susceptanceCircle.move(susceptance);
+        // susceptanceText.move([x, -y]).text(sprintf('%5.2f', 1 / susceptance.r - 1));
       }
     }));
   }
