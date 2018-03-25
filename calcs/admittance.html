@@ -12,14 +12,13 @@
   <p>
     <p style="text-align:center">
       Admittance to Reflection Coefficient<br/><br/>
-      `\Gamma = (Z_L - Z_0) / (Z_L + Z_0)`<br/><br/>
-      `Z = 1 / Y`<br/><br/>
-      `\Gamma = (1 / Y_L - 1 / Y_0) / (1 / Y_L + 1 / Y_0)`<br/><br/>
-      `\Gamma = ((Y_0 - Y_L) / (Y_L * Y_0)) / ((Y_0 + Y_L) / (Y_L * Y_0))`<br/><br/>
-      `\Gamma = (Y_0 - Y_L) / (Y_0 + Y_L)`<br/><br/>
+      `\Gamma = (Z_L - Z_0) / (Z_L + Z_0), Z = 1 / Y`<br/><br/>
+      `\Gamma = (1 / Y_L - 1 / Y_0) / (1 / Y_L + 1 / Y_0)
+              = ((Y_0 - Y_L) / (Y_L * Y_0)) / ((Y_0 + Y_L) / (Y_L * Y_0))
+              = (Y_0 - Y_L) / (Y_0 + Y_L)`<br/><br/>
       Normalize<br/><br/>
-      `\Gamma = (Y_0/Y_0 - Y_L/Y_0) / (Y_0/Y_0 + Y_L/Y_0)`<br/><br/>
-      `\Gamma = (1 - Y_L/Y_0) / (1 + Y_L/Y_0)`<br/><br/>
+      `\Gamma = (Y_0/Y_0 - Y_L/Y_0) / (Y_0/Y_0 + Y_L/Y_0)
+              = (1 - Y_L/Y_0) / (1 + Y_L/Y_0)`<br/><br/>
       `y_L = Y_L/Y_0`<br/><br/>
       `\Gamma = (1 - y_L) / (1 + y_L)`<br/><br/>
       <br/>
@@ -50,7 +49,44 @@
       <br/>
       `y_L = (1 - \Gamma_R^2 - \Gamma_I^2) /
                 ((1 + \Gamma_R)^2 + \Gamma_I^2) + j (-2 \Gamma_I) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
-      </p>
+
+      <br/>
+      `g = (1 - \Gamma_R^2 - \Gamma_I^2) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+      `b = (-2 \Gamma_I) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+      <br/>
+      Real part - Conductance<br/><br/>
+      `g = (1 - \Gamma_R^2 - \Gamma_I^2) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+      `g ((1 + \Gamma_R)^2 + \Gamma_I^2) = 1 - \Gamma_R^2 - \Gamma_I^2`<br/><br/>
+      `g (1 + 2 \Gamma_R + \Gamma_R^2 + \Gamma_I^2) = 1 - \Gamma_R^2 - \Gamma_I^2`<br/><br/>
+      `g + 2 g \Gamma_R + g \Gamma_R^2 + g \Gamma_I^2 = 1 - \Gamma_R^2 - \Gamma_I^2`<br/><br/>
+      `g \Gamma_R^2 + \Gamma_R^2 + 2 g \Gamma_R + g \Gamma_I^2  + \Gamma_I^2 = 1 - g`<br/><br/>
+      `\Gamma_R^2 (g + 1) + 2 g \Gamma_R + \Gamma_I^2 (g  + 1) = 1 - g`<br/><br/>
+      `\Gamma_R^2 + 2 g / (g + 1) \Gamma_R + \Gamma_I^2 = (1 - g) / (1 + g)`<br/><br/>
+      `\Gamma_R^2 + 2 g / (g + 1) \Gamma_R + g^2 / (g + 1)^2 + \Gamma_I^2 - g^2 / (g + 1)^2 = (1 - g) / (1 + g)`<br/><br/>
+      `(\Gamma_R + g / (g + 1))^2 + \Gamma_I^2 = (1 - g) / (1 + g) + g^2 / (1 + g)^2`<br/><br/>
+      `(\Gamma_R + g / (g + 1))^2 + \Gamma_I^2 = ((1 - g)(1 + g)) / (1 + g)^2 + g^2 / (1 + g)^2`<br/><br/>
+      `(\Gamma_R + g / (g + 1))^2 + \Gamma_I^2 = ((1 - g)(1 + g) + g^2) / (1 + g)^2`<br/><br/>
+      `(\Gamma_R + g / (g + 1))^2 + \Gamma_I^2 = (1 + g - g - g^2 + g^2) / (1 + g)^2`<br/><br/>
+      `(\Gamma_R + g / (g + 1))^2 + \Gamma_I^2 = (1 / (1 + g))^2`<br/><br/>
+
+      Circle with center `[(-g) / (g + 1), 0]` and radius `1 / (1 + g)`.<br/><br/>
+      <br/>
+      Imaginary part - Susceptance<br/><br/>
+      `b = (-2 \Gamma_I) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+      `b ((1 + \Gamma_R)^2 + \Gamma_I^2) = -2 \Gamma_I`<br/><br/>
+      `b (1 + 2 \Gamma_R + \Gamma_R^2) + b \Gamma_I^2 = -2 \Gamma_I`<br/><br/>
+      `b + 2 b \Gamma_R + b \Gamma_R^2 + b \Gamma_I^2 = -2 \Gamma_I`<br/><br/>
+      `2 b \Gamma_R + b \Gamma_R^2 + b \Gamma_I^2 + 2 \Gamma_I = -b`<br/><br/>
+
+      `b (2 \Gamma_R + \Gamma_R^2) + b (\Gamma_I^2 + 2 \Gamma_I / b) = -b`<br/><br/>
+
+      `b ((2 \Gamma_R + \Gamma_R^2) + (\Gamma_I^2 + 2 \Gamma_I / b)) = -b`<br/><br/>
+      `\Gamma_R^2 + 2 \Gamma_R + 1 - 1 + \Gamma_I^2 + 2 1 / b \Gamma_I + 1 / b^2 - 1 / b^2 = -1`<br/><br/>
+      `(\Gamma_R + 1)^2 + (\Gamma_I + 1 / b)^2 = -1 + 1 + 1 / b^2`<br/><br/>
+      `(\Gamma_R + 1)^2 + (\Gamma_I + 1 / b)^2 = (1 / b)^2`<br/><br/>
+
+      Circle with center `[-1, (-1) / b]` and radius `1 / b`.<br/><br/>
+    </p>
   </p>
 </p>
 </body>

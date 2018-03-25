@@ -64,10 +64,17 @@ export class SmithConstantCircle {
   }
 
   public conductanceCircle(n: number): Circle {
-    return { p: [ -(n / (n + 1)), 0 ], r: 1 / (n + 1) };
+    return { p: [ -n / (n + 1), 0 ], r: 1 / (n + 1) };
   }
 
   public susceptanceCircle(n: number): Circle {
-    return { p: [ -1, -(1 / n) ], r: Math.abs(1 / n) };
+    return { p: [ -1, -1 / n ], r: Math.abs(1 / n) };
+  }
+
+  public swr(rc: Complex): number {
+    const x = rc[0];
+    const y = rc[1];
+    const gamma = Math.sqrt(x*x + y*y);
+    return (1 + gamma) / (1 - gamma);
   }
 }
