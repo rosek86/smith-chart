@@ -3,6 +3,7 @@ import { SmithShape } from './SmithShape';
 
 export class SmithSvg {
   private container: d3.Selection<SVGElement, {}, null, undefined>;
+  private defs: d3.Selection<SVGElement, {}, null, undefined>;
 
   constructor(size: number) {
     this.container = d3.select<SVGElement, {}>(
@@ -12,7 +13,9 @@ export class SmithSvg {
     .attr('width', size).attr('height', size)
     .attr('viewBox', '-1 -1 2 2')
     .attr('preserveAspectRatio', 'xMinYMin meet')
-    .attr('transform', 'translate(0, 1)')
+    .attr('transform', 'translate(0, 1)');
+
+    this.defs = this.container.append('defs');
   }
 
   public get Node(): SVGElement|null {
@@ -28,5 +31,12 @@ export class SmithSvg {
 
   public get Element(): d3.Selection<SVGElement, {}, null, undefined> {
     return this.container;
+  }
+
+  public appendDef(el: SmithShape|null): SmithSvg {
+    if (el !== null) {
+      this.defs.append(() => el.Node);
+    }
+    return this;
   }
 }

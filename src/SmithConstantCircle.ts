@@ -2,68 +2,76 @@ import { Circle } from './draw/Circle';
 import { Point } from './draw/Point';
 
 type Vector = [ number, number ];
+type Complex = [ number, number ];
 
 export class SmithConstantCircle {
-  public resistance(n: number): Circle {
+  private epsilon = 1e-10;
+
+  public impedanceToReflectionCoefficient(c: Complex): Complex|undefined {
+    const zr = c[0];
+    const zi = c[1];
+    const d = (1 - zr) * (1 - zr) + zi * zi;
+    if (Math.abs(d) < this.epsilon) {
+      return undefined;
+    }
+    const r = (1 - zr * zr - zi * zi) / d;
+    const x = (2 * zi) / d;
+    return [ r, x ];
+  }
+
+  public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
+    const r = c[0];
+    const x = c[1];
+    const d = (r + 1) * (r + 1) + x * x;
+    if (Math.abs(d) < this.epsilon) {
+      return undefined;
+    }
+    const zr = (r * r + x * x - 1) / d;
+    const zi = (2 * x) / d;
+    return [ zr, zi ];
+  }
+
+  public admittanceToReflectionCoefficient(c: Complex): Complex|undefined {
+    const yr = c[0];
+    const yi = c[1];
+    const d = (yr + 1) * (yr + 1) + yi * yi;
+    if (Math.abs(d) < this.epsilon) {
+      return undefined;
+    }
+    const g = (1 - yr * yr - yi * yi) / d;
+    const b = (-2 * yi) / d;
+
+    if (Number.isNaN(g)) {
+      console.log(d);
+    }
+    return [ g, b ];
+  }
+
+  public reflectionCoefficientToAdmittance(c: Complex): Complex|undefined {
+    const g = c[0];
+    const b = c[1];
+    const d = (g + 1) * (g + 1) + b * b;
+    if (Math.abs(d) < this.epsilon) {
+      return undefined;
+    }
+    const yr = (1 - g * g - b * b) / d;
+    const yi = (-2 * b) / d;
+    return [ yr, yi ];
+  }
+
+  public resistanceCircle(n: number): Circle {
     return { p: [ (n / (n + 1)), 0 ], r: 1 / (n + 1) };
   }
 
-  public reactance(n: number): Circle {
-    return { p: [ 1, (1 / n) ], r: 1 / n };
+  public reactanceCircle(n: number): Circle {
+    return { p: [ 1, (1 / n) ], r: Math.abs(1 / n) };
   }
 
-  public conductance(n: number): Circle {
+  public conductanceCircle(n: number): Circle {
     return { p: [ -(n / (n + 1)), 0 ], r: 1 / (n + 1) };
   }
 
-  public susceptance(n: number): Circle {
-    return { p: [ -1, -(1 / n) ], r: 1 / n };
-  }
-
-  public resistanceFromPoint(p: Point): Circle|undefined {
-    const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ -1, 0 ]);
-    if (r !== undefined) {
-      return { p: [ 1 - r, 0 ], r };
-    }
-  }
-
-  public reactanceFromPoint(p: Point): Circle|undefined {
-    const r = this.constantCircleRadiusFromVectors([ p[0] - 1, p[1] ], [ 0, 1 ]);
-    if (r !== undefined) {
-      const y = p[1] >= 0 ? r : -r;
-      return { p: [ 1, y ], r };
-    }
-  }
-
-  public conductanceFromPoint(p: Point): Circle|undefined {
-    const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 1, 0 ]);
-    if (r !== undefined) {
-      return { p: [ -1 + r, 0 ], r };
-    }
-  }
-
-  public susceptanceFromPoint(p: Point): Circle|undefined {
-    const r = this.constantCircleRadiusFromVectors([ p[0] + 1, p[1] ], [ 0, 1 ]);
-    if (r !== undefined) {
-      const y = p[1] >= 0 ? r : -r;
-      return { p: [ -1, y ], r };
-    }
-  }
-
-  private constantCircleRadiusFromVectors(v1: Vector, v2: Vector): number|undefined {
-    const cosA = this.cosAlfaBetweenVectors(v1, v2);
-    if (cosA !== 0) {
-      return Math.abs(this.vectorLength(v1) / (2 * cosA));
-    }
-  }
-
-  private cosAlfaBetweenVectors(v1: Vector, v2: Vector): number {
-    const l1 = this.vectorLength(v1);
-    const l2 = this.vectorLength(v2);
-    return (v1[0] * v2[0] + v1[1] * v2[1]) / (l1 * l2);
-  }
-
-  private vectorLength(v: Vector): number {
-    return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
+  public susceptanceCircle(n: number): Circle {
+    return { p: [ -1, -(1 / n) ], r: Math.abs(1 / n) };
   }
 }
