@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Smith Chart</title>
+  <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML" async>
+</script>
+</head>
+<body>
+  <p>
+    <p style="text-align:center">
+      Impedance to Reflection Coefficient<br/><br/>
+      `\Gamma = (Z_L - Z_0) / (Z_L + Z_0)`<br/><br/>
+      `\Gamma = (Z_L / Z_0 - 1) / (Z_L / Z_0 + 1)`<br/><br/>
+      `z_L = Z_L / Z_0`<br/><br/>
+      `\Gamma = (z_L - 1) / (z_L + 1)`<br/><br/>
+      <br/>
+      `z_L = z_R + j z_I`<br/><br/>
+      <br/>
+      `\Gamma = (z_R + j z_I - 1) / (z_R + j z_I + 1)`<br/><br/>
+      `\Gamma = (z_R + j z_I - 1) / (z_R + j z_I + 1) * (z_R - j z_I + 1) / (z_R - j z_I + 1)`<br/><br/>
+      `\Gamma = (z_R^2 - j z_R z_I + z_R + j z_R z_I - j^2 z_I^2 + j z_I - z_R + j z_I - 1) /
+                (z_R^2 - j z_R z_I + z_R + j z_R z_I - j^2 z_I^2 + j z_I + z_R - j z_I + 1)`<br/><br/>
+      `\Gamma = (z_R^2 - j^2 z_I^2 + j z_I + j z_I - 1) /
+                (z_R^2 + z_R - j^2 z_I^2 + z_R + 1)`<br/><br/>
+      `\Gamma = (z_R^2 + z_I^2 + j 2 z_I - 1) /
+                (z_R^2 + 2 z_R + z_I^2 + 1)`<br/><br/>
+
+      `\Gamma = (z_R^2 + z_I^2 - 1 + j 2 z_I) /
+                ((z_R^2 + 2 z_R + 1) + z_I^2)`<br/><br/>
+      `\Gamma = (z_R^2 + z_I^2 - 1 + j 2 z_I) /
+                ((z_R + 1)^2 + z_I^2)`<br/><br/>
+      `\Gamma = (z_R^2 + z_I^2 - 1) /
+                ((z_R + 1)^2 + z_I^2) + j (2 z_I) / ((z_R + 1)^2 + z_I^2)`<br/><br/>
+      </p>
+  </p>
+<p>
+  <p style="text-align:center">
+    Reflection Coefficient to Impedance<br/><br/>
+    `\Gamma = (z_L - 1) / (z_L + 1)`<br/><br/>
+    `\Gamma (z_L + 1) = z_L - 1`<br/><br/>
+    `\Gamma z_L + \Gamma = z_L - 1`<br/><br/>
+    `\Gamma z_L - z_L = -1 - \Gamma`<br/><br/>
+    `z_L - \Gamma z_L= 1 + \Gamma`<br/><br/>
+    `z_L(1 - \Gamma)= 1 + \Gamma`<br/><br/>
+    `z_L = (1 + \Gamma) / (1 - \Gamma)`<br/><br/>
+  </p>
+
+  <br/>
+
+  <p style="text-align:center">
+    `\Gamma = \Gamma_R + j \Gamma_I`<br/><br/>
+  </p>
+
+  <p style="text-align:center">
+    `z_L = (1 + (\Gamma_R + j \Gamma_I)) / (1 - (\Gamma_R + j \Gamma_I))`<br /><br/>
+    `z_L = (1 + (\Gamma_R + j \Gamma_I)) / (1 - (\Gamma_R + j \Gamma_I)) * (1 - (\Gamma_R - j \Gamma_I)) / (1 - (\Gamma_R - j \Gamma_I))`<br /><br/>
+    `z_L = (1 - (\Gamma_R - j \Gamma_I) + (\Gamma_R + j \Gamma_I) - (\Gamma_R + j \Gamma_I)(\Gamma_R - j \Gamma_I)) / (1 - (\Gamma_R - j \Gamma_I) - (\Gamma_R + j \Gamma_I) + (\Gamma_R + j \Gamma_I)(\Gamma_R - j \Gamma_I))`<br /><br/>
+    `z_L = (1 - \Gamma_R + j \Gamma_I + \Gamma_R + j \Gamma_I - (\Gamma_R^2 - j^2 \Gamma_I^2)) / (1 - \Gamma_R + j \Gamma_I - \Gamma_R - j \Gamma_I + (\Gamma_R^2 - j^2 \Gamma_I^2))`<br /><br/>
+    `z_L = (1 + 2 j \Gamma_I - \Gamma_R^2 - \Gamma_I^2) / ((1 - 2 \Gamma_R + \Gamma_R^2) + \Gamma_I^2)`<br /><br/>
+    `z_L = (1 - \Gamma_R^2 - \Gamma_I^2 + 2 j \Gamma_I) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`<br /><br/>
+    `z_L = (1 - \Gamma_R^2 - \Gamma_I^2) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`
+          `+ j (2 \Gamma_I) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`<br /><br/>
+  </p>
+  <br />
+
+  <p style="text-align:center">
+    `r = (1 - \Gamma_R^2 - \Gamma_I^2) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`
+    `x = (2 \Gamma_I) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`
+  </p>
+  <br />
+
+  <p style="text-align:center">
+    Real part<br /><br/>
+    `r = (1 - \Gamma_R^2 - \Gamma_I^2) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+    `r (1 - \Gamma_R)^2 + r \Gamma_I^2 = 1 - \Gamma_R^2 - \Gamma_I^2`<br/><br/>
+    `r - 2 r \Gamma_R + r \Gamma_R^2 + r \Gamma_I^2 = 1 - \Gamma_R^2 - \Gamma_I^2`<br/><br/>
+    `r \Gamma_R^2 - 2 r \Gamma_R + \Gamma_R^2 + r \Gamma_I^2 + \Gamma_I^2 = 1 - r`<br/><br/>
+    `\Gamma_R^2 (r + 1) - 2 r \Gamma_R + \Gamma_I^2 (r + 1) = 1 - r`<br/><br/>
+    `\Gamma_R^2 - ((2 r) / (1 + r)) \Gamma_R + \Gamma_I^2 = (1 - r) / (1 + r)`<br/><br/>
+    `\Gamma_R^2 - 2 (r / (1 + r)) \Gamma_R + (r / (r + 1))^2 + \Gamma_I^2 - (r / (r + 1))^2 = (1 - r) / (1 + r)`<br/><br/>
+    `(\Gamma_R - r / (r + 1))^2 + \Gamma_I^2 = (1 - r) / (1 + r) +  (r / (r + 1))^2`<br/><br/>
+    `(\Gamma_R - r / (r + 1))^2 + \Gamma_I^2 = ((1 - r)(1 + r)) / ((1 + r)(1 + r)) +  (r / (r + 1))^2`<br/><br/>
+    `(\Gamma_R - r / (r + 1))^2 + \Gamma_I^2 = ((1 - r)(1+r)) / (1 + r)^2 + r^2 / (r + 1)^2`<br/><br/>
+    `(\Gamma_R - r / (r + 1))^2 + \Gamma_I^2 = (1 + r - r - r^2 + r^2) / (1 + r)^2`<br/><br />
+    `(\Gamma_R - r / (r + 1))^2 + \Gamma_I^2 = (1 / (1 + r))^2`<br/><br/>
+
+    Circle with center `[r / (r + 1), 0]` and radius `1 / (1 + r)`.
+  </p>
+  <br/>
+
+  <p style="text-align:center">
+    Imaginary part<br/><br/>
+    `x = (2 \Gamma_I) / ((1 - \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+    `x ((1 - \Gamma_R)^2 + \Gamma_I^2) = 2 \Gamma_I`<br/><br/>
+    `x (1 - 2 \Gamma_R + \Gamma_R^2 + \Gamma_I^2) = 2 \Gamma_I`<br/><br/>
+    `1 - 2 \Gamma_R + \Gamma_R^2 + \Gamma_I^2 = (2 \Gamma_I) / x`<br/><br/>
+    `1 - 2 \Gamma_R + \Gamma_R^2 + \Gamma_I^2 - (2 \Gamma_I) / x = 0`<br/><br/>
+    `1 - 2 \Gamma_R + \Gamma_R^2 + \Gamma_I^2 - (2 \Gamma_I) / x + 1/x^2 - 1/x^2 = 0`<br/><br/>
+    `(\Gamma_R^2 - 2 \Gamma_R + 1) + (\Gamma_I^2 - 2 \Gamma_I 1 / x + (1 / x)^2) = 1/x^2`<br/><br/>
+    `(\Gamma_R - 1)^2 + (\Gamma_I - 1 / x)^2 = (1/x)^2`<br/><br/>
+
+    Circle with center `[1, 1/x]` and radius `1 / x`.
+  </p>
+</p>
+</body>
+</html>

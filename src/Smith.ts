@@ -48,9 +48,20 @@ export class Smith {
     d3.select(selector).append(() => this.svg.Node);
   }
 
-  private drawTexts(): void {
-    this.textGroup.append(new SmithText([ 0, 0.0 ], '1.0', { rotate: 90, dy: '0.002', dx: '0.001' }));
-    this.textGroup.append(new SmithText([ -0.2, 0.0 ], '0.9', { rotate: 90, dy: '0.002', dx: '0.001' }));
+  private drawImpedanceTexts(): void {
+    this.textGroup.Element.selectAll('*').remove();
+    for (const e of SmithArcsDefs.resistanceMajor()) {
+      const p = this.constantCircle.impedanceToReflectionoefficient([ e[0], 0 ])!;
+      this.textGroup.append(new SmithText(p, e[0].toString(), { rotate: 90, dy: '0.002', dx: '0.001' }));
+    }
+  }
+
+  private drawAdmittanceTexts(): void {
+    this.textGroup.Element.selectAll('*').remove();
+    for (const e of SmithArcsDefs.resistanceMajor()) {
+      const p = this.constantCircle.admittanceToReflectionCoefficient([ e[0], 0 ])!;
+      this.textGroup.append(new SmithText(p, e[0].toString(), { rotate: -90, dy: '0.002', dx: '0.001' }));
+    }
   }
 
   public drawImpedance(opts: SmithCirclesDrawOptions): Smith {
@@ -65,7 +76,7 @@ export class Smith {
     this.mainGroup.append(this.drawResistanceAxis(opts));
     this.container.append(this.mainGroup);
 
-    this.drawTexts();
+    this.drawImpedanceTexts();
 
     if (this.interactionGroup !== null) {
       this.interactionGroup.Element.raise();
@@ -86,6 +97,8 @@ export class Smith {
     this.mainGroup.append(this.drawResistanceAxis(opts));
     this.container.append(this.mainGroup);
 
+    this.drawAdmittanceTexts();
+
     if (this.interactionGroup !== null) {
       this.interactionGroup.Element.raise();
     }
@@ -100,7 +113,7 @@ export class Smith {
 
     const group = new SmithGroup();
 
-    const rc = this.constantCircle.impedanceToReflectionCoefficient([0, 0]);
+    const rc = this.constantCircle.reflectionCoefficientToImpedance([0, 0]);
     let c = this.constantCircle.resistanceCircle(rc![0]);
 
     const resistanceCircle = new SmithCircle(
@@ -167,8 +180,8 @@ export class Smith {
 
       point.move({ p: [ x, y ], r: 0.015 });
 
-      const rc1 = this.constantCircle.impedanceToReflectionCoefficient ([ x, y ]);
-      const rc2 = this.constantCircle.admittanceToReflectionCoefficient([ x, y ]);
+      const rc1 = this.constantCircle.reflectionCoefficientToImpedance ([ x, y ]);
+      const rc2 = this.constantCircle.reflectionCoefficientToAdmittance([ x, y ]);
 
       console.log([x, y], rc1, rc2);
 

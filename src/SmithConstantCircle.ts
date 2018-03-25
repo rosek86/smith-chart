@@ -7,28 +7,40 @@ type Complex = [ number, number ];
 export class SmithConstantCircle {
   private epsilon = 1e-10;
 
-  public impedanceToReflectionCoefficient(c: Complex): Complex|undefined {
-    const zr = c[0];
-    const zi = c[1];
-    const d = (1 - zr) * (1 - zr) + zi * zi;
+  public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
+    const gr = c[0];
+    const gi = c[1];
+    const d = (1 - gr) * (1 - gr) + gi * gi;
     if (Math.abs(d) < this.epsilon) {
       return undefined;
     }
-    const r = (1 - zr * zr - zi * zi) / d;
-    const x = (2 * zi) / d;
-    return [ r, x ];
+    const zr = (1 - gr * gr - gi * gi) / d;
+    const zi = (2 * gi) / d;
+    return [ zr, zi ];
   }
 
-  public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
-    const r = c[0];
-    const x = c[1];
-    const d = (r + 1) * (r + 1) + x * x;
+  public impedanceToReflectionoefficient(c: Complex): Complex|undefined {
+    const zr = c[0];
+    const zi = c[1];
+    const d = (zr + 1) * (zr + 1) + zi * zi;
     if (Math.abs(d) < this.epsilon) {
       return undefined;
     }
-    const zr = (r * r + x * x - 1) / d;
-    const zi = (2 * x) / d;
-    return [ zr, zi ];
+    const gr = (zr * zr + zi * zi - 1) / d;
+    const gi = (2 * zi) / d;
+    return [ gr, gi ];
+  }
+
+  public reflectionCoefficientToAdmittance(c: Complex): Complex|undefined {
+    const gr = c[0];
+    const gi = c[1];
+    const d = (gr + 1) * (gr + 1) + gi * gi;
+    if (Math.abs(d) < this.epsilon) {
+      return undefined;
+    }
+    const yr = (1 - gr * gr - gi * gi) / d;
+    const yi = (-2 * gi) / d;
+    return [ yr, yi ];
   }
 
   public admittanceToReflectionCoefficient(c: Complex): Complex|undefined {
@@ -38,25 +50,9 @@ export class SmithConstantCircle {
     if (Math.abs(d) < this.epsilon) {
       return undefined;
     }
-    const g = (1 - yr * yr - yi * yi) / d;
-    const b = (-2 * yi) / d;
-
-    if (Number.isNaN(g)) {
-      console.log(d);
-    }
-    return [ g, b ];
-  }
-
-  public reflectionCoefficientToAdmittance(c: Complex): Complex|undefined {
-    const g = c[0];
-    const b = c[1];
-    const d = (g + 1) * (g + 1) + b * b;
-    if (Math.abs(d) < this.epsilon) {
-      return undefined;
-    }
-    const yr = (1 - g * g - b * b) / d;
-    const yi = (-2 * b) / d;
-    return [ yr, yi ];
+    const gr = (1 - yr * yr - yi * yi) / d;
+    const gi = (-2 * yi) / d;
+    return [ gr, gi ];
   }
 
   public resistanceCircle(n: number): Circle {

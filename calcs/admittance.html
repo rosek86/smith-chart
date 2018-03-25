@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Smith Chart</title>
+  <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML" async>
+</script>
+</head>
+<body>
+  <p>
+    <p style="text-align:center">
+      Admittance to Reflection Coefficient<br/><br/>
+      `\Gamma = (Z_L - Z_0) / (Z_L + Z_0)`<br/><br/>
+      `Z = 1 / Y`<br/><br/>
+      `\Gamma = (1 / Y_L - 1 / Y_0) / (1 / Y_L + 1 / Y_0)`<br/><br/>
+      `\Gamma = ((Y_0 - Y_L) / (Y_L * Y_0)) / ((Y_0 + Y_L) / (Y_L * Y_0))`<br/><br/>
+      `\Gamma = (Y_0 - Y_L) / (Y_0 + Y_L)`<br/><br/>
+      Normalize<br/><br/>
+      `\Gamma = (Y_0/Y_0 - Y_L/Y_0) / (Y_0/Y_0 + Y_L/Y_0)`<br/><br/>
+      `\Gamma = (1 - Y_L/Y_0) / (1 + Y_L/Y_0)`<br/><br/>
+      `y_L = Y_L/Y_0`<br/><br/>
+      `\Gamma = (1 - y_L) / (1 + y_L)`<br/><br/>
+      <br/>
+      `y_L = y_R + j y_I`<br/><br/>
+      <br/>
+      `\Gamma = (1 - (y_R + j y_I)) / (1 + y_R + j y_I)`<br/><br/>
+      `\Gamma = (1 - (y_R + j y_I)) / (1 + y_R + j y_I) (1 + y_R - j y_I) / (1 + y_R - j y_I)`<br/><br/>
+      `\Gamma = (1 - y_R - j y_I) / (1 + y_R + j y_I) (1 + y_R - j y_I) / (1 + y_R - j y_I)`<br/><br/>
+      `\Gamma = (1 + y_R - j y_I - y_R - y_R^2 + j y_R y_I - j y_I - j y_R y_I + j^2 y_I^2) /
+                (1 + y_R - j y_I + y_R + y_R^2 - j y_R y_I + j y_I + j y_R y_I - j^2 y_I^2)`<br/><br/>
+      `\Gamma = (1 - j y_I - y_R^2 - j y_I + j^2 y_I^2) /
+                (1 + y_R + y_R + y_R^2 - j^2 y_I^2)`<br/><br/>
+      `\Gamma = (1 - y_R^2 - y_I^2 - j 2 y_I) /
+                ((1 + 2 y_R + y_R^2) + y_I^2)`<br/><br/>
+      `\Gamma = (1 - y_R^2 - y_I^2 - j 2 y_I) /
+                ((1 + y_R)^2 + y_I^2)`<br/><br/>
+      `\Gamma = (1 - y_R^2 - y_I^2) /
+                ((1 + y_R)^2 + y_I^2) + j (-2 y_I) / ((1 + y_R)^2 + y_I^2)`<br/><br/>
+
+      <br/>
+      Reflection Coefficient to Admittance<br/><br/>
+      `\Gamma = (1 - y_L) / (1 + y_L)`<br/><br/>
+      `(1 + y_L) \Gamma = 1 - y_L`<br/><br/>
+      `\Gamma + y_L \Gamma  = 1 - y_L`<br/><br/>
+      `y_L + y_L \Gamma= 1 - \Gamma`<br/><br/>
+      `y_L (1 + \Gamma) = 1 - \Gamma`<br/><br/>
+      `y_L = (1 - \Gamma) / (1 + \Gamma)`<br/><br/>
+      <br/>
+      `y_L = (1 - \Gamma_R^2 - \Gamma_I^2) /
+                ((1 + \Gamma_R)^2 + \Gamma_I^2) + j (-2 \Gamma_I) / ((1 + \Gamma_R)^2 + \Gamma_I^2)`<br/><br/>
+      </p>
+  </p>
+</p>
+</body>
+</html>
