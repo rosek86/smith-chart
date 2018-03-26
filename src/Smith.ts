@@ -30,6 +30,9 @@ export class Smith {
   private interactionGroup: SmithGroup|null = null;
 
   private constantCircle: SmithConstantCircle = new SmithConstantCircle();
+  private userActionHandler: (() => void)|null = null;
+
+  private reflectionCoefficient: Point = [0,0];
 
   constructor(private selector: string, private size: number) {
     this.svg = new SmithSvg(size);
@@ -50,17 +53,17 @@ export class Smith {
 
   private drawImpedanceTexts(): void {
     this.textGroup.Element.selectAll('*').remove();
-    for (const e of SmithArcsDefs.resistanceMajor()) {
+    for (const e of SmithArcsDefs.textsTicks()) {
       const p = this.constantCircle.impedanceToReflectionoefficient([ e[0], 0 ])!;
-      this.textGroup.append(new SmithText(p, e[0].toString(), { rotate: 90, dy: '0.002', dx: '0.001' }));
+      this.textGroup.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: 90, dy: '0.004', dx: '0.001' }));
     }
   }
 
   private drawAdmittanceTexts(): void {
     this.textGroup.Element.selectAll('*').remove();
-    for (const e of SmithArcsDefs.resistanceMajor()) {
+    for (const e of SmithArcsDefs.textsTicks()) {
       const p = this.constantCircle.admittanceToReflectionCoefficient([ e[0], 0 ])!;
-      this.textGroup.append(new SmithText(p, e[0].toString(), { rotate: -90, dy: '0.002', dx: '0.001' }));
+      this.textGroup.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
     }
   }
 
@@ -104,6 +107,10 @@ export class Smith {
     }
 
     return this;
+  }
+
+  public setUserActionHandler(handler: () => void): void {
+    this.userActionHandler = handler;
   }
 
   public enableInteraction(): void {
@@ -158,13 +165,13 @@ export class Smith {
     group.append(point);
 
     const resistanceText = new SmithText([0, 0], '1.00', {
-      dx: '0.01', dy: '0.02', stroke: 'none', fill: 'red',
+      dx: '0.01', dy: '0.07', stroke: 'none', fill: 'red',
       fontFamily: 'Verdana', fontSize: '0.04', textAnchor: 'start'
     });
     group.append(resistanceText);
 
     const conductanceText = new SmithText([0, 0], '1.00', {
-      dx: '-0.01', dy: '-0.05', stroke: 'none', fill: 'green',
+      dx: '-0.01', dy: '-0.1', stroke: 'none', fill: 'green',
       fontFamily: 'Verdana', fontSize: '0.04', textAnchor: 'end'
     });
     group.append(conductanceText);
@@ -178,46 +185,44 @@ export class Smith {
 
       if (this.isWithinPlot([ x, y ]) === false) { return; }
 
+      this.reflectionCoefficient = [ x, y ];
       point.move({ p: [ x, y ], r: 0.015 });
 
-      const rc1 = this.constantCircle.reflectionCoefficientToImpedance ([ x, y ]);
-      const rc2 = this.constantCircle.reflectionCoefficientToAdmittance([ x, y ]);
-
-      console.log([x, y], rc1, rc2);
-
-      if (rc1 === undefined) {
+      const impedance = this.constantCircle.reflectionCoefficientToImpedance([ x, y ]);
+      if (impedance === undefined) {
         resistanceText.move([x, 0]).text('∞');
         resistanceCircle.Element.attr('visibility', 'hidden');
       } else {
-        const resistance = this.constantCircle.resistanceCircle(rc1[0]);
+        const resistance = this.constantCircle.resistanceCircle(impedance[0]);
         resistanceCircle.Element.attr('visibility', 'visible');
         resistanceCircle.move(resistance);
         resistanceText.move([1-resistance.r*2, 0]).text(sprintf('%5.2f', 1 / resistance.r - 1));
       }
 
-      if (rc1 === undefined || Math.abs(rc1[1]) < 1e-10) {
+      if (impedance === undefined || Math.abs(impedance[1]) < 1e-10) {
         reactanceLine.Element.attr('visibility', 'visible');
         reactanceCircle.Element.attr('visibility', 'hidden');
         // reactanceText.move([x, -y]).text('∞');
       } else {
-        const reactance = this.constantCircle.reactanceCircle(rc1[1]);
+        const reactance = this.constantCircle.reactanceCircle(impedance[1]);
         reactanceLine.Element.attr('visibility', 'hidden');
         reactanceCircle.Element.attr('visibility', 'visible');
         reactanceCircle.move(reactance);
         // reactanceText.move([x, -y]).text(sprintf('%5.2f', 1 / reactance.r - 1));
       }
 
-      if (rc2 === undefined) {
+      const admittance = this.constantCircle.reflectionCoefficientToAdmittance([ x, y ]);
+      if (admittance === undefined) {
         conductanceCircle.Element.attr('visibility', 'hidden');
         conductanceText.move([x, 0]).text('∞');
       } else {
-        const conductance = this.constantCircle.conductanceCircle(rc2[0]);
+        const conductance = this.constantCircle.conductanceCircle(admittance[0]);
         conductanceCircle.Element.attr('visibility', 'visible');
         conductanceCircle.move(conductance);
         conductanceText.move([-1+conductance.r*2, 0]).text(sprintf('%5.2f', 1 / conductance.r - 1));
       }
 
-      if (rc2 === undefined || Math.abs(rc2[1]) < 1e-10) {
+      if (admittance === undefined || Math.abs(admittance[1]) < 1e-10) {
         susceptanceLine.Element.attr('visibility', 'visible');
         susceptanceCircle.Element.attr('visibility', 'hidden');
         // susceptanceText.move([x, -y]).text('∞');
@@ -225,11 +230,27 @@ export class Smith {
         susceptanceLine.Element.attr('visibility', 'hidden');
         susceptanceCircle.Element.attr('visibility', 'visible');
 
-        const susceptance = this.constantCircle.susceptanceCircle(rc2[1]);
+        const susceptance = this.constantCircle.susceptanceCircle(admittance[1]);
         susceptanceCircle.move(susceptance);
         // susceptanceText.move([x, -y]).text(sprintf('%5.2f', 1 / susceptance.r - 1));
       }
+
+      this.userActionHandler && this.userActionHandler();
     }));
+  }
+
+  public getReflectionCoefficient(): Point|undefined {
+    return this.reflectionCoefficient;
+  }
+  public getImpedance(): Point|undefined {
+    return this.constantCircle.reflectionCoefficientToImpedance(this.reflectionCoefficient);
+  }
+  public getAdmittance(): Point|undefined {
+    return this.constantCircle.reflectionCoefficientToAdmittance(this.reflectionCoefficient);
+  }
+
+  public getSwr(): number {
+    return this.constantCircle.swr(this.reflectionCoefficient);
   }
 
   private drawResistanceAxis(opts: SmithCirclesDrawOptions): SmithShape {

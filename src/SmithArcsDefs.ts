@@ -8,6 +8,20 @@ export type SmithArcDef = [
 ];
 
 export class SmithArcsDefs {
+  private constructor() {
+  }
+
+  public static textsTicks(): [number, number][] {
+    // [ resistance circle, fractional digits ]
+    return [
+      [  0.10, 1 ], [  0.20, 1 ], [  0.30, 1 ], [  0.40, 1 ], [  0.50, 1 ],
+      [  0.60, 1 ], [  0.70, 1 ], [  0.80, 1 ], [  0.90, 1 ], [  1.00, 1 ],
+      [  1.20, 1 ], [  1.40, 1 ], [  1.60, 1 ], [  1.80, 1 ], [  2.00, 1 ],
+      [  3.00, 1 ], [  4.00, 1 ], [  5.00, 1 ], [ 10.00, 0 ], [ 20.00, 0 ],
+      [ 50.00, 0 ]
+    ];
+  }
+
   public static resistanceMajor(): SmithArcDef[] {
     return [
       [  0.00, undefined, undefined ],
