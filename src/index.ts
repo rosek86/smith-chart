@@ -9,11 +9,30 @@ $(document).ready(() => {
 
   const smith = new Smith('#smith', size);
 
-  smith.drawImpedance(options);
+  smith.showImpedance();
   smith.enableInteraction();
 
-  $('#impedance').change(() => smith.drawImpedance(options));
-  $('#admittance').change(() => smith.drawAdmittance(options));
+  $('#impedance').change(() => {
+    if ($('#impedance').prop('checked') === true) {
+      smith.showImpedance();
+    } else {
+      smith.hideImpedance();
+    }
+  });
+  $('#admittance').change(() => {
+    if ($('#admittance').prop('checked') === true) {
+      smith.showAdmittance();
+    } else {
+      smith.hideAdmittance();
+    }
+  });
+  $('#constantQ').change(() => {
+    if ($('#constantQ').prop('checked') === true) {
+      smith.showConstantQ();
+    } else {
+      smith.hideConstantQ();
+    }
+  });
 
   const update = () => {
     const rc = smith.getReflectionCoefficient();
@@ -24,20 +43,26 @@ $(document).ready(() => {
     if (rc) {
       $('#reflection-coefficient').text(
         'Γ: ' +
-        rc[0].toFixed(3) + ' + j ' + rc[1].toFixed(3)
+        rc[0].toFixed(3) + ' ' +
+        (rc[1] < 0 ? '-' : '+')  + ' j ' +
+        Math.abs(rc[1]).toFixed(3)
       );
     }
     if (impedance) {
       $('#impedanceValue').text(
         'Z: ' +
-        impedance[0].toFixed(3) + ' + j ' + impedance[1].toFixed(3) +
+        impedance[0].toFixed(3) + ' ' +
+        (impedance[1] < 0 ? '-' : '+')  + ' j ' +
+        Math.abs(impedance[1]).toFixed(3) +
         'Ω'
       );
     }
     if (admittance) {
       $('#admittanceValue').text(
         'Y: ' +
-        admittance[0].toFixed(3) + ' + j ' + admittance[1].toFixed(3) +
+        admittance[0].toFixed(3) + ' ' +
+        (admittance[1] < 0 ? '-' : '+')  + ' j ' +
+        Math.abs(admittance[1]).toFixed(3) +
         '℧'
       );
     }

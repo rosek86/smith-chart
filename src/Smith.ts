@@ -25,8 +25,10 @@ export class Smith {
   private svg: SmithSvg;
   private defs: d3.Selection<SVGElement, {}, null, undefined>;
   private container: SmithGroup;
-  private textGroup: SmithGroup;
-  private mainGroup: SmithGroup|null = null;
+
+  private impedanceGroup: SmithGroup;
+  private admittanceGroup: SmithGroup;
+  private constatnQGroup: SmithGroup|null = null;
   private interactionGroup: SmithGroup|null = null;
 
   private constantCircle: SmithConstantCircle = new SmithConstantCircle();
@@ -37,76 +39,122 @@ export class Smith {
   constructor(private selector: string, private size: number) {
     this.svg = new SmithSvg(size);
     this.container = new SmithGroup().rotateY();
-    this.textGroup = new SmithGroup({ stroke: 'none', fill: 'black', });
-    this.textGroup.Element.attr('font-family', 'Verdana');
-    this.textGroup.Element.attr('font-size',   '0.03');
-    this.textGroup.Element.attr('text-anchor', 'start');
 
     this.svg.append(this.container);
-    this.container.append(this.textGroup);
     this.defs = this.svg.Element.append('defs');
+
+    this.impedanceGroup = this.drawImpedance({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
+    this.admittanceGroup = this.drawAdmittance({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
+
+    this.container.append(this.admittanceGroup);
+    this.container.append(this.impedanceGroup);
 
     this.addResistanceAxisClipPath();
 
     d3.select(selector).append(() => this.svg.Node);
   }
 
-  private drawImpedanceTexts(): void {
-    this.textGroup.Element.selectAll('*').remove();
+  private drawImpedanceTexts(): SmithGroup {
+    const group = new SmithGroup({ stroke: 'none', fill: 'black', });
+    group.Element.attr('font-family', 'Verdana');
+    group.Element.attr('font-size',   '0.03');
+    group.Element.attr('text-anchor', 'start');
     for (const e of SmithArcsDefs.textsTicks()) {
       const p = this.constantCircle.impedanceToReflectionoefficient([ e[0], 0 ])!;
-      this.textGroup.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: 90, dy: '0.004', dx: '0.001' }));
+      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: 90, dy: '0.004', dx: '0.001' }));
     }
+    return group;
   }
 
-  private drawAdmittanceTexts(): void {
-    this.textGroup.Element.selectAll('*').remove();
+  private drawAdmittanceTexts(): SmithGroup {
+    const group = new SmithGroup({ stroke: 'none', fill: 'black', });
+    group.Element.attr('font-family', 'Verdana');
+    group.Element.attr('font-size',   '0.03');
+    group.Element.attr('text-anchor', 'start');
     for (const e of SmithArcsDefs.textsTicks()) {
       const p = this.constantCircle.admittanceToReflectionCoefficient([ e[0], 0 ])!;
-      this.textGroup.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
+      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
     }
+    return group;
   }
 
-  public drawImpedance(opts: SmithCirclesDrawOptions): Smith {
-    if (this.mainGroup !== null) {
-      this.mainGroup.Element.selectAll('*').remove();
-    }
+  private drawImpedance(opts: SmithCirclesDrawOptions): SmithGroup {
+    const group = new SmithGroup();
 
-    this.mainGroup = new SmithGroup();
-    this.mainGroup.append(this.drawResistanceCircles(opts));
-    this.mainGroup.append(this.drawReactanceCircles(opts));
-    this.mainGroup.append(this.drawReactanceAxis(opts));
-    this.mainGroup.append(this.drawResistanceAxis(opts));
-    this.container.append(this.mainGroup);
+    group.append(this.drawResistanceCircles(opts));
+    group.append(this.drawReactanceCircles(opts));
+    group.append(this.drawReactanceAxis(opts));
+    group.append(this.drawResistanceAxis(opts));
+    group.append(this.drawImpedanceTexts());
 
-    this.drawImpedanceTexts();
-
-    if (this.interactionGroup !== null) {
-      this.interactionGroup.Element.raise();
-    }
-
-    return this;
+    group.Element.attr('visibility', 'hidden');
+    return group;
   }
 
-  public drawAdmittance(opts: SmithCirclesDrawOptions): Smith {
-    if (this.mainGroup !== null) {
-      this.mainGroup.Element.selectAll('*').remove();
+  public showImpedance(): void {
+    this.impedanceGroup.Element.attr('visibility', 'visible');
+  }
+
+  public hideImpedance(): void {
+    this.impedanceGroup.Element.attr('visibility', 'hidden');
+  }
+
+  public showAdmittance(): void {
+    this.admittanceGroup.Element.attr('visibility', 'visible');
+  }
+
+  public hideAdmittance(): void {
+    this.admittanceGroup.Element.attr('visibility', 'hidden');
+  }
+
+  private drawAdmittance(opts: SmithCirclesDrawOptions): SmithGroup {
+    const group = new SmithGroup();
+
+    group.append(this.drawConductanceCircles(opts));
+    group.append(this.drawSusceptanceCircles(opts));
+    group.append(this.drawReactanceAxis(opts));
+    group.append(this.drawResistanceAxis(opts));
+    group.append(this.drawAdmittanceTexts());
+
+    group.Element.attr('visibility', 'hidden');
+    return group;
+  }
+
+  private drawConstantQ(): SmithGroup {
+    // Center is (0, +1/Q) or (0, -1/Q).
+    // Radius is sqrt(1+1/Q^2).
+    const group = new SmithGroup({
+      stroke: 'blue', strokeWidth: '0.001', fill: 'none'
+    });
+
+    const Qs = [ 0.5, 1, 2, 5, 10 ];
+
+    for (const Q of Qs) {
+      const r = Math.sqrt(1 + 1 / (Q * Q));
+      const q1 = new SmithArc([-1, 0], [1, 0], r, '0', '0');
+      group.append(q1);
+
+      const q2 = new SmithArc([-1, 0], [1, 0], r, '0', '1');
+      group.append(q2);
     }
 
-    this.mainGroup = new SmithGroup();
-    this.mainGroup.append(this.drawConductanceCircles(opts));
-    this.mainGroup.append(this.drawSusceptanceCircles(opts));
-    this.mainGroup.append(this.drawReactanceAxis(opts));
-    this.mainGroup.append(this.drawResistanceAxis(opts));
-    this.container.append(this.mainGroup);
+    group.Element.attr('visibility', 'hidden');
 
-    this.drawAdmittanceTexts();
+    return group;
+  }
 
-    if (this.interactionGroup !== null) {
-      this.interactionGroup.Element.raise();
+  public showConstantQ(): void {
+    if (!this.constatnQGroup) {
+      this.constatnQGroup = this.drawConstantQ();
+      this.container.append(this.constatnQGroup);
     }
+    this.constatnQGroup.Element.attr('visibility', 'visible');
+  }
 
-    return this;
+  public hideConstantQ(): void {
+    if (this.constatnQGroup) {
+      this.constatnQGroup.Element.attr('visibility', 'hidden');
+    }
   }
 
   public setUserActionHandler(handler: () => void): void {
@@ -248,6 +296,10 @@ export class Smith {
   public getAdmittance(): Point|undefined {
     return this.constantCircle.reflectionCoefficientToAdmittance(this.reflectionCoefficient);
   }
+
+  // public getQ(): number {
+  //   return Math.sqrt(1 + 1 / (Q*Q));
+  // }
 
   public getSwr(): number {
     return this.constantCircle.swr(this.reflectionCoefficient);
