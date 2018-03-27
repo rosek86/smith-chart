@@ -71,10 +71,19 @@ export class SmithConstantCircle {
     return { p: [ -1, -1 / n ], r: Math.abs(1 / n) };
   }
 
-  public swr(rc: Complex): number {
+  public reflectionCoefficientToSwr(rc: Complex): number {
     const x = rc[0];
     const y = rc[1];
     const gamma = Math.sqrt(x*x + y*y);
     return (1 + gamma) / (1 - gamma);
+  }
+
+  public swrToAbsReflectionCoefficient(swr: number): number {
+    return (swr - 1) / (swr + 1);
+  }
+
+  public reflectionCoefficientToReturnLoss(rc: Complex): number {
+    const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
+    return -20 * Math.log10(abs);
   }
 }

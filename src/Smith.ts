@@ -28,7 +28,9 @@ export class Smith {
 
   private impedanceGroup: SmithGroup;
   private admittanceGroup: SmithGroup;
-  private constatnQGroup: SmithGroup|null = null;
+  private constantSwrGroup: SmithGroup;
+  private constantQGroup: SmithGroup;
+
   private interactionGroup: SmithGroup|null = null;
 
   private constantCircle: SmithConstantCircle = new SmithConstantCircle();
@@ -45,9 +47,13 @@ export class Smith {
 
     this.impedanceGroup = this.drawImpedance({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
     this.admittanceGroup = this.drawAdmittance({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
+    this.constantSwrGroup = this.drawSwr();
+    this.constantQGroup = this.drawConstantQ();
 
     this.container.append(this.admittanceGroup);
     this.container.append(this.impedanceGroup);
+    this.container.append(this.constantSwrGroup);
+    this.container.append(this.constantQGroup);
 
     this.addResistanceAxisClipPath();
 
@@ -120,14 +126,41 @@ export class Smith {
     return group;
   }
 
+  public showConstantSwrCircles(): void {
+    this.constantSwrGroup.Element.attr('visibility', 'visible');
+  }
+
+  public hideConstantSwrCircles(): void {
+    this.constantSwrGroup.Element.attr('visibility', 'hidden');
+  }
+
+  private drawSwr(): SmithGroup {
+    const swrs = [ 1.2, 1.5, 2, 3, 5, 10 ];
+
+    const group = new SmithGroup();
+
+    for (const swr of swrs) {
+      group.append(
+        new SmithCircle({
+          p: [0,0],
+          r: this.constantCircle.swrToAbsReflectionCoefficient(swr)
+        }, { stroke: 'orange', strokeWidth: '0.003', fill: 'none'})
+      );
+    }
+
+    group.Element.attr('visibility', 'hidden');
+    return group;
+  }
+
   private drawConstantQ(): SmithGroup {
     // Center is (0, +1/Q) or (0, -1/Q).
     // Radius is sqrt(1+1/Q^2).
+
+    const Qs = [ 0.5, 1, 2, 5, 10 ];
+
     const group = new SmithGroup({
       stroke: 'blue', strokeWidth: '0.001', fill: 'none'
     });
-
-    const Qs = [ 0.5, 1, 2, 5, 10 ];
 
     for (const Q of Qs) {
       const r = Math.sqrt(1 + 1 / (Q * Q));
@@ -144,17 +177,11 @@ export class Smith {
   }
 
   public showConstantQ(): void {
-    if (!this.constatnQGroup) {
-      this.constatnQGroup = this.drawConstantQ();
-      this.container.append(this.constatnQGroup);
-    }
-    this.constatnQGroup.Element.attr('visibility', 'visible');
+    this.constantQGroup.Element.attr('visibility', 'visible');
   }
 
   public hideConstantQ(): void {
-    if (this.constatnQGroup) {
-      this.constatnQGroup.Element.attr('visibility', 'hidden');
-    }
+    this.constantQGroup.Element.attr('visibility', 'hidden');
   }
 
   public setUserActionHandler(handler: () => void): void {
@@ -296,13 +323,16 @@ export class Smith {
   public getAdmittance(): Point|undefined {
     return this.constantCircle.reflectionCoefficientToAdmittance(this.reflectionCoefficient);
   }
-
-  // public getQ(): number {
-  //   return Math.sqrt(1 + 1 / (Q*Q));
-  // }
-
+  public getQ(): number|undefined {
+    const impedance = this.constantCircle.reflectionCoefficientToImpedance(this.reflectionCoefficient);
+    if (!impedance) { return; }
+    return Math.abs(impedance[1] / impedance[0]);
+  }
   public getSwr(): number {
-    return this.constantCircle.swr(this.reflectionCoefficient);
+    return this.constantCircle.reflectionCoefficientToSwr(this.reflectionCoefficient);
+  }
+  public getReturnLoss(): number {
+    return this.constantCircle.reflectionCoefficientToReturnLoss(this.reflectionCoefficient);
   }
 
   private drawResistanceAxis(opts: SmithCirclesDrawOptions): SmithShape {

@@ -33,12 +33,21 @@ $(document).ready(() => {
       smith.hideConstantQ();
     }
   });
+  $('#constantSwr').change(() => {
+    if ($('#constantSwr').prop('checked') === true) {
+      smith.showConstantSwrCircles();
+    } else {
+      smith.hideConstantSwrCircles();
+    }
+  });
 
   const update = () => {
     const rc = smith.getReflectionCoefficient();
     const impedance = smith.getImpedance();
     const admittance = smith.getAdmittance();
     const swr = smith.getSwr();
+    const returnLoss = smith.getReturnLoss();
+    const Q = smith.getQ();
 
     if (rc) {
       $('#reflection-coefficient').text(
@@ -66,8 +75,12 @@ $(document).ready(() => {
         '℧'
       );
     }
+    if (Q) {
+      $('#q-value').text('Q: ' + Q.toFixed(3));
+    }
 
-    $('#swr').text('SWR: ' + swr.toFixed(3));
+    $('#swr').text('VSWR: ' + swr.toFixed(3) + ' : 1');
+    $('#return-loss').text('Return Loss: ' + returnLoss.toFixed(2) + ' dB');
   };
 
   smith.setUserActionHandler(update);
