@@ -84,6 +84,11 @@ export class SmithConstantCircle {
 
   public reflectionCoefficientToReturnLoss(rc: Complex): number {
     const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
-    return -20 * Math.log10(abs);
+    return -20.0 * Math.log10(abs);
+  }
+
+  public reflectionCoefficientToMismatchLoss(rc: Complex): number {
+    const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
+    return -10.0 * Math.log10(1 - abs*abs);
   }
 }

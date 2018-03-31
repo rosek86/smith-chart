@@ -17,14 +17,34 @@
       <input type="checkbox" id="admittance"       >Admittance</input>
       <input type="checkbox" id="constantQ"        >Constant Q</input>
       <input type="checkbox" id="constantSwr"      >Constant SWR</input>
+      <input type="file"     id="file"/>
     </form>
 
-    <div id="reflection-coefficient"></div>
-    <div id="impedanceValue"></div>
-    <div id="admittanceValue"></div>
-    <div id="swr"></div>
-    <div id="return-loss"></div>
-    <div id="q-value"></div>
+    <div style="display: absolute; float: right">
+      <p>
+        <div>Cursor:</div>
+        <div id="cur-ref-co">Γ: 0.000 + j 0.000</div>
+        <div id="cur-imp">Z: 50.000 + j 0.000 Ω</div>
+        <div id="cur-adm">Y: 20.000 + j 0.000 mS</div>
+        <div id="cur-swr">VSWR: 1.000 : 1</div>
+        <div id="cur-ret-loss">Return Loss: N/A dB</div>
+        <div id="cur-mis-loss">Mismatch Loss: N/A dB</div>
+        <div id="cur-q">Q: N/A</div>
+      </p>
+      <p>
+        <div>Marker:</div>
+        <div id="mark-freq">Frequency: 0 Hz</div>
+        <div id="mark-ref-co">Γ: 0.000 + j 0.000</div>
+        <div id="mark-imp">Z: 50.000 + j 0.000 Ω</div>
+        <div id="mark-adm">Y: 20.000 + j 0.000 mS</div>
+        <div id="mark-swr">VSWR: 1.000 : 1</div>
+        <div id="mark-ret-loss">Return Loss: N/A dB</div>
+        <div id="mark-mis-loss">Mismatch Loss: N/A dB</div>
+        <div id="mark-q">Q: N/A</div>
+        <div id="mark-comp-val">Value: N/A</div>
+      </p>
+    </div>
+
     <div id="smith"></div>
 
     <script src="./node_modules/jquery/dist/jquery.min.js"></script>
