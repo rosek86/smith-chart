@@ -9,6 +9,7 @@ export class SmithSvg {
     this.container = d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     )
+    .attr('version', '1.1')
     .attr('xmlns', 'http://www.w3.org/2000/svg')
     .attr('width', size).attr('height', size)
     .attr('viewBox', '-1 -1 2 2')
@@ -33,10 +34,8 @@ export class SmithSvg {
     return this.container;
   }
 
-  public appendDef(el: SmithShape|null): SmithSvg {
-    if (el !== null) {
-      this.defs.append(() => el.Node);
-    }
+  public appendDef(el: SmithShape): SmithSvg {
+    this.defs.append(() => el.Node);
     return this;
   }
 }

@@ -23,7 +23,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "prepack": "bash ./scripts/pack-copy.sh",
     "pack": "webpack --mode production",
+    "prepack-watch": "bash ./scripts/pack-copy.sh",
     "pack-watch": "webpack --mode production --watch"
   },
   "author": "",

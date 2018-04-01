@@ -17,7 +17,7 @@ export class SmithMarker extends SmithShape {
     const g = this.Element;
 
     this.triangle = g.append<SVGPolygonElement>('polygon')
-      .attr('points', '0,0 0.03,0.06 -0.03,0.06')
+      .attr('points', '0,0 0.03,-0.06 -0.03,-0.06')
       .attr('stroke-width', '0.005')
       .attr('stroke', 'gray')
       .attr('fill', 'purple')
@@ -25,7 +25,7 @@ export class SmithMarker extends SmithShape {
 
     this.text = g.append<SVGTextElement>('text')
       .attr('pointer-events', 'none')
-      .attr('transform', 'translate(0,0) scale(1,-1)')
+      .attr('transform', 'translate(0,0)')
       .attr('font-family', 'Verdana')
       .attr('font-size',   '0.04')
       .attr('font-weight', 'normal')
@@ -38,7 +38,7 @@ export class SmithMarker extends SmithShape {
 
     this.triangle.call(d3.drag<SVGPolygonElement, {}>()
       .on('start', () => {
-        this.triangle.attr('stroke', 'purple');
+        this.triangle.attr('stroke', 'gray');
       })
       .on('drag', () => {
         this.dragHandler && this.dragHandler([ d3.event.x, d3.event.y ]);
@@ -50,7 +50,7 @@ export class SmithMarker extends SmithShape {
 
   public move(p: Point): void {
     this.triangle.attr('transform', `translate(${p[0]},${p[1]})`);
-    this.text.attr('x', `${p[0]}`).attr('y', `${-p[1]}`);
+    this.text.attr('x', `${p[0]}`).attr('y', `${p[1]}`);
   }
 
   public show(): void {
