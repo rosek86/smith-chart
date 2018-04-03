@@ -17,4 +17,14 @@ export class SmithCircle extends SmithShape {
     this.element.attr('cx', c.p[0]).attr('cy', c.p[1]).attr('r', c.r);
     return this;
   }
+
+  public hide(): void {
+    // this.Element.attr('visibility', 'hidden');
+    this.Element.attr('opacity', '0');
+  }
+
+  public show(): void {
+    // this.Element.attr('visibility', 'visible');
+    this.Element.attr('opacity', null);
+  }
 }

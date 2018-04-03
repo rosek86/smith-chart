@@ -34,8 +34,10 @@ $(document).ready(() => {
 
     if (event.type === SmithEventType.Cursor) {
       $('#cur-ref-co').text(`Γ: ${smith.formatComplex(rc)}`);
-      z && $('#cur-imp').text(`Z: ${smith.formatComplex(z)} Ω`);
-      y && $('#cur-adm').text(`Y: ${smith.formatComplex(y)} mS`);
+      z && $('#cur-imp').text(`Z: ${smith.formatComplex(z, 'Ω')}`);
+      z && $('#cur-imp-pol').text(`Z: ${smith.formatComplexPolar(z, 'Ω')}`);
+      y && $('#cur-adm').text(`Y: ${smith.formatComplex(y, 'mS')}`);
+      y && $('#cur-adm-pol').text(`Y: ${smith.formatComplexPolar(y, 'mS')}`);
       $('#cur-swr').text(`VSWR: ${swr.toFixed(3)} : 1`);
       $('#cur-ret-loss').text(`Return Loss: ${rl.toFixed(2)} dB`);
       $('#cur-mis-loss').text(`Mismatch Loss: ${ml.toFixed(2)} dB`);
@@ -44,8 +46,10 @@ $(document).ready(() => {
 
     if (event.type === SmithEventType.Marker) {
       $('#mark-ref-co').text(`Γ: ${smith.formatComplex(rc)}`);
-      z && $('#mark-imp').text(`Z: ${smith.formatComplex(z)} Ω`);
-      y && $('#mark-adm').text(`Y: ${smith.formatComplex(y)} mS`);
+      z && $('#mark-imp').text(`Z: ${smith.formatComplex(z, 'Ω')}`);
+      z && $('#mark-imp-pol').text(`Z: ${smith.formatComplexPolar(z, 'Ω')}`);
+      y && $('#mark-adm').text(`Y: ${smith.formatComplex(y, 'mS')}`);
+      y && $('#mark-adm-pol').text(`Y: ${smith.formatComplexPolar(y, 'mS')}`);
       $('#mark-swr').text(`VSWR: ${swr.toFixed(3)} : 1`);
       $('#mark-ret-loss').text(`Return Loss: ${rl.toFixed(2)} dB`);
       $('#mark-mis-loss').text(`Mismatch Loss: ${ml.toFixed(2)} dB`);

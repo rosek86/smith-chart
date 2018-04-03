@@ -26,7 +26,8 @@
     "prepack": "bash ./scripts/pack-copy.sh",
     "pack": "webpack --mode production",
     "prepack-watch": "bash ./scripts/pack-copy.sh",
-    "pack-watch": "webpack --mode production --watch"
+    "pack-watch": "webpack --mode production --watch",
+    "app": "cp ./dist/*.js ./dist/*.html ../smith-app/smith-app/"
   },
   "author": "",
   "license": "ISC"

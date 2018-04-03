@@ -19,4 +19,14 @@ export class SmithLine extends SmithShape {
       .attr('x2', p2[0]).attr('y2', p2[1])
     return this;
   }
+
+  public hide(): void {
+    // this.Element.attr('visibility', 'hidden');
+    this.Element.attr('opacity', '0');
+  }
+
+  public show(): void {
+    // this.Element.attr('visibility', 'visible');
+    this.Element.attr('opacity', null);
+  }
 }

@@ -91,4 +91,22 @@ export class SmithConstantCircle {
     const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
     return -10.0 * Math.log10(1 - abs*abs);
   }
+
+  public circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
+    const dl = Math.sqrt(Math.pow(c2.p[0] - c1.p[0], 2) + Math.pow(c2.p[1] - c1.p[1], 2));
+
+    const cosA = (dl * dl + c1.r * c1.r - c2.r * c2.r) / (2 * dl * c1.r);
+    const sinA = Math.sqrt(1 - Math.pow(cosA, 2));
+
+    const vpx = (c2.p[0] - c1.p[0]) * c1.r / dl;
+    const vpy = (c2.p[1] - c1.p[1]) * c1.r / dl;
+
+    return [ [
+        vpx * cosA - vpy * sinA + c1.p[0],
+        vpx * sinA + vpy * cosA + c1.p[1],
+    ], [
+        vpx * cosA + vpy * sinA + c1.p[0],
+        vpy * cosA - vpx * sinA + c1.p[1],
+    ]];
+  }
 }

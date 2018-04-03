@@ -4,37 +4,45 @@ import { SmithCircle } from "./SmithCircle";
 import { SmithMarker } from "./SmithMarker";
 import { Point } from "./Point";
 
+import * as d3 from 'd3';
+
 interface Marker {
   marker: SmithMarker;
   selectedPoint: S1PEntry;
 }
 
 interface Transform {
-  x:number;
-  y:number;
-  k:number;
+  x: number;
+  y: number;
+  k: number;
 }
 
 export class SmithData {
+  private pointRadius = 0.005;
+
   private group: SmithGroup;
 
   private markersCount = 0;
   private markers: Marker[] = [];
 
-  private pointSize = 1;
-
   private handler: ((marker: number, data: S1PEntry) => void)|null = null;
 
-  public constructor(private data: S1P, private transform: Transform, private fgContainer: SmithGroup, private bgContainer: SmithGroup) {
-    this.group = this.drawPoints(data, 'purple');
+  public constructor(
+      private data: S1P,
+      private color: string,
+      private transform: Transform,
+      private fgContainer: SmithGroup, private bgContainer: SmithGroup) {
+    this.group = this.drawPoints(data);
     this.bgContainer.append(this.group);
-
-    this.addMarker();
   }
 
-  private drawPoints(data: S1P, fill: string): SmithGroup {
-    const group = new SmithGroup({ stroke: 'none', strokeWidth: 'none', fill });
-    data.forEach((dp) => group.append(new SmithCircle({ p: dp.point, r: 0.005 })));
+  private drawPoints(data: S1P): SmithGroup {
+    const group = new SmithGroup({
+      stroke: 'none', strokeWidth: 'none', fill: this.color
+    });
+    data.forEach((dp) => {
+      group.append(new SmithCircle({ p: dp.point, r: this.pointRadius }))
+    });
     return group;
   }
 
@@ -46,42 +54,22 @@ export class SmithData {
 
   private zoomDataPoints(): void {
     const k = this.transform.k;
-    const g = this.group.Element;
-
-    if (this.pointSize === 5 && k > 10.1) {
-      g.selectAll('*').attr('r', '0.001');
-      this.pointSize = 10;
-    }
-    if (this.pointSize === 10 && k < 9.9) {
-      g.selectAll('*').attr('r', '0.003');
-      this.pointSize = 5;
-    }
-    if (this.pointSize === 1 && k > 5.1) {
-      g.selectAll('*').attr('r', '0.003');
-      this.pointSize = 5;
-    }
-    if (this.pointSize === 5 && k < 4.9) {
-      g.selectAll('*').attr('r', '0.005');
-      this.pointSize = 1;
-    }
+    this.group.Element.selectAll('*').attr('r', this.pointRadius / k);
   }
 
   private zoomAllMarkers(): void {
     for (const marker of this.markers) {
       const rc = marker.selectedPoint;
-      marker.marker.move(this.bg2fg(rc.point));
+      rc && marker.marker.move(this.bg2fg(rc.point));
     }
   }
 
   public addMarker(): void {
     const markerIndex = this.markersCount++;
-    const marker = new SmithMarker(markerIndex + 1);
+    const marker = new SmithMarker(markerIndex + 1, this.color);
 
-    const markerDesc = { marker, selectedPoint: this.data[0], };
+    const markerDesc: Marker = { marker, selectedPoint: this.data[0], };
     this.markers.push(markerDesc);
-
-    marker.move(this.bg2fg(markerDesc.selectedPoint.point));
-    marker.show();
 
     this.fgContainer.append(marker);
     marker.Element.raise();
@@ -95,6 +83,11 @@ export class SmithData {
       marker.move(this.bg2fg(dp.point));
       this.handler && this.handler(markerIndex, dp);
     });
+
+    marker.show();
+    marker.move(this.bg2fg(markerDesc.selectedPoint.point));
+
+    this.handler && this.handler(markerIndex, markerDesc.selectedPoint);
   }
 
   public setMarkerMoveHandler(handler: (marker: number, data: S1PEntry) => void): void {

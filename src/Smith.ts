@@ -13,6 +13,7 @@ import { SmithLine } from './draw/SmithLine';
 import { SmithText } from './draw/SmithText';
 import { SmithMarker } from './draw/SmithMarker';
 import { SmithData } from './draw/SmithData';
+import { SmithCursor } from './draw/SmithCursor';
 
 import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithArcsDefs, SmithArcDef, SmithArcEntry } from './SmithArcsDefs';
@@ -20,23 +21,8 @@ import { SmithDrawOptions } from './draw/SmithDrawOptions';
 
 import { S1P, S1PEntry } from './SnP';
 
-type Vector = [ number, number ];
-
 interface SmithCirclesDrawOptions {
   stroke: string, minorWidth: string, majorWidth: string,
-}
-
-interface SmithCursor {
-  group: SmithGroup;
-  point: SmithCircle;
-  impedance: {
-    resistance: { circle: SmithCircle; };
-    reactance: { circle: SmithCircle; line: SmithLine; };
-  };
-  admittance: {
-    conductance: { circle: SmithCircle; };
-    susceptance: { circle: SmithCircle; line: SmithLine; };
-  }
 }
 
 export interface SmithCursorEvent {
@@ -69,6 +55,8 @@ export interface SmithEvent {
   data: SmithCursorEvent|SmithMarkerEvent;
 }
 
+interface ZoomTransform { x: number, y: number, k: number }
+
 export class Smith {
   private svg: SmithSvg;
   private defs: d3.Selection<SVGElement, {}, null, undefined>;
@@ -80,19 +68,16 @@ export class Smith {
   private constantSwrGroup: SmithGroup;
   private constantQGroup: SmithGroup;
 
-  private interactionGroup: SmithGroup|null = null;
-
-  private constantCircle: SmithConstantCircle = new SmithConstantCircle();
+  private calcs: SmithConstantCircle = new SmithConstantCircle();
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   private fgContainer: SmithGroup;
   private fgContainerShape: SmithCircle;
 
-  private reflectionCoefficient: Point = [0,0];
   private cursor: SmithCursor;
 
-  private transform = { x: 0, y: 0, k: 1 };
-  private data: SmithData|null = null;
+  private transform: ZoomTransform;
+  private data: SmithData[] = [];
 
   constructor(private selector: string, private size: number, private Z0: number = 50) {
     this.svg = new SmithSvg(size);
@@ -125,32 +110,24 @@ export class Smith {
     const that = this;
     this.fgContainerShape.Element
       .on('mousemove', function () {
-        const point = that.actionToPlot(d3.mouse(this as any));
-
-        if (that.isWithinPlot(point)) {
-          that.cursorOver(point);
-        } else {
-          that.cursorOut();
-        }
-      }).on('mouseleave', function () {
-        that.cursorOut();
+        const rc = that.actionToPlot(d3.mouse(this as any));
+        that.cursor.move(rc);
+      }).on('mouseleave', () => {
+        this.cursor.hide();
       });
 
     const zoom = d3.zoom<SVGElement, {}>()
       .scaleExtent([0.5, 40])
-      // .translateExtent([[-5, -5], [size+5, size+5]])
+      // .translateExtent([[600, 600], [0, 0]])
       .on('zoom', () => {
         this.transform = d3.event.transform;
 
-        const x = d3.event.transform.x;
-        const y = d3.event.transform.y;
-        const k = d3.event.transform.k;
+        this.bgContainerZoom(this.transform);
+        this.cursor.zoom(this.transform);
 
-        console.log(`translate(${x}, ${y}) scale(${k}, ${-k})`);
-
-        this.container.Element.attr('transform', `translate(${x}, ${y}) scale(${k}, ${-k})`);
-
-        this.data && this.data.zoom(this.transform);
+        for (const d of this.data) {
+          d.zoom(this.transform);
+        }
       });
 
     this.fgContainerShape.Element
@@ -161,13 +138,32 @@ export class Smith {
 
     // Initial zoom
     this.transform = { x: 0, y: 0, k: 0.95 };
-    this.container.Element.attr('transform', `translate(0,0) scale(0.95,-0.95)`);
+    this.bgContainerZoom(this.transform);
 
-    this.cursor = this.drawCursor();
-    this.cursor.group.Element.attr('opacity', '0');
-    this.container.append(this.cursor.group);
+    this.cursor = new SmithCursor(this.container, this.transform);
+    this.cursor.setMoveHandler((rc) => {
+      this.userActionHandler && this.userActionHandler({
+        type: SmithEventType.Cursor,
+        data: {
+          reflectionCoefficient: rc,
+          impedance: this.getImpedance(rc),
+          admittance: this.getAdmittance(rc),
+          swr: this.getSwr(rc),
+          returnLoss: this.getReturnLoss(rc),
+          mismatchLoss: this.getMismatchLoss(rc),
+          Q: this.getQ(rc)
+        } as SmithCursorEvent
+      });
+    });
 
     d3.select(selector).append(() => this.svg.Node);
+  }
+
+  private bgContainerZoom(transform: ZoomTransform): void {
+    const x = transform.x;
+    const y = transform.y;
+    const k = transform.k;
+    this.container.Element.attr('transform', `translate(${x}, ${y}) scale(${k}, ${-k})`);
   }
 
   private actionToPlot(p: Point): Point {
@@ -179,26 +175,8 @@ export class Smith {
     return po;
   }
 
-  private plotToAction(p: Point): Point {
-    const po: Point = [p[0], p[1]];
-    po[0] *= this.transform.k;
-    po[1] *= -this.transform.k;
-    po[0] += this.transform.x;
-    po[1] += this.transform.y;
-    return po;
-  }
-
-  private cursorOver(point: Point): void {
-    this.cursor.group.Element.attr('opacity', null);
-    this.moveCursor(point);
-  }
-
-  private cursorOut(): void {
-    this.cursor.group.Element.attr('opacity', '0');
-  }
-
   public getReactanceComponentValue(p: Point, f: number): string {
-    let z = this.constantCircle.reflectionCoefficientToImpedance(p);
+    let z = this.calcs.reflectionCoefficientToImpedance(p);
     if (!z) {
       return 'Undefined';
     }
@@ -214,8 +192,14 @@ export class Smith {
     return this.formatNumber(ind) + 'H';
   }
 
-  public formatComplex(c: Point, dp: number = 3): string {
-    return `${c[0].toFixed(dp)} ${c[1] < 0 ? '-' : '+'} j ${Math.abs(c[1]).toFixed(dp)}`;
+  public formatComplex(c: Point, unit: string = '', dp: number = 3): string {
+    return `(${c[0].toFixed(dp)} ${c[1] < 0 ? '-' : '+'} j ${Math.abs(c[1]).toFixed(dp)}) ${unit}`;
+  }
+
+  public formatComplexPolar(c: Point, unit: string = '', dp: number = 3): string {
+    const m = Math.sqrt(c[0]*c[0] + c[1]*c[1]);
+    const a = Math.atan2(c[1], c[0]) * 180.0 / Math.PI;
+    return `${m.toFixed(dp)}${unit} ∠${a.toFixed(dp)}°`;
   }
 
   public formatNumber(val: number): string {
@@ -238,14 +222,18 @@ export class Smith {
     return (val / 1e-24).toFixed(3) + ' y';
   }
 
-  public addS1P(data: S1P): void {
-    if (data.length === 0) { return; }
+  public addS1P(values: S1P): void {
+    if (values.length === 0) { return; }
+    const data = this.createSmithData(values, this.data.length);
+    this.data.push(data);
+  }
 
-    this.data = new SmithData(data,
+  private createSmithData(values: S1P, index: number): SmithData {
+    const color = d3.schemeCategory10[1+index];
+    const data = new SmithData(values, color,
       this.transform, this.fgContainer, this.container
     );
-
-    this.data.setMarkerMoveHandler((marker, data) => {
+    data.setMarkerMoveHandler((marker, data) => {
       const rc = data.point;
       this.userActionHandler && this.userActionHandler({
         type: SmithEventType.Marker,
@@ -261,6 +249,8 @@ export class Smith {
         } as SmithMarkerEvent
       });
     });
+    data.addMarker();
+    return data;
   }
 
   private drawImpedanceTexts(): SmithGroup {
@@ -269,7 +259,7 @@ export class Smith {
     group.Element.attr('font-size',   '0.03');
     group.Element.attr('text-anchor', 'start');
     for (const e of SmithArcsDefs.textsTicks()) {
-      const p = this.constantCircle.impedanceToReflectionoefficient([ e[0], 0 ])!;
+      const p = this.calcs.impedanceToReflectionoefficient([ e[0], 0 ])!;
       group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: 90, dy: '0.004', dx: '0.001' }));
     }
     return group;
@@ -281,7 +271,7 @@ export class Smith {
     group.Element.attr('font-size',   '0.03');
     group.Element.attr('text-anchor', 'start');
     for (const e of SmithArcsDefs.textsTicks()) {
-      const p = this.constantCircle.admittanceToReflectionCoefficient([ e[0], 0 ])!;
+      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ])!;
       group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
     }
     return group;
@@ -353,81 +343,13 @@ export class Smith {
       group.append(
         new SmithCircle({
           p: [0,0],
-          r: this.constantCircle.swrToAbsReflectionCoefficient(swr)
+          r: this.calcs.swrToAbsReflectionCoefficient(swr)
         }, { stroke: 'orange', strokeWidth: '0.003', fill: 'none'})
       );
     }
 
     group.Element.attr('visibility', 'hidden');
     return group;
-  }
-
-  private drawCursor(): SmithCursor {
-    const group = new SmithGroup();
-
-    const rc = this.constantCircle.reflectionCoefficientToImpedance([0, 0]);
-    let c = this.constantCircle.resistanceCircle(rc![0]);
-
-    const resistanceCircle = new SmithCircle(
-      c,
-      { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
-    );
-    group.append(resistanceCircle);
-
-    c = this.constantCircle.reactanceCircle(rc![1]);
-    const reactanceLine = new SmithLine([-1, 0], [1, 0], {
-      stroke: 'red', strokeWidth: '0.005', fill: 'none',
-    });
-    group.append(reactanceLine);
-    const reactanceCircle = new SmithCircle(
-      { p: [0,0], r: 0 },
-      { stroke: 'red', strokeWidth: '0.005', fill: 'none', }
-    );
-    reactanceCircle.Element.attr('clip-path', 'url(#resistance-axis-clip)');
-    group.append(reactanceCircle);
-
-    const conductanceCircle = new SmithCircle(
-      this.constantCircle.conductanceCircle(1),
-      { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
-    );
-    group.append(conductanceCircle);
-
-    const susceptanceLine = new SmithLine([-1, 0], [1, 0], {
-      stroke: 'green', strokeWidth: '0.005', fill: 'none',
-    });
-    group.append(susceptanceLine);
-    const susceptanceCircle = new SmithCircle(
-      { p: [0,0], r: 0 },
-      { stroke: 'green', strokeWidth: '0.005', fill: 'none', }
-    );
-    susceptanceCircle.Element.attr('clip-path', 'url(#resistance-axis-clip)');
-    group.append(susceptanceCircle);
-
-    const point = new SmithCircle(
-      { p: [0, 0], r: 0.010 },
-      { stroke: 'none', strokeWidth: 'none', fill: 'red' }
-    );
-    group.append(point);
-
-    const cursor: SmithCursor = {
-      group, point,
-      impedance: {
-        resistance: { circle: resistanceCircle },
-        reactance: {
-          circle: reactanceCircle,
-          line: reactanceLine,
-        },
-      },
-      admittance: {
-        conductance: { circle: conductanceCircle },
-        susceptance: {
-          circle: susceptanceCircle,
-          line: susceptanceLine
-        },
-      },
-    };
-
-    return cursor;
   }
 
   private drawConstantQ(): SmithGroup {
@@ -442,10 +364,10 @@ export class Smith {
 
     for (const Q of Qs) {
       const r = Math.sqrt(1 + 1 / (Q * Q));
-      const q1 = new SmithArc([-1, 0], [1, 0], r, '0', '0');
+      const q1 = new SmithArc([-1, 0], [1, 0], r, false, false);
       group.append(q1);
 
-      const q2 = new SmithArc([-1, 0], [1, 0], r, '0', '1');
+      const q2 = new SmithArc([-1, 0], [1, 0], r, false, true);
       group.append(q2);
     }
 
@@ -466,71 +388,8 @@ export class Smith {
     this.userActionHandler = handler;
   }
 
-  private moveCursor(p: Point): void {
-    if (this.isWithinPlot(p) === false) { return; }
-
-    this.reflectionCoefficient = p;
-    this.cursor.point.move({ p, r: 0.015 });
-
-    const impedance = this.constantCircle.reflectionCoefficientToImpedance(p);
-    if (impedance === undefined) {
-      this.cursor.impedance.resistance.circle.Element.attr('visibility', 'hidden');
-    } else {
-      const resistance = this.constantCircle.resistanceCircle(impedance[0]);
-      this.cursor.impedance.resistance.circle.Element.attr('visibility', 'visible');
-      this.cursor.impedance.resistance.circle.move(resistance);
-    }
-
-    if (impedance === undefined || Math.abs(impedance[1]) < 1e-10) {
-      this.cursor.impedance.reactance.line.Element.attr('visibility', 'visible');
-      this.cursor.impedance.reactance.circle.Element.attr('visibility', 'hidden');
-    } else {
-      const reactance = this.constantCircle.reactanceCircle(impedance[1]);
-      this.cursor.impedance.reactance.line.Element.attr('visibility', 'hidden');
-      this.cursor.impedance.reactance.circle.Element.attr('visibility', 'visible');
-      this.cursor.impedance.reactance.circle.move(reactance);
-    }
-
-    const admittance = this.constantCircle.reflectionCoefficientToAdmittance(p);
-    if (admittance === undefined) {
-      this.cursor.admittance.conductance.circle.Element.attr('visibility', 'hidden');
-    } else {
-      const conductance = this.constantCircle.conductanceCircle(admittance[0]);
-      this.cursor.admittance.conductance.circle.Element.attr('visibility', 'visible');
-      this.cursor.admittance.conductance.circle.move(conductance);
-    }
-
-    if (admittance === undefined || Math.abs(admittance[1]) < 1e-10) {
-      this.cursor.admittance.susceptance.line.Element.attr('visibility', 'visible');
-      this.cursor.admittance.susceptance.circle.Element.attr('visibility', 'hidden');
-    } else {
-      this.cursor.admittance.susceptance.line.Element.attr('visibility', 'hidden');
-      this.cursor.admittance.susceptance.circle.Element.attr('visibility', 'visible');
-
-      const susceptance = this.constantCircle.susceptanceCircle(admittance[1]);
-      this.cursor.admittance.susceptance.circle.move(susceptance);
-    }
-
-    const rc = this.getReflectionCoefficient();
-    this.userActionHandler && this.userActionHandler({
-      type: SmithEventType.Cursor,
-      data: {
-        reflectionCoefficient: rc,
-        impedance: this.getImpedance(rc),
-        admittance: this.getAdmittance(rc),
-        swr: this.getSwr(rc),
-        returnLoss: this.getReturnLoss(rc),
-        mismatchLoss: this.getMismatchLoss(rc),
-        Q: this.getQ(rc)
-      } as SmithCursorEvent
-    });
-  }
-
-  private getReflectionCoefficient(): Point {
-    return this.reflectionCoefficient;
-  }
   private getImpedance(rc: Point): Point|undefined {
-    const impedance = this.constantCircle.reflectionCoefficientToImpedance(rc);
+    const impedance = this.calcs.reflectionCoefficientToImpedance(rc);
     if (impedance) {
       impedance[0] *= this.Z0;
       impedance[1] *= this.Z0;
@@ -538,7 +397,7 @@ export class Smith {
     return impedance;
   }
   public getAdmittance(rc: Point): Point|undefined {
-    const admittance = this.constantCircle.reflectionCoefficientToAdmittance(rc);
+    const admittance = this.calcs.reflectionCoefficientToAdmittance(rc);
     if (admittance) {
       admittance[0] *= 1 / this.Z0 * 1000.0; // mS
       admittance[1] *= 1 / this.Z0 * 1000.0; // mS
@@ -546,18 +405,18 @@ export class Smith {
     return admittance;
   }
   private getQ(rc: Point): number|undefined {
-    const impedance = this.constantCircle.reflectionCoefficientToImpedance(rc);
+    const impedance = this.calcs.reflectionCoefficientToImpedance(rc);
     if (!impedance) { return; }
     return Math.abs(impedance[1] / impedance[0]);
   }
   private getSwr(rc: Point): number {
-    return this.constantCircle.reflectionCoefficientToSwr(rc);
+    return this.calcs.reflectionCoefficientToSwr(rc);
   }
   private getReturnLoss(rc: Point): number {
-    return this.constantCircle.reflectionCoefficientToReturnLoss(rc);
+    return this.calcs.reflectionCoefficientToReturnLoss(rc);
   }
   private getMismatchLoss(rc: Point): number {
-    return this.constantCircle.reflectionCoefficientToMismatchLoss(rc);
+    return this.calcs.reflectionCoefficientToMismatchLoss(rc);
   }
 
   private drawResistanceAxis(opts: SmithDrawOptions): SmithShape {
@@ -565,7 +424,7 @@ export class Smith {
   }
 
   private addResistanceAxisClipPath(): void {
-    const res = this.constantCircle.resistanceCircle(0);
+    const res = this.calcs.resistanceCircle(0);
 
     this.defs
       .append('clipPath')
@@ -577,7 +436,7 @@ export class Smith {
   }
 
   private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
-    return new SmithCircle(this.constantCircle.resistanceCircle(0), opts);
+    return new SmithCircle(this.calcs.resistanceCircle(0), opts);
   }
 
   private drawResistanceCircles(opts: SmithCirclesDrawOptions): SmithGroup {
@@ -654,7 +513,7 @@ export class Smith {
 
   private drawResistanceCircle(def: SmithArcDef): SmithShape|null {
     if (def[SmithArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.constantCircle.resistanceCircle(def[SmithArcEntry.circle]));
+      return new SmithCircle(this.calcs.resistanceCircle(def[SmithArcEntry.circle]));
     }
     return this.resistanceArc(def);
   }
@@ -665,7 +524,7 @@ export class Smith {
 
   private drawConductanceCircle(def: SmithArcDef): SmithShape|null {
     if (def[SmithArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.constantCircle.conductanceCircle(def[SmithArcEntry.circle]));
+      return new SmithCircle(this.calcs.conductanceCircle(def[SmithArcEntry.circle]));
     }
     return this.conductanceArc(def);
   }
@@ -680,9 +539,9 @@ export class Smith {
 
     if (cc === undefined || arcOpts === undefined) { return null; }
 
-    const c  = this.constantCircle.resistanceCircle(def[SmithArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.constantCircle.reactanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.constantCircle.reactanceCircle(cc[1][0]));
+    const c  = this.calcs.resistanceCircle(def[SmithArcEntry.circle]);
+    const i1 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[0][0]));
+    const i2 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[1][0]));
 
     return this.drawArc(def, c, i1, i2);
   }
@@ -693,9 +552,9 @@ export class Smith {
 
     if (cc === undefined || arcOpts === undefined) { return null; }
 
-    const c  = this.constantCircle.reactanceCircle(def[SmithArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.constantCircle.resistanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.constantCircle.resistanceCircle(cc[1][0]));
+    const c  = this.calcs.reactanceCircle(def[SmithArcEntry.circle]);
+    const i1 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[0][0]));
+    const i2 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[1][0]));
 
     return this.drawArc(def, c, i1, i2);
   }
@@ -703,12 +562,12 @@ export class Smith {
   private conductanceArc(def: SmithArcDef): SmithShape|null {
       const cc = def[SmithArcEntry.clipCircles];
       const arcOpts = def[SmithArcEntry.arcOptions];
-  
+
       if (cc === undefined || arcOpts === undefined) { return null; }
-  
-      const c  = this.constantCircle.conductanceCircle(def[SmithArcEntry.circle]);
-      const i1 = this.circleCircleIntersection(c, this.constantCircle.susceptanceCircle(cc[0][0]));
-      const i2 = this.circleCircleIntersection(c, this.constantCircle.susceptanceCircle(cc[1][0]));
+
+      const c  = this.calcs.conductanceCircle(def[SmithArcEntry.circle]);
+      const i1 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[0][0]));
+      const i2 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[1][0]));
   
       return this.drawArc(def, c, i1, i2);
   }
@@ -719,9 +578,9 @@ export class Smith {
 
     if (cc === undefined || arcOpts === undefined) { return null; }
 
-    const c  = this.constantCircle.susceptanceCircle(def[SmithArcEntry.circle]);
-    const i1 = this.circleCircleIntersection(c, this.constantCircle.conductanceCircle(cc[0][0]));
-    const i2 = this.circleCircleIntersection(c, this.constantCircle.conductanceCircle(cc[1][0]));
+    const c  = this.calcs.susceptanceCircle(def[SmithArcEntry.circle]);
+    const i1 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[0][0]));
+    const i2 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[1][0]));
 
     return this.drawArc(def, c, i1, i2);
   };
@@ -734,32 +593,9 @@ export class Smith {
     const p2 = i2[cc[1][1]];
     const r  = c.r;
 
-    const largeArc = arcOpts[0] ? '1' : '0';
-    const sweep    = arcOpts[1] ? '1' : '0';
+    const largeArc = arcOpts[0];
+    const sweep    = arcOpts[1];
 
     return new SmithArc(p1, p2, r, largeArc, sweep);
-  }
-
-  private isWithinPlot(p: Point): boolean {
-    const c = this.constantCircle.resistanceCircle(0);
-    return (Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2)) <= (Math.pow(c.r, 2));
-  }
-
-  private circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
-    const dl = Math.sqrt(Math.pow(c2.p[0] - c1.p[0], 2) + Math.pow(c2.p[1] - c1.p[1], 2));
-
-    const cosA = (dl * dl + c1.r * c1.r - c2.r * c2.r) / (2 * dl * c1.r);
-    const sinA = Math.sqrt(1 - Math.pow(cosA, 2));
-
-    const vpx = (c2.p[0] - c1.p[0]) * c1.r / dl;
-    const vpy = (c2.p[1] - c1.p[1]) * c1.r / dl;
-
-    return [ [
-        vpx * cosA - vpy * sinA + c1.p[0],
-        vpx * sinA + vpy * cosA + c1.p[1],
-    ], [
-        vpx * cosA + vpy * sinA + c1.p[0],
-        vpy * cosA - vpx * sinA + c1.p[1],
-    ]];
   }
 }

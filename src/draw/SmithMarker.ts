@@ -9,7 +9,7 @@ export class SmithMarker extends SmithShape {
 
   private dragHandler: ((p: Point) => void)|null = null;
 
-  public constructor(marker: number) {
+  public constructor(marker: number, color: string) {
     super(d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'g')
     ));
@@ -20,7 +20,7 @@ export class SmithMarker extends SmithShape {
       .attr('points', '0,0 0.03,-0.06 -0.03,-0.06')
       .attr('stroke-width', '0.005')
       .attr('stroke', 'gray')
-      .attr('fill', 'purple')
+      .attr('fill', color)
       .attr('transform', 'translate(0,0)');
 
     this.text = g.append<SVGTextElement>('text')
