@@ -1,6 +1,7 @@
 import { SmithGroup } from "./SmithGroup";
 import { SmithCircle } from "./SmithCircle";
 import { SmithLine } from "./SmithLine";
+import { SmithPath } from './SmithPath';
 
 import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Point } from "./Point";
@@ -14,7 +15,7 @@ interface Transform {
 }
 
 export class SmithCursor {
-  private epsilon = 1.5e-3;
+  private epsilon = 1.5e-4;
 
   private calcs = new SmithConstantCircle();
   private zClipCircle = this.calcs.resistanceCircle(0);
@@ -25,18 +26,19 @@ export class SmithCursor {
   private group: SmithGroup;
   private point: SmithCircle;
 
-
   private impedance: {
     group: SmithGroup,
-    resistance: { circle: SmithCircle; };
+    resistance: { circle: SmithPath; };
     reactance: { arc: SmithArc; line: SmithLine; };
   };
 
   private admittance: {
     group: SmithGroup,
-    conductance: { circle: SmithCircle; };
+    conductance: { circle: SmithPath; };
     susceptance: { arc: SmithArc; line: SmithLine; };
   };
+
+  private test: d3.Selection<SVGElement, {}, null, undefined>|null = null;
 
   public constructor(private container: SmithGroup, private transform: Transform) {
     this.group = new SmithGroup();
@@ -44,7 +46,7 @@ export class SmithCursor {
     this.impedance = {
       group: new SmithGroup({ stroke: 'red', strokeWidth: '0.005', fill: 'none' }),
       resistance: {
-        circle: new SmithCircle({ p: [ 0, 0 ], r: 0 }),
+        circle: new SmithPath(),
       },
       reactance: {
         arc: new SmithArc([1, 0], [0, 1], 5, false, false),
@@ -55,7 +57,7 @@ export class SmithCursor {
     this.admittance = {
       group: new SmithGroup({ stroke: 'green', strokeWidth: '0.005', fill: 'none', }),
       conductance: {
-        circle: new SmithCircle({ p: [ 0, 0 ], r: 0 }),
+        circle: new SmithPath(),
       },
       susceptance: {
         arc: new SmithArc([1, 0], [0, 1], 5, false, false),
@@ -79,8 +81,8 @@ export class SmithCursor {
       .append(this.admittance.susceptance.line);
 
     this.group
-      .append(this.impedance.group)
       .append(this.admittance.group)
+      .append(this.impedance.group)
       .append(this.point);
 
     this.hide();
@@ -101,7 +103,10 @@ export class SmithCursor {
       this.impedance.resistance.circle.hide();
     } else {
       this.impedance.resistance.circle.show();
-      this.impedance.resistance.circle.move(this.calcs.resistanceCircle(z[0]));
+
+      const r = this.calcs.resistanceCircle(z[0]).r;
+      const x = 1 - 2 * r;
+      this.impedance.resistance.circle.move(`M1,0 A${r},${r} 0 1,0 ${x},0 A${r},${r} 0 1,0 1,0`);
     }
 
     if (z === undefined || Math.abs(z[1]) < this.epsilon) {
@@ -122,7 +127,10 @@ export class SmithCursor {
       this.admittance.conductance.circle.hide();
     } else {
       this.admittance.conductance.circle.show();
-      this.admittance.conductance.circle.move(this.calcs.conductanceCircle(y[0]));
+
+      const r = this.calcs.conductanceCircle(y[0]).r;
+      const x = -1 + 2 * r;
+      this.admittance.conductance.circle.move(`M-1,0 A${r},${r} 0 1,0 ${x},0 A${r},${r} 0 1,0 -1,0`);
     }
 
     if (y === undefined || Math.abs(y[1]) < this.epsilon) {
