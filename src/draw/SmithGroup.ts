@@ -19,6 +19,19 @@ export class SmithGroup extends SmithShape {
     return this.element;
   }
 
+  public attr(name: string, value: any): SmithGroup {
+    this.element.attr(name, value);
+    return this;
+  }
+
+  public show(): void {
+    this.element.attr('opacity', null);
+  }
+
+  public hide(): void {
+    this.element.attr('opacity', '0');
+  }
+
   public append(el: SmithShape|null): SmithGroup {
     if (el !== null) {
       this.element.append(() => el.Node);

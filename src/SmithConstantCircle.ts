@@ -109,4 +109,8 @@ export class SmithConstantCircle {
         vpy * cosA - vpx * sinA + c1.p[1],
     ]];
   }
+
+  public isPointWithinCircle(p: Point, c: Circle): boolean {
+    return (Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2)) <= (Math.pow(c.r, 2));
+  }
 }
