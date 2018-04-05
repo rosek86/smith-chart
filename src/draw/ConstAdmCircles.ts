@@ -12,64 +12,83 @@ import { Point } from './Point';
 import { SmithDrawOptions } from './SmithDrawOptions';
 
 interface ConstAdmDrawOptions {
-  stroke: string, minorWidth: string, majorWidth: string,
+  stroke: string;
+  minorWidth: string;
+  majorWidth: string;
+  textColor: string;
+  showMinor: boolean;
 }
 
 export class ConstAdmCircles {
-
   private calcs: SmithConstantCircle = new SmithConstantCircle();
 
-  public draw(opts: ConstAdmDrawOptions): SmithGroup {
-    const group = new SmithGroup();
+  private container: SmithGroup;
 
-    group.append(this.drawConductanceCircles(opts));
-    group.append(this.drawSusceptanceCircles(opts));
-    group.append(this.drawReactanceAxis({
-      stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none'
-    }));
-    group.append(this.drawResistanceAxis({
-      stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none'
-    }));
-    group.append(this.drawAdmittanceTexts());
+  private g: { major: SmithGroup; minor: SmithGroup; };
+  private b: { major: SmithGroup; minor: SmithGroup; };
 
-    group.hide();
-    return group;
+  private texts: SmithGroup;
+
+  public constructor(opts: ConstAdmDrawOptions) {
+    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
+    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
+    this.g = {
+      major: this.drawConductanceMajor(majorOpts),
+      minor: this.drawConductanceMinor(minorOpts),
+    };
+    this.b = {
+      major: this.drawSusceptanceMajor(majorOpts),
+      minor: this.drawSusceptanceMinor(minorOpts),
+    };
+    this.texts = this.drawAdmittanceTexts(opts.textColor);
+    this.container = this.build();
+
+    if (opts.showMinor === false) {
+      this.g.minor.hide();
+      this.b.minor.hide();
+    }
   }
 
-  private drawConductanceCircles(opts: ConstAdmDrawOptions): SmithGroup {
-    const group = new SmithGroup();
-
-    const majorGroup = new SmithGroup({ stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' });
-    for (const def of SmithArcsDefs.resistanceMajor()) {
-      majorGroup.append(this.drawConductanceCircle(def));
-    }
-    group.append(majorGroup);
-
-    const minorGroup = new SmithGroup({ stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' });
-    for (const def of SmithArcsDefs.resistanceMinor()) {
-      minorGroup.append(this.drawConductanceCircle(def));
-    }
-    group.append(minorGroup);
-
-    return group;
+  private build(): SmithGroup {
+    return new SmithGroup()
+      .append(this.g.minor)
+      .append(this.g.major)
+      .append(this.b.minor)
+      .append(this.b.major)
+      .append(this.texts)
+      .hide();
   }
 
-  private drawSusceptanceCircles(opts: ConstAdmDrawOptions): SmithGroup {
-    const group = new SmithGroup();
+  public draw(): SmithGroup {
+    return this.container;
+  }
 
-    const majorGroup = new SmithGroup({ stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' });
-    for (const def of SmithArcsDefs.reactanceMajor()) {
-      majorGroup.append(this.drawSusceptanceCircle(def));
-    }
-    group.append(majorGroup);
+  public setDrawOptions(opts: ConstAdmDrawOptions): void {
+    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
+    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
 
-    const minorGroup = new SmithGroup({ stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' });
-    for (const def of SmithArcsDefs.reactanceMinor()) {
-      minorGroup.append(this.drawSusceptanceCircle(def));
-    }
-    group.append(minorGroup);
+    this.g.major.setDrawOptions(majorOpts);
+    this.g.major.setDrawOptions(minorOpts);
+    this.b.major.setDrawOptions(majorOpts);
+    this.b.major.setDrawOptions(minorOpts);
+    this.texts
+      .attr('fill',        opts.textColor)
+      .attr('font-family', 'Verdana')
+      .attr('font-size',   '0.03')
+      .attr('text-anchor', 'start');
+  }
 
-    return group;
+  private drawConductanceMajor(opts: SmithDrawOptions): SmithGroup {
+    const g = new SmithGroup(opts);
+    SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.drawConductanceCircle(def)));
+    g.append(new SmithLine([ -1, 0 ], [ 1, 0 ]));
+    return g;
+  }
+
+  private drawConductanceMinor(opts: SmithDrawOptions): SmithGroup {
+    const g = new SmithGroup(opts);
+    SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.drawConductanceCircle(def)));
+    return g;
   }
 
   private drawConductanceCircle(def: SmithArcDef): SmithShape|null {
@@ -79,10 +98,18 @@ export class ConstAdmCircles {
     return this.conductanceArc(def);
   }
 
-  private drawSusceptanceCircle(def: SmithArcDef): SmithShape|null {
-    return this.susceptanceArc(def);
+  private drawSusceptanceMajor(opts: SmithDrawOptions): SmithGroup {
+    const g = new SmithGroup(opts);
+    SmithArcsDefs.reactanceMajor().forEach((def) => g.append(this.susceptanceArc(def)));
+    g.append(new SmithCircle(this.calcs.conductanceCircle(0)));
+    return g;
   }
 
+  private drawSusceptanceMinor(opts: SmithDrawOptions): SmithGroup {
+    const g = new SmithGroup(opts);
+    SmithArcsDefs.reactanceMinor().forEach((def) => g.append(this.susceptanceArc(def)));
+    return g;
+  }
 
   private conductanceArc(def: SmithArcDef): SmithShape|null {
     const cc = def[SmithArcEntry.clipCircles];
@@ -110,23 +137,19 @@ export class ConstAdmCircles {
     return this.drawArc(def, c, i1, i2);
   }
 
-  private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
-    return new SmithCircle(this.calcs.resistanceCircle(0), opts);
-  }
+  private drawAdmittanceTexts(color: string): SmithGroup {
+    const group = new SmithGroup()
+      .attr('fill',        color)
+      .attr('stroke',      'none')
+      .attr('font-family', 'Verdana')
+      .attr('font-size',   '0.03')
+      .attr('text-anchor', 'start');
 
-  private drawResistanceAxis(opts: SmithDrawOptions): SmithShape {
-    return  new SmithLine([ -1, 0 ], [ 1, 0 ], opts);
-  }
-
-  private drawAdmittanceTexts(): SmithGroup {
-    const group = new SmithGroup({ stroke: 'none', fill: 'black', });
-    group.Element.attr('font-family', 'Verdana');
-    group.Element.attr('font-size',   '0.03');
-    group.Element.attr('text-anchor', 'start');
-    for (const e of SmithArcsDefs.textsTicks()) {
+    SmithArcsDefs.textsTicks().forEach((e) => {
       const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ])!;
       group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
-    }
+    });
+
     return group;
   }
 
@@ -144,4 +167,25 @@ export class ConstAdmCircles {
     return new SmithArc(p1, p2, r, largeArc, sweep);
   }
 
+  public show(): ConstAdmCircles {
+    this.container.show();
+    return this;
+  }
+
+  public showMinor(): ConstAdmCircles {
+    this.g.minor.show();
+    this.b.minor.show();
+    return this;
+  }
+
+  public hide(): ConstAdmCircles {
+    this.container.hide();
+    return this;
+  }
+
+  public hideMinor(): ConstAdmCircles {
+    this.g.minor.hide();
+    this.b.minor.hide();
+    return this;
+  }
 }

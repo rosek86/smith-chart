@@ -62,8 +62,8 @@ export class Smith {
   private svg: SmithSvg;
   private container: SmithGroup;
 
-  private impedanceGroup: SmithGroup;
-  private admittanceGroup: SmithGroup;
+  private constImpCircles: ConstImpCircles;
+  private constAdmCircles: ConstAdmCircles;
   private constantSwrGroup: SmithGroup;
   private constantQGroup: SmithGroup;
 
@@ -84,76 +84,100 @@ export class Smith {
     this.container = new SmithGroup().rotateY();
     this.svg.append(this.container);
 
-    this.impedanceGroup   = new ConstImpCircles().draw({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
-    this.admittanceGroup  = new ConstAdmCircles().draw({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
-    this.constantSwrGroup = new ConstSwrCircles().draw();
-    this.constantQGroup   = new ConstQCircles().draw();
+    this.fgContainer = new SmithGroup();
+    this.svg.append(this.fgContainer);
 
-    this.container.append(this.admittanceGroup);
-    this.container.append(this.impedanceGroup);
+    this.constAdmCircles = new ConstAdmCircles({
+      stroke: 'green', majorWidth: '0.001', minorWidth: '0.0003', textColor: 'black', showMinor: false
+    });
+    this.container.append(this.constAdmCircles.draw());
+
+    this.constImpCircles = new ConstImpCircles({
+      stroke: 'red', majorWidth: '0.001', minorWidth: '0.0003', textColor: 'black', showMinor: false
+    });
+    this.container.append(this.constImpCircles.draw());
+
+    this.constantSwrGroup = new ConstSwrCircles().draw();
     this.container.append(this.constantSwrGroup);
+
+    this.constantQGroup = new ConstQCircles().draw();
     this.container.append(this.constantQGroup);
 
     this.container.append(this.drawReactanceAxis({
       stroke: 'blue', strokeWidth: '0.005', fill: 'transparent' }
     ));
 
-    this.fgContainer = new SmithGroup();
-    this.fgContainerShape = this.drawReactanceAxis({
-      fill: 'transparent', stroke: 'none'
-    });
-
-    const that = this;
-    this.fgContainerShape.Element
-      .on('mousemove', function () {
-        const rc = that.actionToPlot(d3.mouse(this as any));
-        that.cursor.move(rc);
-      }).on('mouseleave', () => {
-        this.cursor.hide();
-      });
-
-    const zoom = d3.zoom<SVGElement, {}>()
-      .scaleExtent([0.5, 40])
-      // .translateExtent([[600, 600], [0, 0]])
-      .on('zoom', () => {
-        this.transform = d3.event.transform;
-
-        this.bgContainerZoom(this.transform);
-        this.cursor.zoom(this.transform);
-
-        for (const d of this.data) {
-          d.zoom(this.transform);
-        }
-      });
-
-    this.fgContainerShape.Element
-      .style("pointer-events", "all")
-      .call(zoom);
+    this.fgContainerShape = this.drawFgContainerShape();
     this.fgContainer.append(this.fgContainerShape);
-    this.svg.append(this.fgContainer);
 
     // Initial zoom
     this.transform = { x: 0, y: 0, k: 0.95 };
     this.bgContainerZoom(this.transform);
 
-    this.cursor = new SmithCursor(this.transform);
-    this.cursor.setMoveHandler((rc) => {
+    this.cursor = this.initCursor(this.transform);
+    this.container.append(this.cursor.Group);
+
+    d3.select(selector).append(() => this.svg.Node);
+  }
+
+  private drawFgContainerShape(): SmithCircle {
+    const zoom = d3.zoom<SVGElement, {}>()
+      .scaleExtent([ 0.5, 40 ])
+      // .translateExtent([[600, 600], [0, 0]])
+      .on('zoom', () => this.zoomAll(d3.event.transform));
+
+    const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
+    const that = this;
+
+    shape.Element
+      .style('pointer-events', 'all')
+      .on('mousemove', function () {
+        that.cursorMove(d3.mouse(this as any));
+      })
+      .on('mouseleave', () => this.cursor.hide())
+      .call(zoom);
+
+    return shape;
+  }
+
+  private cursorMove(p: Point): void {
+    this.cursor.move(this.actionToPlot(p));
+  }
+
+  private actionToPlot(p: Point): Point {
+    const po: Point = [p[0], p[1]];
+    po[0] -=  this.transform.x;
+    po[1] -=  this.transform.y;
+    po[0] /=  this.transform.k;
+    po[1] /= -this.transform.k;
+    return po;
+  }
+
+  private zoomAll(transform: ZoomTransform): void {
+    this.transform = d3.event.transform;
+
+    this.bgContainerZoom(transform);
+    this.cursor.zoom(transform);
+    this.data.forEach((d) => d.zoom(transform));
+  }
+
+  private initCursor(transform: ZoomTransform): SmithCursor {
+    const cursor = new SmithCursor(transform);
+    cursor.setMoveHandler((rc) => {
       this.userActionHandler && this.userActionHandler({
         type: SmithEventType.Cursor,
         data: {
           reflectionCoefficient: rc,
-          impedance: this.getImpedance(rc),
-          admittance: this.getAdmittance(rc),
-          swr: this.getSwr(rc),
-          returnLoss: this.getReturnLoss(rc),
+          impedance:    this.getImpedance(rc),
+          admittance:   this.getAdmittance(rc),
+          swr:          this.getSwr(rc),
+          returnLoss:   this.getReturnLoss(rc),
           mismatchLoss: this.getMismatchLoss(rc),
-          Q: this.getQ(rc)
+          Q:            this.getQ(rc)
         } as SmithCursorEvent
       });
     });
-    this.container.append(this.cursor.Group);
-
-    d3.select(selector).append(() => this.svg.Node);
+    return cursor;
   }
 
   private bgContainerZoom(transform: ZoomTransform): void {
@@ -161,15 +185,6 @@ export class Smith {
     const y = transform.y;
     const k = transform.k;
     this.container.Element.attr('transform', `translate(${x}, ${y}) scale(${k}, ${-k})`);
-  }
-
-  private actionToPlot(p: Point): Point {
-    const po: Point = [p[0], p[1]];
-    po[0] -= this.transform.x;
-    po[1] -= this.transform.y;
-    po[0] /= this.transform.k;
-    po[1] /= -this.transform.k;
-    return po;
   }
 
   private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
@@ -255,19 +270,19 @@ export class Smith {
   }
 
   public showImpedance(): void {
-    this.impedanceGroup.show();
+    this.constImpCircles.show();
   }
 
   public hideImpedance(): void {
-    this.impedanceGroup.hide();
+    this.constImpCircles.hide();
   }
 
   public showAdmittance(): void {
-    this.admittanceGroup.show();
+    this.constAdmCircles.show();
   }
 
   public hideAdmittance(): void {
-    this.admittanceGroup.hide();
+    this.constAdmCircles.hide();
   }
 
   public showConstantSwrCircles(): void {

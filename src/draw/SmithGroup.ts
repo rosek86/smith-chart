@@ -24,12 +24,14 @@ export class SmithGroup extends SmithShape {
     return this;
   }
 
-  public show(): void {
+  public show(): SmithGroup {
     this.element.attr('opacity', null);
+    return this;
   }
 
-  public hide(): void {
+  public hide(): SmithGroup {
     this.element.attr('opacity', '0');
+    return this;
   }
 
   public append(el: SmithShape|null): SmithGroup {
