@@ -50,7 +50,7 @@ export class SmithCursor {
 
   private moveHandler: ((rc: Point) => void)|null = null;
 
-  public constructor(private container: SmithGroup, private transform: Transform) {
+  public constructor(private transform: Transform = { x:0, y:0, k:1 }) {
     this.group = new SmithGroup();
 
     this.impedance = {
@@ -105,8 +105,10 @@ export class SmithCursor {
       .append(this.admittance.group)
       .append(this.impedance.group)
       .append(this.point);
+  }
 
-    this.container.append(this.group);
+  public get Group(): SmithGroup {
+    return this.group;
   }
 
   public move(rc: Point): void {
