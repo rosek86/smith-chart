@@ -5,20 +5,19 @@ import { Point } from './draw/Point';
 import { Circle } from './draw/Circle';
 
 import { SmithSvg } from './draw/SmithSvg';
-import { SmithShape } from './draw/SmithShape';
 import { SmithGroup } from './draw/SmithGroup';
-import { SmithArc } from './draw/SmithArc';
 import { SmithCircle } from './draw/SmithCircle';
-import { SmithLine } from './draw/SmithLine';
-import { SmithText } from './draw/SmithText';
-import { SmithMarker } from './draw/SmithMarker';
+
 import { SmithData } from './draw/SmithData';
+import { SmithMarker } from './draw/SmithMarker';
 import { SmithCursor } from './draw/SmithCursor';
+
 import { ConstImpCircles } from './draw/ConstImpCircles';
 import { ConstAdmCircles } from './draw/ConstAdmCircles';
+import { ConstQCircles } from './draw/ConstQCircles';
+import { ConstSwrCircles } from './draw/ConstSwrCircles';
 
 import { SmithConstantCircle } from './SmithConstantCircle';
-import { SmithArcsDefs, SmithArcDef, SmithArcEntry } from './SmithArcsDefs';
 import { SmithDrawOptions } from './draw/SmithDrawOptions';
 
 import { S1P, S1PEntry } from './SnP';
@@ -81,14 +80,14 @@ export class Smith {
 
   constructor(private selector: string, private size: number, private Z0: number = 50) {
     this.svg = new SmithSvg(size);
-    this.container = new SmithGroup().rotateY();
 
+    this.container = new SmithGroup().rotateY();
     this.svg.append(this.container);
 
     this.impedanceGroup   = new ConstImpCircles().draw({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
     this.admittanceGroup  = new ConstAdmCircles().draw({ stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003' });
-    this.constantSwrGroup = this.drawSwr();
-    this.constantQGroup   = this.drawConstantQ();
+    this.constantSwrGroup = new ConstSwrCircles().draw();
+    this.constantQGroup   = new ConstQCircles().draw();
 
     this.container.append(this.admittanceGroup);
     this.container.append(this.impedanceGroup);
@@ -171,6 +170,10 @@ export class Smith {
     po[0] /= this.transform.k;
     po[1] /= -this.transform.k;
     return po;
+  }
+
+  private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
+    return new SmithCircle(this.calcs.resistanceCircle(0), opts);
   }
 
   public getReactanceComponentValue(p: Point, f: number): string {
@@ -275,48 +278,6 @@ export class Smith {
     this.constantSwrGroup.hide();
   }
 
-  private drawSwr(): SmithGroup {
-    const swrs = [ 1.2, 1.5, 2, 3, 5, 10 ];
-
-    const group = new SmithGroup();
-
-    for (const swr of swrs) {
-      group.append(
-        new SmithCircle({
-          p: [0,0],
-          r: this.calcs.swrToAbsReflectionCoefficient(swr)
-        }, { stroke: 'orange', strokeWidth: '0.003', fill: 'none'})
-      );
-    }
-
-    group.hide();
-    return group;
-  }
-
-  private drawConstantQ(): SmithGroup {
-    // Center is (0, +1/Q) or (0, -1/Q).
-    // Radius is sqrt(1+1/Q^2).
-
-    const Qs = [ 0.5, 1, 2, 5, 10 ];
-
-    const group = new SmithGroup({
-      stroke: 'blue', strokeWidth: '0.001', fill: 'none'
-    });
-
-    for (const Q of Qs) {
-      const r = Math.sqrt(1 + 1 / (Q * Q));
-      const q1 = new SmithArc([-1, 0], [1, 0], r, false, false);
-      group.append(q1);
-
-      const q2 = new SmithArc([-1, 0], [1, 0], r, false, true);
-      group.append(q2);
-    }
-
-    group.hide();
-
-    return group;
-  }
-
   public showConstantQ(): void {
     this.constantQGroup.show();
   }
@@ -358,13 +319,5 @@ export class Smith {
   }
   private getMismatchLoss(rc: Point): number {
     return this.calcs.reflectionCoefficientToMismatchLoss(rc);
-  }
-
-  private drawResistanceAxis(opts: SmithDrawOptions): SmithShape {
-    return  new SmithLine([ -1, 0 ], [ 1, 0 ], opts);
-  }
-
-  private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
-    return new SmithCircle(this.calcs.resistanceCircle(0), opts);
   }
 }
