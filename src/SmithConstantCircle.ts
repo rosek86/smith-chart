@@ -71,6 +71,11 @@ export class SmithConstantCircle {
     return { p: [ -1, -1 / n ], r: Math.abs(1 / n) };
   }
 
+  public constQCircle(q: number): Circle {
+    // Center is (0, +1/Q) or (0, -1/Q).
+    return { p: [ 0, 1 / q ], r: Math.sqrt(1 + 1 / (q * q)) };
+  }
+
   public reflectionCoefficientToSwr(rc: Complex): number {
     const x = rc[0];
     const y = rc[1];

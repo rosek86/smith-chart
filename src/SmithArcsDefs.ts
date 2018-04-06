@@ -4,7 +4,7 @@ export enum SmithArcEntry { circle, clipCircles, arcOptions }
 export type SmithArcDef = [
   number,
   [ number, number ][] | undefined,
-  [ boolean, boolean ] | undefined
+  [ boolean, boolean ]
 ];
 
 export class SmithArcsDefs {
@@ -24,7 +24,8 @@ export class SmithArcsDefs {
 
   public static resistanceMajor(): SmithArcDef[] {
     return [
-      [  0.00, undefined, undefined ],
+      [  0.00, undefined,                     [ true,  true  ] ],
+      [  0.00, undefined,                     [ true,  false ] ],
       [  0.05, [ [  0.2, 0 ], [  -0.2, 1 ] ], [ false, true  ] ],
       [  0.10, [ [  2.0, 0 ], [  -2.0, 1 ] ], [ true,  true  ] ],
       [  0.15, [ [  0.2, 0 ], [  -0.2, 1 ] ], [ false, true  ] ],
@@ -45,9 +46,11 @@ export class SmithArcsDefs {
       [  3.00, [ [ 10.0, 0 ], [ -10.0, 1 ] ], [ true,  true  ] ],
       [  4.00, [ [ 20.0, 0 ], [ -20.0, 1 ] ], [ true,  true  ] ],
       [  5.00, [ [ 10.0, 0 ], [ -10.0, 1 ] ], [ true,  true  ] ],
-      [ 10.00, undefined, undefined ],
+      [ 10.00, undefined,                     [ true,  true  ] ],
+      [ 10.00, undefined,                     [ true,  false ] ],
       [ 20.00, [ [ 50.0, 0 ], [ -50.0, 1 ] ], [ true,  true  ] ],
-      [ 50.00, undefined, undefined ],
+      [ 50.00, undefined,                     [ true,  true  ] ],
+      [ 50.00, undefined,                     [ true,  false ] ],
     ];
   }
 

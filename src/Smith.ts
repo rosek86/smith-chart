@@ -59,63 +59,64 @@ export interface SmithEvent {
 interface ZoomTransform { x: number, y: number, k: number }
 
 export class Smith {
+  private calcs: SmithConstantCircle = new SmithConstantCircle();
+  private transform: ZoomTransform = { x: 0, y: 0, k: 0.95 };
+
   private svg: SmithSvg;
   private container: SmithGroup;
-
-  private constImpCircles: ConstImpCircles;
-  private constAdmCircles: ConstAdmCircles;
-  private constantSwrGroup: SmithGroup;
-  private constantQGroup: SmithGroup;
-
-  private calcs: SmithConstantCircle = new SmithConstantCircle();
-  private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   private fgContainer: SmithGroup;
   private fgContainerShape: SmithCircle;
 
-  private cursor: SmithCursor;
+  private constImpCircles: ConstImpCircles;
+  private constAdmCircles: ConstAdmCircles;
+  private constSwrCircles: ConstSwrCircles;
+  private constQCircles: ConstQCircles;
+  private reactanceAxis: SmithCircle;
 
-  private transform: ZoomTransform;
+  private cursor: SmithCursor;
   private data: SmithData[] = [];
 
+  private userActionHandler: ((event: SmithEvent) => void)|null = null;
+
   constructor(private selector: string, private size: number, private Z0: number = 50) {
-    this.svg = new SmithSvg(size);
+    this.constAdmCircles = new ConstAdmCircles({
+      stroke: 'green', majorWidth: '0.001', minorWidth: '0.0003',
+      textColor: 'black', showMinor: true
+    });
+    this.constImpCircles = new ConstImpCircles({
+      stroke: 'red', majorWidth: '0.001', minorWidth: '0.0003',
+      textColor: 'black', showMinor: true
+    });
+    this.constSwrCircles = new ConstSwrCircles({
+      stroke: 'orange', strokeWidth: '0.003', fill: 'none'
+    });
+    this.constQCircles = new ConstQCircles({
+      stroke: 'blue', strokeWidth: '0.001', fill: 'none'
+    });
+    this.reactanceAxis = this.drawReactanceAxis({
+      stroke: 'blue', strokeWidth: '0.005', fill: 'none'
+    });
+    this.cursor = this.initCursor(this.transform);
 
     this.container = new SmithGroup().rotateY();
-    this.svg.append(this.container);
+    this.container.append(this.constAdmCircles.draw());
+    this.container.append(this.constImpCircles.draw());
+    this.container.append(this.constSwrCircles.draw());
+    this.container.append(this.constQCircles.draw());
+    this.container.append(this.reactanceAxis);
+    this.container.append(this.cursor.Group);
 
     this.fgContainer = new SmithGroup();
-    this.svg.append(this.fgContainer);
-
-    this.constAdmCircles = new ConstAdmCircles({
-      stroke: 'green', majorWidth: '0.001', minorWidth: '0.0003', textColor: 'black', showMinor: false
-    });
-    this.container.append(this.constAdmCircles.draw());
-
-    this.constImpCircles = new ConstImpCircles({
-      stroke: 'red', majorWidth: '0.001', minorWidth: '0.0003', textColor: 'black', showMinor: false
-    });
-    this.container.append(this.constImpCircles.draw());
-
-    this.constantSwrGroup = new ConstSwrCircles().draw();
-    this.container.append(this.constantSwrGroup);
-
-    this.constantQGroup = new ConstQCircles().draw();
-    this.container.append(this.constantQGroup);
-
-    this.container.append(this.drawReactanceAxis({
-      stroke: 'blue', strokeWidth: '0.005', fill: 'transparent' }
-    ));
-
     this.fgContainerShape = this.drawFgContainerShape();
     this.fgContainer.append(this.fgContainerShape);
 
-    // Initial zoom
-    this.transform = { x: 0, y: 0, k: 0.95 };
-    this.bgContainerZoom(this.transform);
+    this.svg = new SmithSvg(size);
+    this.svg.append(this.container);
+    this.svg.append(this.fgContainer);
 
-    this.cursor = this.initCursor(this.transform);
-    this.container.append(this.cursor.Group);
+    // Initial zoom
+    this.bgContainerZoom(this.transform);
 
     d3.select(selector).append(() => this.svg.Node);
   }
@@ -286,19 +287,19 @@ export class Smith {
   }
 
   public showConstantSwrCircles(): void {
-    this.constantSwrGroup.show();
+    this.constSwrCircles.show();
   }
 
   public hideConstantSwrCircles(): void {
-    this.constantSwrGroup.hide();
+    this.constSwrCircles.hide();
   }
 
   public showConstantQ(): void {
-    this.constantQGroup.show();
+    this.constQCircles.show();
   }
 
   public hideConstantQ(): void {
-    this.constantQGroup.hide();
+    this.constQCircles.hide();
   }
 
   public setUserActionHandler(handler: (event: SmithEvent) => void): void {

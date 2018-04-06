@@ -80,21 +80,20 @@ export class ConstImpCircles {
 
   private drawResistanceMajor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
-    SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.drawResistanceCircle(def)));
+    SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.resistanceArc(def)));
     g.append(new SmithLine([ -1, 0 ], [ 1, 0 ]));
     return g;
   }
 
   private drawResistanceMinor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
-    SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.drawResistanceCircle(def)));
+    SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.resistanceArc(def)));
     return g;
   }
 
   private drawReactanceMajor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
     SmithArcsDefs.reactanceMajor().forEach((def) => g.append(this.reactanceArc(def)));
-    g.append(new SmithCircle(this.calcs.conductanceCircle(0)));
     return g;
   }
 
@@ -104,51 +103,32 @@ export class ConstImpCircles {
     return g;
   }
 
-  private drawResistanceCircle(def: SmithArcDef): SmithShape|null {
-    if (def[SmithArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.calcs.resistanceCircle(def[SmithArcEntry.circle]));
-    }
-    return this.resistanceArc(def);
-  }
-
-  private resistanceArc(def: SmithArcDef): SmithShape|null {
+  private resistanceArc(def: SmithArcDef): SmithShape {
     const cc = def[SmithArcEntry.clipCircles];
-    const arcOpts = def[SmithArcEntry.arcOptions];
-
-    if (cc === undefined || arcOpts === undefined) { return null; }
-
     const c  = this.calcs.resistanceCircle(def[SmithArcEntry.circle]);
+    if (cc === undefined) {
+      const arcOpts = def[SmithArcEntry.arcOptions];
+      return new SmithArc([1, 0], [1-c.r*2, 0], c.r, arcOpts[0], arcOpts[1]);
+    }
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[1][0]));
-
     return this.drawArc(def, c, i1, i2);
   }
 
-  private reactanceArc(def: SmithArcDef): SmithShape|null {
-    const cc = def[SmithArcEntry.clipCircles];
-    const arcOpts = def[SmithArcEntry.arcOptions];
-
-    if (cc === undefined || arcOpts === undefined) { return null; }
-
+  private reactanceArc(def: SmithArcDef): SmithShape {
+    const cc = def[SmithArcEntry.clipCircles]!;
     const c  = this.calcs.reactanceCircle(def[SmithArcEntry.circle]);
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[1][0]));
-
     return this.drawArc(def, c, i1, i2);
   }
 
   private drawArc(def: SmithArcDef, c: Circle, i1: Point[], i2: Point[]): SmithArc {
     const cc = def[SmithArcEntry.clipCircles]!;
     const arcOpts = def[SmithArcEntry.arcOptions]!;
-
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
-    const r  = c.r;
-
-    const largeArc = arcOpts[0];
-    const sweep    = arcOpts[1];
-
-    return new SmithArc(p1, p2, r, largeArc, sweep);
+    return new SmithArc(p1, p2, c.r, arcOpts[0], arcOpts[1]);
   }
 
   private drawImpedanceTexts(color: string): SmithGroup {

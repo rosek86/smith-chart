@@ -10,6 +10,7 @@ import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Circle } from './Circle';
 import { Point } from './Point';
 import { SmithDrawOptions } from './SmithDrawOptions';
+import * as d3 from 'd3';
 
 interface ConstAdmDrawOptions {
   stroke: string;
@@ -63,45 +64,22 @@ export class ConstAdmCircles {
     return this.container;
   }
 
-  public setDrawOptions(opts: ConstAdmDrawOptions): void {
-    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
-    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
-
-    this.g.major.setDrawOptions(majorOpts);
-    this.g.major.setDrawOptions(minorOpts);
-    this.b.major.setDrawOptions(majorOpts);
-    this.b.major.setDrawOptions(minorOpts);
-    this.texts
-      .attr('fill',        opts.textColor)
-      .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.03')
-      .attr('text-anchor', 'start');
-  }
-
   private drawConductanceMajor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
-    SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.drawConductanceCircle(def)));
+    SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.conductanceArc(def)));
     g.append(new SmithLine([ -1, 0 ], [ 1, 0 ]));
     return g;
   }
 
   private drawConductanceMinor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
-    SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.drawConductanceCircle(def)));
+    SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.conductanceArc(def)));
     return g;
-  }
-
-  private drawConductanceCircle(def: SmithArcDef): SmithShape|null {
-    if (def[SmithArcEntry.clipCircles] === undefined) {
-      return new SmithCircle(this.calcs.conductanceCircle(def[SmithArcEntry.circle]));
-    }
-    return this.conductanceArc(def);
   }
 
   private drawSusceptanceMajor(opts: SmithDrawOptions): SmithGroup {
     const g = new SmithGroup(opts);
     SmithArcsDefs.reactanceMajor().forEach((def) => g.append(this.susceptanceArc(def)));
-    g.append(new SmithCircle(this.calcs.conductanceCircle(0)));
     return g;
   }
 
@@ -111,29 +89,23 @@ export class ConstAdmCircles {
     return g;
   }
 
-  private conductanceArc(def: SmithArcDef): SmithShape|null {
+  private conductanceArc(def: SmithArcDef): SmithShape {
     const cc = def[SmithArcEntry.clipCircles];
-    const arcOpts = def[SmithArcEntry.arcOptions];
-
-    if (cc === undefined || arcOpts === undefined) { return null; }
-
     const c  = this.calcs.conductanceCircle(def[SmithArcEntry.circle]);
+    if (cc === undefined) {
+      const arcOpts = def[SmithArcEntry.arcOptions];
+      return new SmithArc([-1, 0], [-1+c.r*2, 0], c.r, arcOpts[0], arcOpts[1]);
+    }
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[1][0]));
-
     return this.drawArc(def, c, i1, i2);
   }
 
-  private susceptanceArc(def: SmithArcDef): SmithShape|null {
-    const cc = def[SmithArcEntry.clipCircles];
-    const arcOpts = def[SmithArcEntry.arcOptions];
-
-    if (cc === undefined || arcOpts === undefined) { return null; }
-
+  private susceptanceArc(def: SmithArcDef): SmithShape {
+    const cc = def[SmithArcEntry.clipCircles]!;
     const c  = this.calcs.susceptanceCircle(def[SmithArcEntry.circle]);
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[1][0]));
-
     return this.drawArc(def, c, i1, i2);
   }
 
@@ -156,15 +128,24 @@ export class ConstAdmCircles {
   private drawArc(def: SmithArcDef, c: Circle, i1: Point[], i2: Point[]): SmithArc {
     const cc = def[SmithArcEntry.clipCircles]!;
     const arcOpts = def[SmithArcEntry.arcOptions]!;
-
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
-    const r  = c.r;
+    return new SmithArc(p1, p2, c.r, arcOpts[0], arcOpts[1]);
+  }
 
-    const largeArc = arcOpts[0];
-    const sweep    = arcOpts[1];
+  public setDrawOptions(opts: ConstAdmDrawOptions): void {
+    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
+    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
 
-    return new SmithArc(p1, p2, r, largeArc, sweep);
+    this.g.major.setDrawOptions(majorOpts);
+    this.g.major.setDrawOptions(minorOpts);
+    this.b.major.setDrawOptions(majorOpts);
+    this.b.major.setDrawOptions(minorOpts);
+    this.texts
+      .attr('fill',        opts.textColor)
+      .attr('font-family', 'Verdana')
+      .attr('font-size',   '0.03')
+      .attr('text-anchor', 'start');
   }
 
   public show(): ConstAdmCircles {
