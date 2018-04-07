@@ -10,13 +10,16 @@ $(document).ready(() => {
 
   const smith = new Smith('#smith', size);
 
-  smith.showImpedance();
+  const constImpCircles = smith.ConstImpCircles;
+  const constAdmCircles = smith.ConstAdmCircles;
+  const constQCircles   = smith.ConstQCircles;
+  const constSwrCircles = smith.ConstSwrCircles;
 
   const smithCircles: [ string, () => void, () => void ][] = [
-    [ '#impedance',   () => smith.showImpedance(),          () => smith.hideImpedance()          ],
-    [ '#admittance',  () => smith.showAdmittance(),         () => smith.hideAdmittance()         ],
-    [ '#constantQ',   () => smith.showConstantQ(),          () => smith.hideConstantQ()          ],
-    [ '#constantSwr', () => smith.showConstantSwrCircles(), () => smith.hideConstantSwrCircles() ],
+    [ '#impedance',   () => constImpCircles.show(), () => constImpCircles.hide() ],
+    [ '#admittance',  () => constAdmCircles.show(), () => constAdmCircles.hide() ],
+    [ '#constantQ',   () => constQCircles  .show(), () => constQCircles  .hide() ],
+    [ '#constantSwr', () => constSwrCircles.show(), () => constSwrCircles.hide() ],
   ];
 
   for (const c of smithCircles) {

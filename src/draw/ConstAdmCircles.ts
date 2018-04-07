@@ -17,41 +17,52 @@ interface ConstAdmDrawOptions {
   minorWidth: string;
   majorWidth: string;
   textColor: string;
-  showMinor: boolean;
+  textFontFamily: string;
+  textFontSize: string;
 }
 
 export class ConstAdmCircles {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
 
-  private container: SmithGroup;
+  private opts: ConstAdmDrawOptions;
 
+  private container: SmithGroup;
   private g: { major: SmithGroup; minor: SmithGroup; };
   private b: { major: SmithGroup; minor: SmithGroup; };
-
   private texts: SmithGroup;
 
-  public constructor(opts: ConstAdmDrawOptions) {
-    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
-    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
+  public constructor(showMinor: boolean = true) {
+    this.container = new SmithGroup().attr('fill', 'none');
     this.g = {
-      major: this.drawConductanceMajor(majorOpts),
-      minor: this.drawConductanceMinor(minorOpts),
+      major: this.drawConductanceMajor(),
+      minor: this.drawConductanceMinor(),
     };
     this.b = {
-      major: this.drawSusceptanceMajor(majorOpts),
-      minor: this.drawSusceptanceMinor(minorOpts),
+      major: this.drawSusceptanceMajor(),
+      minor: this.drawSusceptanceMinor(),
     };
-    this.texts = this.drawAdmittanceTexts(opts.textColor);
-    this.container = this.build();
+    this.texts = this.drawAdmittanceTexts();
 
-    if (opts.showMinor === false) {
+    this.opts = this.defaultDrawingOptions();
+    this.setDrawOptions(this.opts);
+
+    this.build();
+
+    if (showMinor === false) {
       this.g.minor.hide();
       this.b.minor.hide();
     }
   }
 
+  private defaultDrawingOptions(): ConstAdmDrawOptions {
+    return {
+      stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003',
+      textColor: 'black', textFontFamily: 'Verdana', textFontSize: '0.03'
+    };
+  }
+
   private build(): SmithGroup {
-    return new SmithGroup()
+    return this.container
       .append(this.g.minor)
       .append(this.g.major)
       .append(this.b.minor)
@@ -64,27 +75,96 @@ export class ConstAdmCircles {
     return this.container;
   }
 
-  private drawConductanceMajor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  public setDrawOptions(opts: ConstAdmDrawOptions): void {
+    this.opts = opts;
+    this.container.Stroke = opts.stroke;
+    this.g.major.StrokeWidth = opts.majorWidth;
+    this.g.minor.StrokeWidth = opts.minorWidth;
+    this.b.major.StrokeWidth = opts.majorWidth;
+    this.b.minor.StrokeWidth = opts.minorWidth;
+    this.texts
+      .attr('fill',        opts.textColor)
+      .attr('font-family', opts.textFontFamily)
+      .attr('font-size',   opts.textFontSize);
+  }
+
+  public set Stroke(stroke: string) {
+    this.opts.stroke = stroke;
+    this.container.Stroke = stroke;
+  }
+
+  public get Stroke(): string {
+    return this.opts.stroke;
+  }
+
+  public set MajorWidth(width: string) {
+    this.opts.majorWidth = width;
+    this.g.major.StrokeWidth = width;
+    this.b.major.StrokeWidth = width;
+  }
+
+  public get MajorWidth(): string {
+    return this.opts.majorWidth;
+  }
+
+  public set MinorWidth(width: string) {
+    this.opts.minorWidth = width;
+    this.g.minor.StrokeWidth = width;
+    this.b.minor.StrokeWidth = width;
+  }
+
+  public get MinorWidth(): string {
+    return this.opts.minorWidth;
+  }
+
+  public set TextColor(color: string) {
+    this.opts.textColor = color;
+    this.texts.Fill = color;
+  }
+
+  public get TextColor(): string {
+    return this.opts.textColor;
+  }
+
+  public set TextFontFamily(family: string) {
+    this.opts.textFontFamily = family;
+    this.texts.attr('font-family', family);
+  }
+
+  public get TextFontFamily(): string {
+    return this.opts.textFontFamily;
+  }
+
+  public set TextFontSize(size: string) {
+    this.opts.textFontSize = size;
+    this.texts.attr('font-size', size);
+  }
+
+  public get TextFontSize(): string {
+    return this.opts.textFontSize;
+  }
+
+  private drawConductanceMajor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.conductanceArc(def)));
     g.append(new SmithLine([ -1, 0 ], [ 1, 0 ]));
     return g;
   }
 
-  private drawConductanceMinor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawConductanceMinor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.conductanceArc(def)));
     return g;
   }
 
-  private drawSusceptanceMajor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawSusceptanceMajor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.reactanceMajor().forEach((def) => g.append(this.susceptanceArc(def)));
     return g;
   }
 
-  private drawSusceptanceMinor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawSusceptanceMinor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.reactanceMinor().forEach((def) => g.append(this.susceptanceArc(def)));
     return g;
   }
@@ -109,22 +189,6 @@ export class ConstAdmCircles {
     return this.drawArc(def, c, i1, i2);
   }
 
-  private drawAdmittanceTexts(color: string): SmithGroup {
-    const group = new SmithGroup()
-      .attr('fill',        color)
-      .attr('stroke',      'none')
-      .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.03')
-      .attr('text-anchor', 'start');
-
-    SmithArcsDefs.textsTicks().forEach((e) => {
-      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ])!;
-      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
-    });
-
-    return group;
-  }
-
   private drawArc(def: SmithArcDef, c: Circle, i1: Point[], i2: Point[]): SmithArc {
     const cc = def[SmithArcEntry.clipCircles]!;
     const arcOpts = def[SmithArcEntry.arcOptions]!;
@@ -133,19 +197,17 @@ export class ConstAdmCircles {
     return new SmithArc(p1, p2, c.r, arcOpts[0], arcOpts[1]);
   }
 
-  public setDrawOptions(opts: ConstAdmDrawOptions): void {
-    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
-    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
-
-    this.g.major.setDrawOptions(majorOpts);
-    this.g.major.setDrawOptions(minorOpts);
-    this.b.major.setDrawOptions(majorOpts);
-    this.b.major.setDrawOptions(minorOpts);
-    this.texts
-      .attr('fill',        opts.textColor)
-      .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.03')
+  private drawAdmittanceTexts(): SmithGroup {
+    const group = new SmithGroup()
+      .attr('stroke',      'none')
       .attr('text-anchor', 'start');
+
+    SmithArcsDefs.textsTicks().forEach((e) => {
+      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ])!;
+      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
+    });
+
+    return group;
   }
 
   public show(): ConstAdmCircles {

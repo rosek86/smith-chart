@@ -80,24 +80,16 @@ export class Smith {
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   constructor(private selector: string, private size: number, private Z0: number = 50) {
-    this.constAdmCircles = new ConstAdmCircles({
-      stroke: 'green', majorWidth: '0.001', minorWidth: '0.0003',
-      textColor: 'black', showMinor: true
-    });
-    this.constImpCircles = new ConstImpCircles({
-      stroke: 'red', majorWidth: '0.001', minorWidth: '0.0003',
-      textColor: 'black', showMinor: true
-    });
-    this.constSwrCircles = new ConstSwrCircles({
-      stroke: 'orange', strokeWidth: '0.003', fill: 'none'
-    });
-    this.constQCircles = new ConstQCircles({
-      stroke: 'blue', strokeWidth: '0.001', fill: 'none'
-    });
+    this.constAdmCircles = new ConstAdmCircles(false);
+    this.constImpCircles = new ConstImpCircles(false);
+    this.constSwrCircles = new ConstSwrCircles();
+    this.constQCircles = new ConstQCircles();
     this.reactanceAxis = this.drawReactanceAxis({
       stroke: 'blue', strokeWidth: '0.005', fill: 'none'
     });
     this.cursor = this.initCursor(this.transform);
+
+    this.constImpCircles.show();
 
     this.container = new SmithGroup().rotateY();
     this.container.append(this.constAdmCircles.draw());
@@ -193,7 +185,7 @@ export class Smith {
   }
 
   public getReactanceComponentValue(p: Point, f: number): string {
-    let z = this.calcs.reflectionCoefficientToImpedance(p);
+    const z = this.calcs.reflectionCoefficientToImpedance(p);
     if (!z) {
       return 'Undefined';
     }
@@ -255,14 +247,14 @@ export class Smith {
       this.userActionHandler && this.userActionHandler({
         type: SmithEventType.Marker,
         data: {
-          reflectionCoefficient: rc,
-          impedance: this.getImpedance(rc),
-          admittance: this.getAdmittance(rc),
-          swr: this.getSwr(rc),
-          returnLoss: this.getReturnLoss(rc),
-          mismatchLoss: this.getMismatchLoss(rc),
-          Q: this.getQ(rc),
-          freq: data.freq,
+          reflectionCoefficient:  rc,
+          impedance:              this.getImpedance(rc),
+          admittance:             this.getAdmittance(rc),
+          swr:                    this.getSwr(rc),
+          returnLoss:             this.getReturnLoss(rc),
+          mismatchLoss:           this.getMismatchLoss(rc),
+          Q:                      this.getQ(rc),
+          freq:                   data.freq,
         } as SmithMarkerEvent
       });
     });
@@ -270,36 +262,20 @@ export class Smith {
     return data;
   }
 
-  public showImpedance(): void {
-    this.constImpCircles.show();
+  public get ConstImpCircles(): ConstImpCircles {
+    return this.constImpCircles;
   }
 
-  public hideImpedance(): void {
-    this.constImpCircles.hide();
+  public get ConstAdmCircles(): ConstAdmCircles {
+    return this.constAdmCircles;
   }
 
-  public showAdmittance(): void {
-    this.constAdmCircles.show();
+  public get ConstQCircles(): ConstQCircles {
+    return this.constQCircles;
   }
 
-  public hideAdmittance(): void {
-    this.constAdmCircles.hide();
-  }
-
-  public showConstantSwrCircles(): void {
-    this.constSwrCircles.show();
-  }
-
-  public hideConstantSwrCircles(): void {
-    this.constSwrCircles.hide();
-  }
-
-  public showConstantQ(): void {
-    this.constQCircles.show();
-  }
-
-  public hideConstantQ(): void {
-    this.constQCircles.hide();
+  public get ConstSwrCircles(): ConstSwrCircles {
+    return this.constSwrCircles;
   }
 
   public setUserActionHandler(handler: (event: SmithEvent) => void): void {

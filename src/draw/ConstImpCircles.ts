@@ -16,41 +16,52 @@ interface ConstImpDrawOptions {
   minorWidth: string;
   majorWidth: string;
   textColor: string;
-  showMinor: boolean;
+  textFontFamily: string;
+  textFontSize: string;
 }
 
 export class ConstImpCircles {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
 
-  private container: SmithGroup;
+  private opts: ConstImpDrawOptions;
 
+  private container: SmithGroup;
   private r: { major: SmithGroup; minor: SmithGroup; };
   private x: { major: SmithGroup; minor: SmithGroup; };
-
   private texts: SmithGroup;
 
-  public constructor(opts: ConstImpDrawOptions) {
-    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
-    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
+  public constructor(showMinor: boolean = true) {
+    this.container = new SmithGroup().attr('fill', 'none');
     this.r = {
-      major: this.drawResistanceMajor(majorOpts),
-      minor: this.drawResistanceMinor(minorOpts),
+      major: this.drawResistanceMajor(),
+      minor: this.drawResistanceMinor(),
     };
     this.x = {
-      major: this.drawReactanceMajor(majorOpts),
-      minor: this.drawReactanceMinor(minorOpts),
+      major: this.drawReactanceMajor(),
+      minor: this.drawReactanceMinor(),
     };
-    this.texts = this.drawImpedanceTexts(opts.textColor);
-    this.container = this.build();
+    this.texts = this.drawImpedanceTexts();
 
-    if (opts.showMinor === false) {
+    this.opts = this.defaultDrawingOptions();
+    this.setDrawOptions(this.opts);
+
+    this.build();
+
+    if (showMinor === false) {
       this.r.minor.hide();
       this.x.minor.hide();
     }
   }
 
+  private defaultDrawingOptions(): ConstImpDrawOptions {
+    return {
+      stroke: 'black', majorWidth: '0.001', minorWidth: '0.0003',
+      textColor: 'black', textFontFamily: 'Verdana', textFontSize: '0.03'
+    };
+  }
+
   private build(): SmithGroup {
-    return new SmithGroup()
+    return this.container
       .append(this.r.minor)
       .append(this.r.major)
       .append(this.x.minor)
@@ -64,41 +75,95 @@ export class ConstImpCircles {
   }
 
   public setDrawOptions(opts: ConstImpDrawOptions): void {
-    const majorOpts = { stroke: opts.stroke, strokeWidth: opts.majorWidth, fill: 'none' };
-    const minorOpts = { stroke: opts.stroke, strokeWidth: opts.minorWidth, fill: 'none' };
-
-    this.r.major.setDrawOptions(majorOpts);
-    this.r.major.setDrawOptions(minorOpts);
-    this.x.major.setDrawOptions(majorOpts);
-    this.x.major.setDrawOptions(minorOpts);
+    this.opts = opts;
+    this.container.Stroke = opts.stroke;
+    this.r.major.StrokeWidth = opts.majorWidth;
+    this.r.minor.StrokeWidth = opts.minorWidth;
+    this.x.major.StrokeWidth = opts.majorWidth;
+    this.x.minor.StrokeWidth = opts.minorWidth;
     this.texts
       .attr('fill',        opts.textColor)
-      .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.03')
-      .attr('text-anchor', 'start');
+      .attr('font-family', opts.textFontFamily)
+      .attr('font-size',   opts.textFontSize);
   }
 
-  private drawResistanceMajor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  public set Stroke(stroke: string) {
+    this.opts.stroke = stroke;
+    this.container.Stroke = stroke;
+  }
+
+  public get Stroke(): string {
+    return this.opts.stroke;
+  }
+
+  public set MajorWidth(width: string) {
+    this.opts.majorWidth = width;
+    this.r.major.StrokeWidth = width;
+    this.x.major.StrokeWidth = width;
+  }
+
+  public get MajorWidth(): string {
+    return this.opts.majorWidth;
+  }
+
+  public set MinorWidth(width: string) {
+    this.opts.minorWidth = width;
+    this.r.minor.StrokeWidth = width;
+    this.x.minor.StrokeWidth = width;
+  }
+
+  public get MinorWidth(): string {
+    return this.opts.minorWidth;
+  }
+
+  public set TextColor(color: string) {
+    this.opts.textColor = color;
+    this.texts.Fill = color;
+  }
+
+  public get TextColor(): string {
+    return this.opts.textColor;
+  }
+
+  public set TextFontFamily(family: string) {
+    this.opts.textFontFamily = family;
+    this.texts.attr('font-family', family);
+  }
+
+  public get TextFontFamily(): string {
+    return this.opts.textFontFamily;
+  }
+
+  public set TextFontSize(size: string) {
+    this.opts.textFontSize = size;
+    this.texts.attr('font-size', size);
+  }
+
+  public get TextFontSize(): string {
+    return this.opts.textFontSize;
+  }
+
+  private drawResistanceMajor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.resistanceMajor().forEach((def) => g.append(this.resistanceArc(def)));
     g.append(new SmithLine([ -1, 0 ], [ 1, 0 ]));
     return g;
   }
 
-  private drawResistanceMinor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawResistanceMinor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.resistanceMinor().forEach((def) => g.append(this.resistanceArc(def)));
     return g;
   }
 
-  private drawReactanceMajor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawReactanceMajor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.reactanceMajor().forEach((def) => g.append(this.reactanceArc(def)));
     return g;
   }
 
-  private drawReactanceMinor(opts: SmithDrawOptions): SmithGroup {
-    const g = new SmithGroup(opts);
+  private drawReactanceMinor(): SmithGroup {
+    const g = new SmithGroup();
     SmithArcsDefs.reactanceMinor().forEach((def) => g.append(this.reactanceArc(def)));
     return g;
   }
@@ -131,12 +196,9 @@ export class ConstImpCircles {
     return new SmithArc(p1, p2, c.r, arcOpts[0], arcOpts[1]);
   }
 
-  private drawImpedanceTexts(color: string): SmithGroup {
+  private drawImpedanceTexts(): SmithGroup {
     const group = new SmithGroup()
-      .attr('fill',        color)
       .attr('stroke',      'none')
-      .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.03')
       .attr('text-anchor', 'start');
 
     for (const e of SmithArcsDefs.textsTicks()) {

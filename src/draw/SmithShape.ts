@@ -16,12 +16,24 @@ export class SmithShape {
     this.element.attr('stroke', color);
   }
 
+  public get Stroke(): string {
+    return this.element.attr('stroke');
+  }
+
   public set StrokeWidth(width: string) {
     this.element.attr('stroke-width', width);
   }
 
+  public get StrokeWidth(): string {
+    return this.element.attr('stroke-width');
+  }
+
   public set Fill(color: string) {
     this.element.attr('fill', color);
+  }
+
+  public get Fill(): string {
+    return this.element.attr('fill');
   }
 
   public get Node(): SVGElement|null {
