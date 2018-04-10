@@ -68,6 +68,15 @@ export class ConstQCircles {
     return this.container;
   }
 
+  public visibility(visible: boolean): ConstQCircles {
+    if (visible) {
+      this.container.show();
+    } else {
+      this.container.hide();
+    }
+    return this;
+  }
+
   public show(): void {
     this.container.show();
   }

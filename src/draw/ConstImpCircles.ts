@@ -208,6 +208,26 @@ export class ConstImpCircles {
     return group;
   }
 
+  public visibility(visible: boolean): ConstImpCircles {
+    if (visible) {
+      this.container.show();
+    } else {
+      this.container.hide();
+    }
+    return this;
+  }
+
+  public displayMinor(display: boolean): ConstImpCircles {
+    if (display) {
+      this.r.minor.show();
+      this.x.minor.show();
+    } else {
+      this.r.minor.hide();
+      this.x.minor.hide();
+    }
+    return this;
+  }
+
   public show(): ConstImpCircles {
     this.container.show();
     return this;

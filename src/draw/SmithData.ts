@@ -81,13 +81,26 @@ export class SmithData {
       markerDesc.selectedPoint = dp;
 
       marker.move(this.bg2fg(dp.point));
-      this.handler && this.handler(markerIndex, dp);
+
+      setTimeout(() => {
+        this.handler && this.handler(markerIndex, dp);
+      }, 0);
     });
 
     marker.show();
     marker.move(this.bg2fg(markerDesc.selectedPoint.point));
 
-    this.handler && this.handler(markerIndex, markerDesc.selectedPoint);
+    setTimeout(() => {
+      this.handler && this.handler(markerIndex, markerDesc.selectedPoint);
+    }, 0);
+  }
+
+  public getMarker(index: number): Marker|undefined {
+    return this.markers[index];
+  }
+
+  public get Markers(): Marker[] {
+    return this.markers.slice();
   }
 
   public setMarkerMoveHandler(handler: (marker: number, data: S1PEntry) => void): void {

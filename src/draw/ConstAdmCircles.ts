@@ -210,6 +210,26 @@ export class ConstAdmCircles {
     return group;
   }
 
+  public visibility(visible: boolean): ConstAdmCircles {
+    if (visible) {
+      this.container.show();
+    } else {
+      this.container.hide();
+    }
+    return this;
+  }
+
+  public displayMinor(display: boolean): ConstAdmCircles {
+    if (display) {
+      this.g.minor.show();
+      this.b.minor.show();
+    } else {
+      this.g.minor.hide();
+      this.b.minor.hide();
+    }
+    return this;
+  }
+
   public show(): ConstAdmCircles {
     this.container.show();
     return this;

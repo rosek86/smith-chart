@@ -69,6 +69,15 @@ export class ConstSwrCircles {
     return this.container;
   }
 
+  public visibility(visible: boolean): ConstSwrCircles {
+    if (visible) {
+      this.container.show();
+    } else {
+      this.container.hide();
+    }
+    return this;
+  }
+
   public show(): void {
     this.container.show();
   }

@@ -5,7 +5,7 @@ export class SmithSvg {
   private container: d3.Selection<SVGElement, {}, null, undefined>;
   private defs: d3.Selection<SVGElement, {}, null, undefined>;
 
-  constructor(size: number) {
+  constructor(size: string) {
     this.container = d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     )

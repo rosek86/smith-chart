@@ -33,6 +33,8 @@ export class SmithCursor {
   private zClipCircle = this.calcs.resistanceCircle(0);
   private yClipCircle = this.calcs.conductanceCircle(0);
 
+  private rc: Point = [ 0, 0 ];
+
   private group: SmithGroup;
   private point: SmithCircle;
 
@@ -111,11 +113,17 @@ export class SmithCursor {
     return this.group;
   }
 
-  public move(rc: Point): void {
+  public get Position(): Point {
+    return this.rc;
+  }
+
+  public set Position(rc: Point) {
     if (this.isWithinPlot(rc) === false) {
       this.hide();
       return;
     }
+
+    this.rc = rc;
 
     const z = this.calcs.reflectionCoefficientToImpedance(rc);
     const y = this.calcs.reflectionCoefficientToAdmittance(rc);
@@ -127,7 +135,9 @@ export class SmithCursor {
     this.moveSusceptance(y);
     this.show();
 
-    this.moveHandler && this.moveHandler(rc);
+    setTimeout(() => {
+      this.moveHandler && this.moveHandler(rc);
+    }, 0);
   }
 
   private isWithinPlot(p: Point): boolean {

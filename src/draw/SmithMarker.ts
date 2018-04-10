@@ -7,6 +7,7 @@ export class SmithMarker extends SmithShape {
   private triangle: d3.Selection<SVGPolygonElement, {}, null, undefined>;
   private text: d3.Selection<SVGTextElement, {}, null, undefined>;
 
+  private rc: Point = [ 0, 0 ];
   private dragHandler: ((p: Point) => void)|null = null;
 
   public constructor(marker: number, color: string) {
@@ -48,7 +49,12 @@ export class SmithMarker extends SmithShape {
       }));
   }
 
+  public get Position(): Point {
+    return this.rc;
+  }
+
   public move(p: Point): void {
+    this.rc = p;
     this.triangle.attr('transform', `translate(${p[0]},${p[1]})`);
     this.text.attr('x', `${p[0]}`).attr('y', `${p[1]}`);
   }

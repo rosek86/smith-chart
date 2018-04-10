@@ -33,7 +33,7 @@ export interface SmithCursorEvent {
   swr: number;
   returnLoss: number;
   mismatchLoss: number;
-  Q: number;
+  Q: number|undefined;
 }
 
 export interface SmithMarkerEvent {
@@ -43,7 +43,7 @@ export interface SmithMarkerEvent {
   swr: number;
   returnLoss: number;
   mismatchLoss: number;
-  Q: number;
+  Q: number|undefined;
   freq: number;
 }
 
@@ -53,7 +53,7 @@ export enum SmithEventType {
 
 export interface SmithEvent {
   type: SmithEventType;
-  data: SmithCursorEvent|SmithMarkerEvent;
+  data: SmithCursorEvent|SmithMarkerEvent|undefined;
 }
 
 interface ZoomTransform { x: number, y: number, k: number }
@@ -79,7 +79,7 @@ export class Smith {
 
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
-  constructor(private selector: string, private size: number, private Z0: number = 50) {
+  constructor(private selector: string, private size: string, private Z0: number = 50) {
     this.constAdmCircles = new ConstAdmCircles(false);
     this.constImpCircles = new ConstImpCircles(false);
     this.constSwrCircles = new ConstSwrCircles();
@@ -134,7 +134,7 @@ export class Smith {
   }
 
   private cursorMove(p: Point): void {
-    this.cursor.move(this.actionToPlot(p));
+    this.cursor.Position = this.actionToPlot(p);
   }
 
   private actionToPlot(p: Point): Point {
@@ -159,18 +159,23 @@ export class Smith {
     cursor.setMoveHandler((rc) => {
       this.userActionHandler && this.userActionHandler({
         type: SmithEventType.Cursor,
-        data: {
-          reflectionCoefficient: rc,
-          impedance:    this.getImpedance(rc),
-          admittance:   this.getAdmittance(rc),
-          swr:          this.getSwr(rc),
-          returnLoss:   this.getReturnLoss(rc),
-          mismatchLoss: this.getMismatchLoss(rc),
-          Q:            this.getQ(rc)
-        } as SmithCursorEvent
+        data: this.CursorData
       });
     });
     return cursor;
+  }
+
+  public get CursorData(): SmithCursorEvent {
+    const rc = this.cursor.Position;
+    return {
+      reflectionCoefficient: rc,
+      impedance:    this.calcImpedance(rc),
+      admittance:   this.calcAdmittance(rc),
+      swr:          this.getSwr(rc),
+      returnLoss:   this.getReturnLoss(rc),
+      mismatchLoss: this.getMismatchLoss(rc),
+      Q:            this.getQ(rc)
+    };
   }
 
   private bgContainerZoom(transform: ZoomTransform): void {
@@ -202,13 +207,14 @@ export class Smith {
   }
 
   public formatComplex(c: Point, unit: string = '', dp: number = 3): string {
-    return `(${c[0].toFixed(dp)} ${c[1] < 0 ? '-' : '+'} j ${Math.abs(c[1]).toFixed(dp)}) ${unit}`;
+    if (unit !== '') { unit = `[${unit}]`; }
+    return `${c[0].toFixed(dp)} ${c[1] < 0 ? '-' : '+'} j ${Math.abs(c[1]).toFixed(dp)} ${unit}`;
   }
 
   public formatComplexPolar(c: Point, unit: string = '', dp: number = 3): string {
     const m = Math.sqrt(c[0]*c[0] + c[1]*c[1]);
     const a = Math.atan2(c[1], c[0]) * 180.0 / Math.PI;
-    return `${m.toFixed(dp)}${unit} ∠${a.toFixed(dp)}°`;
+    return `${m.toFixed(dp)} ${unit} ∠${a.toFixed(dp)}°`;
   }
 
   public formatNumber(val: number): string {
@@ -237,29 +243,44 @@ export class Smith {
     this.data.push(data);
   }
 
-  private createSmithData(values: S1P, index: number): SmithData {
-    const color = d3.schemeCategory10[1+index];
+  private createSmithData(values: S1P, dataset: number): SmithData {
+    const color = d3.schemeCategory10[1+dataset];
     const data = new SmithData(values, color,
       this.transform, this.fgContainer, this.container
     );
     data.setMarkerMoveHandler((marker, data) => {
-      const rc = data.point;
       this.userActionHandler && this.userActionHandler({
         type: SmithEventType.Marker,
-        data: {
-          reflectionCoefficient:  rc,
-          impedance:              this.getImpedance(rc),
-          admittance:             this.getAdmittance(rc),
-          swr:                    this.getSwr(rc),
-          returnLoss:             this.getReturnLoss(rc),
-          mismatchLoss:           this.getMismatchLoss(rc),
-          Q:                      this.getQ(rc),
-          freq:                   data.freq,
-        } as SmithMarkerEvent
+        data: this.getMarkerData(dataset, marker)
       });
     });
     data.addMarker();
     return data;
+  }
+
+  public getMarkerData(dataset: number, marker: number): SmithMarkerEvent|undefined {
+    if (!this.data[dataset]) { return; }
+
+    const m = this.data[dataset].getMarker(marker);
+    if (!m) { return; }
+
+    const rc = m.selectedPoint.point;
+    const freq = m.selectedPoint.freq;
+
+    return {
+      reflectionCoefficient:  rc,
+      freq:                   freq,
+      impedance:              this.calcImpedance(rc),
+      admittance:             this.calcAdmittance(rc),
+      swr:                    this.getSwr(rc),
+      returnLoss:             this.getReturnLoss(rc),
+      mismatchLoss:           this.getMismatchLoss(rc),
+      Q:                      this.getQ(rc),
+    };
+  }
+
+  public get Datasets(): SmithData[] {
+    return this.data;
   }
 
   public get ConstImpCircles(): ConstImpCircles {
@@ -282,7 +303,7 @@ export class Smith {
     this.userActionHandler = handler;
   }
 
-  private getImpedance(rc: Point): Point|undefined {
+  public calcImpedance(rc: Point): Point|undefined {
     const impedance = this.calcs.reflectionCoefficientToImpedance(rc);
     if (impedance) {
       impedance[0] *= this.Z0;
@@ -290,7 +311,7 @@ export class Smith {
     }
     return impedance;
   }
-  public getAdmittance(rc: Point): Point|undefined {
+  public calcAdmittance(rc: Point): Point|undefined {
     const admittance = this.calcs.reflectionCoefficientToAdmittance(rc);
     if (admittance) {
       admittance[0] *= 1 / this.Z0 * 1000.0; // mS
