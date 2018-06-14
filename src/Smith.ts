@@ -23,7 +23,7 @@ import { SmithDrawOptions } from './draw/SmithDrawOptions';
 import { S1P, S1PEntry } from './SnP';
 
 interface SmithCirclesDrawOptions {
-  stroke: string, minorWidth: string, majorWidth: string,
+  stroke: string; minorWidth: string; majorWidth: string;
 }
 
 export interface SmithCursorEvent {
@@ -37,6 +37,8 @@ export interface SmithCursorEvent {
 }
 
 export interface SmithMarkerEvent {
+  datasetNo: number;
+  markerNo: number;
   reflectionCoefficient: Point;
   impedance: Point|undefined;
   admittance: Point|undefined;
@@ -56,7 +58,7 @@ export interface SmithEvent {
   data: SmithCursorEvent|SmithMarkerEvent|undefined;
 }
 
-interface ZoomTransform { x: number, y: number, k: number }
+interface ZoomTransform { x: number; y: number; k: number; }
 
 export class Smith {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
@@ -157,10 +159,11 @@ export class Smith {
   private initCursor(transform: ZoomTransform): SmithCursor {
     const cursor = new SmithCursor(transform);
     cursor.setMoveHandler((rc) => {
-      this.userActionHandler && this.userActionHandler({
-        type: SmithEventType.Cursor,
-        data: this.CursorData
-      });
+      if (this.userActionHandler) {
+        this.userActionHandler({
+          type: SmithEventType.Cursor, data: this.CursorData,
+        });
+      }
     });
     return cursor;
   }
@@ -212,7 +215,7 @@ export class Smith {
   }
 
   public formatComplexPolar(c: Point, unit: string = '', dp: number = 3): string {
-    const m = Math.sqrt(c[0]*c[0] + c[1]*c[1]);
+    const m = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
     const a = Math.atan2(c[1], c[0]) * 180.0 / Math.PI;
     return `${m.toFixed(dp)} ${unit} ∠${a.toFixed(dp)}°`;
   }
@@ -244,30 +247,32 @@ export class Smith {
   }
 
   private createSmithData(values: S1P, dataset: number): SmithData {
-    const color = d3.schemeCategory10[1+dataset];
+    const color = d3.schemeCategory10[1 + dataset];
     const data = new SmithData(values, color,
       this.transform, this.fgContainer, this.container
     );
-    data.setMarkerMoveHandler((marker, data) => {
-      this.userActionHandler && this.userActionHandler({
-        type: SmithEventType.Marker,
-        data: this.getMarkerData(dataset, marker)
-      });
+    data.setMarkerMoveHandler((marker) => {
+      if (this.userActionHandler) {
+        this.userActionHandler({
+          type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
+        });
+      }
     });
     data.addMarker();
     return data;
   }
 
-  public getMarkerData(dataset: number, marker: number): SmithMarkerEvent|undefined {
-    if (!this.data[dataset]) { return; }
+  public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent|undefined {
+    if (!this.data[datasetNo]) { return; }
 
-    const m = this.data[dataset].getMarker(marker);
+    const m = this.data[datasetNo].getMarker(markerNo);
     if (!m) { return; }
 
     const rc = m.selectedPoint.point;
     const freq = m.selectedPoint.freq;
 
     return {
+      datasetNo, markerNo,
       reflectionCoefficient:  rc,
       freq:                   freq,
       impedance:              this.calcImpedance(rc),
