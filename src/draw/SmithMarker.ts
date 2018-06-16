@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { SmithShape } from "./SmithShape";
+import { SmithShape } from './SmithShape';
 import { Point } from './Point';
 
 export class SmithMarker extends SmithShape {

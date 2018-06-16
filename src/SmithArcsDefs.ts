@@ -142,7 +142,7 @@ export class SmithArcsDefs {
       [ 18.00, [ [ 20.0, 0 ], [ -20.0, 1 ] ], [ true,  true  ] ],
       [ 30.00, [ [ 50.0, 0 ], [ -50.0, 1 ] ], [ true,  true  ] ],
       [ 40.00, [ [ 50.0, 0 ], [ -50.0, 1 ] ], [ true,  true  ] ],
-    ]
+    ];
   }
 
   public static reactanceMajor(): SmithArcDef[] {

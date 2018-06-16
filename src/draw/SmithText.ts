@@ -2,7 +2,6 @@ import * as d3 from 'd3';
 
 import { Point } from './Point';
 import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
 
 interface TextOptions {
   dx?: string;

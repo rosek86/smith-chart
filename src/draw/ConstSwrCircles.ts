@@ -1,9 +1,7 @@
 
 import { SmithGroup } from './SmithGroup';
 import { SmithCircle } from './SmithCircle';
-import { SmithText } from './SmithText';
 import { SmithConstantCircle } from '../SmithConstantCircle';
-import { SmithDrawOptions } from './SmithDrawOptions';
 
 interface ConstSwrDrawOptions {
   stroke: string;

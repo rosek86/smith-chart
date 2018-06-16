@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import * as $ from 'jquery';
 
 import { Smith, SmithEvent, SmithEventType, SmithMarkerEvent } from './Smith';
@@ -6,7 +5,9 @@ import { S1P } from './SnP';
 
 $(document).ready(() => {
   const size = 600;
-  const smith = new Smith('#smith', size.toString());
+  const smith = new Smith();
+
+  smith.draw('#smith', size.toString());
 
   const constImpCircles = smith.ConstImpCircles;
   const constAdmCircles = smith.ConstAdmCircles;
@@ -75,7 +76,7 @@ $(document).ready(() => {
   }
 
   function parseTouchstone(data: string): S1P {
-    const values: S1P = []; 
+    const values: S1P = [];
     const lines = data.split('\n');
 
     for (const line of lines) {
@@ -90,7 +91,7 @@ $(document).ready(() => {
       values.push({
         freq: value[0],
         point: [value[1], value[2]],
-      })
+      });
     }
 
     return values;
@@ -106,5 +107,7 @@ $(document).ready(() => {
     }
   }
 
-  document.getElementById('file')!.addEventListener('change', handleFileSelect, false);
+  if (document.getElementById('file')) {
+    document.getElementById('file').addEventListener('change', handleFileSelect, false);
+  }
 });

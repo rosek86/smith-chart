@@ -1,12 +1,11 @@
-import { SmithGroup } from "./SmithGroup";
-import { SmithCircle } from "./SmithCircle";
-import { SmithLine } from "./SmithLine";
+import { SmithGroup } from './SmithGroup';
+import { SmithCircle } from './SmithCircle';
+import { SmithLine } from './SmithLine';
 import { SmithPath } from './SmithPath';
 
 import { SmithConstantCircle } from '../SmithConstantCircle';
-import { Point } from "./Point";
-import { SmithArc } from "./SmithArc";
-import { Circle } from "./Circle";
+import { Point } from './Point';
+import { SmithArc } from './SmithArc';
 
 interface Transform {
   x: number;
@@ -27,7 +26,7 @@ export class SmithCursor {
     point:      { radius: 0.01, color: 'red',  },
     impedance:  { width: 0.005, color: 'red'   },
     admittance: { width: 0.005, color: 'green' },
-  }
+  };
 
   private calcs = new SmithConstantCircle();
   private zClipCircle = this.calcs.resistanceCircle(0);
@@ -52,7 +51,7 @@ export class SmithCursor {
 
   private moveHandler: ((rc: Point) => void)|null = null;
 
-  public constructor(private transform: Transform = { x:0, y:0, k:1 }) {
+  public constructor(private transform: Transform = { x: 0, y: 0, k: 1 }) {
     this.group = new SmithGroup();
 
     this.impedance = {
@@ -209,7 +208,7 @@ export class SmithCursor {
 
     const k = transform.k;
     this.point.Element.attr('r', this.drawingOpts.point.radius / k);
-    this.impedance.group.attr('stroke-width', this.drawingOpts.impedance.width/ k);
+    this.impedance.group.attr('stroke-width', this.drawingOpts.impedance.width / k);
     this.admittance.group.attr('stroke-width', this.drawingOpts.admittance.width / k);
   }
 

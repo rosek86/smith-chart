@@ -7,6 +7,9 @@ type Complex = [ number, number ];
 export class SmithConstantCircle {
   private epsilon = 1e-10;
 
+  public constructor(private z0: number = 50) {
+  }
+
   public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
     const gr = c[0];
     const gi = c[1];
@@ -19,7 +22,7 @@ export class SmithConstantCircle {
     return [ zr, zi ];
   }
 
-  public impedanceToReflectionoefficient(c: Complex): Complex|undefined {
+  public impedanceToReflectionCoefficient(c: Complex): Complex|undefined {
     const zr = c[0];
     const zi = c[1];
     const d = (zr + 1) * (zr + 1) + zi * zi;
@@ -79,7 +82,7 @@ export class SmithConstantCircle {
   public reflectionCoefficientToSwr(rc: Complex): number {
     const x = rc[0];
     const y = rc[1];
-    const gamma = Math.sqrt(x*x + y*y);
+    const gamma = Math.sqrt(x * x + y * y);
     return (1 + gamma) / (1 - gamma);
   }
 
@@ -88,13 +91,13 @@ export class SmithConstantCircle {
   }
 
   public reflectionCoefficientToReturnLoss(rc: Complex): number {
-    const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
+    const abs = Math.sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
     return -20.0 * Math.log10(abs);
   }
 
   public reflectionCoefficientToMismatchLoss(rc: Complex): number {
-    const abs = Math.sqrt(rc[0]*rc[0] + rc[1]*rc[1]);
-    return -10.0 * Math.log10(1 - abs*abs);
+    const abs = Math.sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
+    return -10.0 * Math.log10(1 - abs * abs);
   }
 
   public circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
@@ -117,5 +120,49 @@ export class SmithConstantCircle {
 
   public isPointWithinCircle(p: Point, c: Circle): boolean {
     return (Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2)) <= (Math.pow(c.r, 2));
+  }
+
+  public normalize(p: Point): Point {
+    return [ p[0] / this.z0, p[1] / this.z0 ];
+  }
+
+  public denormalize(p: Point): Point {
+    return [ p[0] * this.z0, p[1] * this.z0 ];
+  }
+
+  public waveLengthFromFrequency(frequency: number): number {
+    return 299792458 / frequency;
+  }
+
+  public frequencyFromWaveLength(waveLength: number): number {
+    return 299792458 * waveLength;
+  }
+
+  public magnitude(p: Point): number {
+    const real = p[0];
+    const imag = p[1];
+    return Math.sqrt(real * real + imag * imag);
+  }
+
+  public dB(value: number): number {
+    return 20 * Math.log10(value);
+  }
+
+  public reactanceToCapacitance(x: number, f: number): number|null {
+    if (x >= 0) { return null; }
+    return -1 / (2 * Math.PI * f * x);
+  }
+
+  public capacitanceToReactance(C: number, f: number): number {
+    return -1 / (2 * Math.PI * f * C);
+  }
+
+  public reactanceToInductance(x: number, f: number): number|null {
+    if (x <= 0) { return null; }
+    return x / (2 * Math.PI * f);
+  }
+
+  public inductanceToReactance(L: number, f: number): number {
+    return 2 * Math.PI * f * L;
   }
 }

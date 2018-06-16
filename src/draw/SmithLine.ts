@@ -13,10 +13,10 @@ export class SmithLine extends SmithShape {
     this.draw(p1, p2);
   }
 
-  private draw(p1: Point, p2: Point): SmithLine{
+  private draw(p1: Point, p2: Point): SmithLine {
     this.element
       .attr('x1', p1[0]).attr('y1', p1[1])
-      .attr('x2', p2[0]).attr('y2', p2[1])
+      .attr('x2', p2[0]).attr('y2', p2[1]);
     return this;
   }
 

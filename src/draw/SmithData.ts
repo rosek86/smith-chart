@@ -1,8 +1,8 @@
-import { SmithGroup } from "./SmithGroup";
-import { S1P, S1PEntry } from "../SnP";
-import { SmithCircle } from "./SmithCircle";
-import { SmithMarker } from "./SmithMarker";
-import { Point } from "./Point";
+import { SmithGroup } from './SmithGroup';
+import { S1P, S1PEntry } from '../SnP';
+import { SmithCircle } from './SmithCircle';
+import { SmithMarker } from './SmithMarker';
+import { Point } from './Point';
 
 import * as d3 from 'd3';
 
@@ -41,7 +41,7 @@ export class SmithData {
       stroke: 'none', strokeWidth: 'none', fill: this.color
     });
     data.forEach((dp) => {
-      group.append(new SmithCircle({ p: dp.point, r: this.pointRadius }))
+      group.append(new SmithCircle({ p: dp.point, r: this.pointRadius }));
     });
     return group;
   }

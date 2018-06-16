@@ -2,14 +2,12 @@
 import { SmithGroup } from './SmithGroup';
 import { SmithArcsDefs, SmithArcDef, SmithArcEntry } from '../SmithArcsDefs';
 import { SmithShape } from './SmithShape';
-import { SmithCircle } from './SmithCircle';
 import { SmithArc } from './SmithArc';
 import { SmithLine } from './SmithLine';
 import { SmithText } from './SmithText';
 import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Circle } from './Circle';
 import { Point } from './Point';
-import { SmithDrawOptions } from './SmithDrawOptions';
 
 interface ConstImpDrawOptions {
   stroke: string;
@@ -173,7 +171,7 @@ export class ConstImpCircles {
     const c  = this.calcs.resistanceCircle(def[SmithArcEntry.circle]);
     if (cc === undefined) {
       const arcOpts = def[SmithArcEntry.arcOptions];
-      return new SmithArc([1, 0], [1-c.r*2, 0], c.r, arcOpts[0], arcOpts[1]);
+      return new SmithArc([1, 0], [1 - c.r * 2, 0], c.r, arcOpts[0], arcOpts[1]);
     }
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.reactanceCircle(cc[1][0]));
@@ -202,7 +200,7 @@ export class ConstImpCircles {
       .attr('text-anchor', 'start');
 
     for (const e of SmithArcsDefs.textsTicks()) {
-      const p = this.calcs.impedanceToReflectionoefficient([ e[0], 0 ])!;
+      const p = this.calcs.impedanceToReflectionCoefficient([ e[0], 0 ])!;
       group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: 90, dy: '0.004', dx: '0.001' }));
     }
     return group;

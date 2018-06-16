@@ -2,15 +2,12 @@
 import { SmithGroup } from './SmithGroup';
 import { SmithArcsDefs, SmithArcDef, SmithArcEntry } from '../SmithArcsDefs';
 import { SmithShape } from './SmithShape';
-import { SmithCircle } from './SmithCircle';
 import { SmithArc } from './SmithArc';
 import { SmithLine } from './SmithLine';
 import { SmithText } from './SmithText';
 import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Circle } from './Circle';
 import { Point } from './Point';
-import { SmithDrawOptions } from './SmithDrawOptions';
-import * as d3 from 'd3';
 
 interface ConstAdmDrawOptions {
   stroke: string;
@@ -174,7 +171,7 @@ export class ConstAdmCircles {
     const c  = this.calcs.conductanceCircle(def[SmithArcEntry.circle]);
     if (cc === undefined) {
       const arcOpts = def[SmithArcEntry.arcOptions];
-      return new SmithArc([-1, 0], [-1+c.r*2, 0], c.r, arcOpts[0], arcOpts[1]);
+      return new SmithArc([-1, 0], [-1 + c.r * 2, 0], c.r, arcOpts[0], arcOpts[1]);
     }
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.susceptanceCircle(cc[1][0]));
