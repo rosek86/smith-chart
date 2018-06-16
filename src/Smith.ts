@@ -81,7 +81,7 @@ export class Smith {
 
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
-  constructor(private selector: string, private size: string, private Z0: number = 50) {
+  constructor(private Z0: number = 50) {
     this.constAdmCircles = new ConstAdmCircles(false);
     this.constImpCircles = new ConstImpCircles(false);
     this.constSwrCircles = new ConstSwrCircles();
@@ -104,7 +104,9 @@ export class Smith {
     this.fgContainer = new SmithGroup();
     this.fgContainerShape = this.drawFgContainerShape();
     this.fgContainer.append(this.fgContainerShape);
+  }
 
+  public draw(container: string, size: string): void {
     this.svg = new SmithSvg(size);
     this.svg.append(this.container);
     this.svg.append(this.fgContainer);
@@ -112,7 +114,7 @@ export class Smith {
     // Initial zoom
     this.bgContainerZoom(this.transform);
 
-    d3.select(selector).append(() => this.svg.Node);
+    d3.select(container).append(() => this.svg.Node);
   }
 
   private drawFgContainerShape(): SmithCircle {
