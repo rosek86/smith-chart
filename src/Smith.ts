@@ -106,7 +106,12 @@ export class Smith {
     this.fgContainer.append(this.fgContainerShape);
   }
 
-  public draw(container: string, size: string): void {
+  private getContainerSize(selector: string): { width: number, height: number } {
+    const container = d3.select<HTMLElement, {}>(selector).node();
+    return container.getBoundingClientRect();
+  }
+
+  public draw(selector: string, size: string): void {
     this.svg = new SmithSvg(size);
     this.svg.append(this.container);
     this.svg.append(this.fgContainer);
@@ -114,7 +119,23 @@ export class Smith {
     // Initial zoom
     this.bgContainerZoom(this.transform);
 
-    d3.select(container).append(() => this.svg.Node);
+    d3.select(selector).append(() => this.svg.Node);
+
+    const redraw = () => {
+      const container = this.getContainerSize(selector);
+      const width = container.width;
+      const height = container.height;
+
+      this.svg.Element
+        .attr('width', d3.min([ width, height ]))
+        .attr('height', d3.min([ width, height ]));
+
+      // this.svg.Element
+      //   .attr('width', width)
+      //   .attr('height', height);
+    };
+    window.addEventListener('resize', redraw);
+    redraw();
   }
 
   private drawFgContainerShape(): SmithCircle {

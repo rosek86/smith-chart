@@ -13,7 +13,7 @@ export class SmithSvg {
     .attr('xmlns', 'http://www.w3.org/2000/svg')
     .attr('width', size).attr('height', size)
     .attr('viewBox', '-1 -1 2 2')
-    .attr('preserveAspectRatio', 'xMinYMin meet')
+    .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('transform', 'translate(0, 1)');
 
     this.defs = this.container.append('defs');

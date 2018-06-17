@@ -7,7 +7,7 @@ type Complex = [ number, number ];
 export class SmithConstantCircle {
   private epsilon = 1e-10;
 
-  public constructor(private z0: number = 50) {
+  public constructor(public Z0: number = 50) {
   }
 
   public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
@@ -123,11 +123,11 @@ export class SmithConstantCircle {
   }
 
   public normalize(p: Point): Point {
-    return [ p[0] / this.z0, p[1] / this.z0 ];
+    return [ p[0] / this.Z0, p[1] / this.Z0 ];
   }
 
   public denormalize(p: Point): Point {
-    return [ p[0] * this.z0, p[1] * this.z0 ];
+    return [ p[0] * this.Z0, p[1] * this.Z0 ];
   }
 
   public waveLengthFromFrequency(frequency: number): number {
@@ -164,5 +164,19 @@ export class SmithConstantCircle {
 
   public inductanceToReactance(L: number, f: number): number {
     return 2 * Math.PI * f * L;
+  }
+
+  public addImpedance(rc: Point, [R, X]: [number, number]): Point {
+    const Z = this.reflectionCoefficientToImpedance(rc);
+    Z[0] += R / this.Z0;
+    Z[1] += X / this.Z0;
+    return this.impedanceToReflectionCoefficient(Z);
+  }
+
+  public addAdmittance(rc: Point, [G, B]: [number, number]): Point {
+    const Y = this.reflectionCoefficientToAdmittance(rc);
+    Y[0] += G * this.Z0;
+    Y[1] += B * this.Z0;
+    return this.admittanceToReflectionCoefficient(Y);
   }
 }
