@@ -5,13 +5,13 @@ export class SmithSvg {
   private container: d3.Selection<SVGElement, {}, null, undefined>;
   private defs: d3.Selection<SVGElement, {}, null, undefined>;
 
-  constructor(size: string) {
+  constructor() {
     this.container = d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     )
     .attr('version', '1.1')
     .attr('xmlns', 'http://www.w3.org/2000/svg')
-    .attr('width', size).attr('height', size)
+    .attr('width', '100%').attr('height', '100%')
     .attr('viewBox', '-1 -1 2 2')
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('transform', 'translate(0, 1)');
