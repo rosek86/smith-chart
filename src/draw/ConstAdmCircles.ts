@@ -179,7 +179,11 @@ export class ConstAdmCircles {
   }
 
   private susceptanceArc(def: SmithArcDef): SmithShape {
-    const cc = def[SmithArcEntry.clipCircles]!;
+    const cc = def[SmithArcEntry.clipCircles];
+    if (cc === undefined) {
+      throw new Error('Invalid arc definition.');
+    }
+
     const c  = this.calcs.susceptanceCircle(def[SmithArcEntry.circle]);
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[1][0]));
@@ -187,8 +191,15 @@ export class ConstAdmCircles {
   }
 
   private drawArc(def: SmithArcDef, c: Circle, i1: Point[], i2: Point[]): SmithArc {
-    const cc = def[SmithArcEntry.clipCircles]!;
-    const arcOpts = def[SmithArcEntry.arcOptions]!;
+    const cc = def[SmithArcEntry.clipCircles];
+    const arcOpts = def[SmithArcEntry.arcOptions];
+    if (cc === undefined) {
+      throw new Error('Invalid arc definition.');
+    }
+    if (arcOpts === undefined) {
+      throw new Error('Invalid arc options.');
+    }
+
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
     return new SmithArc(p1, p2, c.r, arcOpts[0], arcOpts[1]);
@@ -200,8 +211,13 @@ export class ConstAdmCircles {
       .attr('text-anchor', 'start');
 
     SmithArcsDefs.textsTicks().forEach((e) => {
-      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ])!;
-      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dy: '0.004', dx: '0.001' }));
+      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ]);
+      if (p === undefined) {
+        throw new Error('Invalid text tick coordinates');
+      }
+      const dx = e[2].dx === undefined ? '0.001' : e[2].dx;
+      const dy = e[2].dy === undefined ? '0.004' : e[2].dy;
+      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dx, dy }));
     });
 
     return group;

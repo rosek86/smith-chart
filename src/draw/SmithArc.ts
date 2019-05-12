@@ -9,7 +9,9 @@ export class SmithArc extends SmithShape {
     super(d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'path')
     ));
-    options && this.setDrawOptions(options);
+    if (options) {
+      this.setDrawOptions(options);
+    }
     this.move(p1, p2, r, largeArc, sweep);
   }
 

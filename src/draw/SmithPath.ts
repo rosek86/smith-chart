@@ -8,7 +8,9 @@ export class SmithPath extends SmithShape {
     super(d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'path')
     ));
-    options && this.setDrawOptions(options);
+    if (options) {
+      this.setDrawOptions(options);
+    }
   }
 
   public move(d: string): SmithPath {

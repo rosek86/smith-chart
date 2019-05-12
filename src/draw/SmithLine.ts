@@ -9,7 +9,9 @@ export class SmithLine extends SmithShape {
     super(d3.select<SVGElement, {}>(
       document.createElementNS('http://www.w3.org/2000/svg', 'line')
     ));
-    options && this.setDrawOptions(options);
+    if (options) {
+      this.setDrawOptions(options);
+    }
     this.draw(p1, p2);
   }
 

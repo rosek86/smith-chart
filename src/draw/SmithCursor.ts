@@ -135,7 +135,9 @@ export class SmithCursor {
     this.show();
 
     setTimeout(() => {
-      this.moveHandler && this.moveHandler(rc);
+      if (this.moveHandler) {
+        this.moveHandler(rc);
+      }
     }, 0);
   }
 

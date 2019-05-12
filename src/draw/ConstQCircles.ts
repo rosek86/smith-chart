@@ -1,9 +1,7 @@
 
 import { SmithGroup } from './SmithGroup';
 import { SmithArc } from './SmithArc';
-import { SmithText } from './SmithText';
 import { SmithConstantCircle } from '../SmithConstantCircle';
-import { SmithDrawOptions } from './SmithDrawOptions';
 
 interface ConstQDrawOptions {
   stroke: string;

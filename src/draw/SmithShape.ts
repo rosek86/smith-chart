@@ -6,9 +6,9 @@ export class SmithShape {
   }
 
   public setDrawOptions(opts: SmithDrawOptions): SmithShape {
-    opts.stroke      !== undefined && (this.Stroke      = opts.stroke     );
-    opts.strokeWidth !== undefined && (this.StrokeWidth = opts.strokeWidth);
-    opts.fill        !== undefined && (this.Fill        = opts.fill       );
+    if (opts.stroke     ) { this.Stroke      = opts.stroke;      }
+    if (opts.strokeWidth) { this.StrokeWidth = opts.strokeWidth; }
+    if (opts.fill       ) { this.Fill        = opts.fill;        }
     return this;
   }
 

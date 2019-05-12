@@ -1,5 +1,4 @@
 import * as webpack from 'webpack';
-import * as UglifyJsPlugin from 'uglifyjs-webpack-plugin';
 
 const config: webpack.Configuration = {
   entry: './src/index.ts',
@@ -13,9 +12,6 @@ const config: webpack.Configuration = {
       { test: /\.ts$/, use: 'ts-loader' }
     ],
   },
-  plugins: [
-    new UglifyJsPlugin({ sourceMap: true, parallel: true })
-  ],
   resolve: {
     // Add '.ts' as a resolvable extension.
     extensions: [ '.ts', '.js' ],

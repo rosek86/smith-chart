@@ -60,7 +60,9 @@ export class SmithData {
   private zoomAllMarkers(): void {
     for (const marker of this.markers) {
       const rc = marker.selectedPoint;
-      rc && marker.marker.move(this.bg2fg(rc.point));
+      if (rc) {
+        marker.marker.move(this.bg2fg(rc.point));
+      }
     }
   }
 
@@ -83,7 +85,9 @@ export class SmithData {
       marker.move(this.bg2fg(dp.point));
 
       setTimeout(() => {
-        this.handler && this.handler(markerIndex, dp);
+        if (this.handler) {
+          this.handler(markerIndex, dp);
+        }
       }, 0);
     });
 
@@ -91,7 +95,9 @@ export class SmithData {
     marker.move(this.bg2fg(markerDesc.selectedPoint.point));
 
     setTimeout(() => {
-      this.handler && this.handler(markerIndex, markerDesc.selectedPoint);
+      if (this.handler) {
+        this.handler(markerIndex, markerDesc.selectedPoint);
+      }
     }, 0);
   }
 

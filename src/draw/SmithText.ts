@@ -23,7 +23,9 @@ export class SmithText extends SmithShape {
       .attr('pointer-events', 'none')
       .attr('transform', 'translate(0,0) scale(1,-1)')
       .text(text);
-    opts && this.setTextOptions(opts);
+    if (opts) {
+      this.setTextOptions(opts);
+    }
     this.move(p);
   }
 
@@ -39,13 +41,13 @@ export class SmithText extends SmithShape {
   }
 
   public setTextOptions(opts: TextOptions): SmithText {
-    opts.dx         !== undefined && this.element.attr('dx',          opts.dx        );
-    opts.dy         !== undefined && this.element.attr('dy',          -opts.dy       );
-    opts.stroke     !== undefined && this.element.attr('stroke',      opts.stroke    );
-    opts.fill       !== undefined && this.element.attr('fill',        opts.fill      );
-    opts.fontFamily !== undefined && this.element.attr('font-family', opts.fontFamily);
-    opts.fontSize   !== undefined && this.element.attr('font-size',   opts.fontSize  );
-    opts.textAnchor !== undefined && this.element.attr('text-anchor', opts.textAnchor);
+    if (opts.dx        ) { this.element.attr('dx',          opts.dx        ); }
+    if (opts.dy        ) { this.element.attr('dy',          -opts.dy       ); }
+    if (opts.stroke    ) { this.element.attr('stroke',      opts.stroke    ); }
+    if (opts.fill      ) { this.element.attr('fill',        opts.fill      ); }
+    if (opts.fontFamily) { this.element.attr('font-family', opts.fontFamily); }
+    if (opts.fontSize  ) { this.element.attr('font-size',   opts.fontSize  ); }
+    if (opts.textAnchor) { this.element.attr('text-anchor', opts.textAnchor); }
 
     if (opts.rotate !== undefined) {
       this.element.attr(

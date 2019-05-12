@@ -1,7 +1,6 @@
 import { Circle } from './draw/Circle';
 import { Point } from './draw/Point';
 
-type Vector = [ number, number ];
 type Complex = [ number, number ];
 
 export class SmithConstantCircle {
@@ -109,7 +108,7 @@ export class SmithConstantCircle {
     const vpx = (c2.p[0] - c1.p[0]) * c1.r / dl;
     const vpy = (c2.p[1] - c1.p[1]) * c1.r / dl;
 
-    return [ [
+    return [[
         vpx * cosA - vpy * sinA + c1.p[0],
         vpx * sinA + vpy * cosA + c1.p[1],
     ], [
@@ -166,15 +165,21 @@ export class SmithConstantCircle {
     return 2 * Math.PI * f * L;
   }
 
-  public addImpedance(rc: Point, [R, X]: [number, number]): Point {
+  public addImpedance(rc: Point, [R, X]: [number, number]): Point|undefined {
     const Z = this.reflectionCoefficientToImpedance(rc);
+    if (Z === undefined) {
+      return undefined;
+    }
     Z[0] += R / this.Z0;
     Z[1] += X / this.Z0;
     return this.impedanceToReflectionCoefficient(Z);
   }
 
-  public addAdmittance(rc: Point, [G, B]: [number, number]): Point {
+  public addAdmittance(rc: Point, [G, B]: [number, number]): Point|undefined {
     const Y = this.reflectionCoefficientToAdmittance(rc);
+    if (Y === undefined) {
+      return undefined;
+    }
     Y[0] += G * this.Z0;
     Y[1] += B * this.Z0;
     return this.admittanceToReflectionCoefficient(Y);

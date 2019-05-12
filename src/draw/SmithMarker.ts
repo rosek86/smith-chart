@@ -42,7 +42,9 @@ export class SmithMarker extends SmithShape {
         this.triangle.attr('stroke', 'gray');
       })
       .on('drag', () => {
-        this.dragHandler && this.dragHandler([ d3.event.x, d3.event.y ]);
+        if (this.dragHandler) {
+          this.dragHandler([ d3.event.x, d3.event.y ]);
+        }
       })
       .on('end', () => {
         this.triangle.attr('stroke', 'gray');
