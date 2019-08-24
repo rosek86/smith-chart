@@ -12,11 +12,6 @@ export class SmithGroup extends SmithShape {
     }
   }
 
-  public rotateY(): SmithGroup {
-    this.element.attr('transform', 'scale(1, -1)');
-    return this;
-  }
-
   public get Element(): d3.Selection<SVGElement, {}, null, undefined> {
     return this.element;
   }

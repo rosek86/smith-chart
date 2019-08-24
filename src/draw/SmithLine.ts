@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { Point } from './Point';
+import { Point } from '../shapes/Point';
 import { SmithShape } from './SmithShape';
 import { SmithDrawOptions } from './SmithDrawOptions';
 
@@ -12,10 +12,10 @@ export class SmithLine extends SmithShape {
     if (options) {
       this.setDrawOptions(options);
     }
-    this.draw(p1, p2);
+    this.move(p1, p2);
   }
 
-  private draw(p1: Point, p2: Point): SmithLine {
+  public move(p1: Point, p2: Point): SmithLine {
     this.element
       .attr('x1', p1[0]).attr('y1', p1[1])
       .attr('x2', p2[0]).attr('y2', p2[1]);
@@ -23,12 +23,18 @@ export class SmithLine extends SmithShape {
   }
 
   public hide(): void {
-    // this.Element.attr('visibility', 'hidden');
     this.Element.attr('opacity', '0');
   }
 
   public show(): void {
-    // this.Element.attr('visibility', 'visible');
     this.Element.attr('opacity', null);
+  }
+
+  public nonScalingStroke(): void {
+    this.Element.attr('vector-effect',  'non-scaling-stroke');
+  }
+
+  public setStrokeLinecap(linecap: string): void {
+    this.Element.attr('stroke-linecap', linecap);
   }
 }

@@ -1,17 +1,11 @@
 import { SmithGroup } from './SmithGroup';
 import { SmithCircle } from './SmithCircle';
 import { SmithLine } from './SmithLine';
-import { SmithPath } from './SmithPath';
+import { SmithArc } from './SmithArc';
+import { SmithScaler } from './SmithScaler';
 
 import { SmithConstantCircle } from '../SmithConstantCircle';
-import { Point } from './Point';
-import { SmithArc } from './SmithArc';
-
-interface Transform {
-  x: number;
-  y: number;
-  k: number;
-}
+import { Point } from '../shapes/Point';
 
 interface DrawOptions {
   point:      { radius: number; color: string; };
@@ -23,9 +17,9 @@ export class SmithCursor {
   private epsilon = 1.5e-4;
 
   private drawingOpts: DrawOptions = {
-    point:      { radius: 0.01, color: 'red',  },
-    impedance:  { width: 0.005, color: 'red'   },
-    admittance: { width: 0.005, color: 'green' },
+    point:      { radius: 10, color: 'red',  },
+    impedance:  { width:  2,  color: 'red'   },
+    admittance: { width:  2,  color: 'green' },
   };
 
   private calcs = new SmithConstantCircle();
@@ -35,23 +29,23 @@ export class SmithCursor {
   private rc: Point = [ 0, 0 ];
 
   private group: SmithGroup;
-  private point: SmithCircle;
+  private point: SmithLine;
 
   private impedance: {
     group: SmithGroup,
-    resistance: { circle: SmithPath; };
+    resistance: { circle: SmithCircle; };
     reactance: { arc: SmithArc; line: SmithLine; };
   };
 
   private admittance: {
     group: SmithGroup,
-    conductance: { circle: SmithPath; };
+    conductance: { circle: SmithCircle; };
     susceptance: { arc: SmithArc; line: SmithLine; };
   };
 
   private moveHandler: ((rc: Point) => void)|null = null;
 
-  public constructor(private transform: Transform = { x: 0, y: 0, k: 1 }) {
+  public constructor(private scaler: SmithScaler) {
     this.group = new SmithGroup();
 
     this.impedance = {
@@ -60,12 +54,15 @@ export class SmithCursor {
         strokeWidth: this.drawingOpts.impedance.width.toString(),
         fill: 'none'
       }),
-      resistance: { circle: new SmithPath(), },
+      resistance: { circle: new SmithCircle({p: [0, 0], r: 1}), },
       reactance: {
         arc: new SmithArc([ 1, 0 ], [ 0, 1 ], 5, false, false),
         line: new SmithLine([ -1, 0 ], [ 1, 0 ]),
       }
     };
+    this.impedance.resistance.circle.nonScalingStroke();
+    this.impedance.reactance.arc.nonScalingStroke();
+    this.impedance.reactance.line.nonScalingStroke();
 
     this.admittance = {
       group: new SmithGroup({
@@ -73,19 +70,23 @@ export class SmithCursor {
         strokeWidth: this.drawingOpts.admittance.width.toString(),
         fill: 'none',
       }),
-      conductance: { circle: new SmithPath(), },
+      conductance: { circle: new SmithCircle({p: [0, 0], r: 1}), },
       susceptance: {
         arc: new SmithArc([1, 0], [0, 1], 5, false, false),
         line: new SmithLine([-1, 0], [1, 0])
       },
     };
+    this.admittance.conductance.circle.nonScalingStroke();
+    this.admittance.susceptance.arc.nonScalingStroke();
+    this.admittance.susceptance.line.nonScalingStroke();
 
-    this.point = new SmithCircle({
-      p: [0, 0], r: this.drawingOpts.point.radius
-    }, {
-      stroke: 'none', strokeWidth: 'none',
-      fill: this.drawingOpts.point.color
+    this.point = new SmithLine([0, 0], [0, 0], {
+      stroke: this.drawingOpts.point.color,
+      strokeWidth: this.drawingOpts.point.radius.toString(),
+      fill: 'none'
     });
+    this.point.nonScalingStroke();
+    this.point.setStrokeLinecap('round');
 
     this.hide();
     this.appendAll();
@@ -146,7 +147,7 @@ export class SmithCursor {
   }
 
   private movePoint(rc: Point): void {
-    this.point.move({ p: rc, r: this.drawingOpts.point.radius / this.transform.k });
+    this.point.move(this.scaler.point(rc), this.scaler.point(rc));
   }
 
   private moveResistance(z: Point|undefined): void {
@@ -156,25 +157,30 @@ export class SmithCursor {
     }
     this.impedance.resistance.circle.show();
 
-    const r = this.calcs.resistanceCircle(z[0]).r;
-    const x = 1 - 2 * r;
-
-    this.impedance.resistance.circle.move(`M1,0 A${r},${r} 0 1,0 ${x},0 A${r},${r} 0 1,0 1,0`);
+    const c = this.scaler.circle(this.calcs.resistanceCircle(z[0]));
+    this.impedance.resistance.circle.move(c);
   }
 
   private moveReactance(z: Point|undefined): void {
     if (z === undefined || Math.abs(z[1]) < this.epsilon) {
       this.impedance.reactance.line.show();
+      this.impedance.reactance.line.move(
+        this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
+      );
       this.impedance.reactance.arc.hide();
       return;
     }
     this.impedance.reactance.line.hide();
     this.impedance.reactance.arc.show();
 
-    const c  = this.calcs.reactanceCircle(z[1]);
+    const c = this.calcs.reactanceCircle(z[1]);
     const p = this.calcs.circleCircleIntersection(c, this.zClipCircle);
 
-    this.impedance.reactance.arc.move(p[0], p[1], c.r, false, false);
+    p[0] = this.scaler.point(p[0]);
+    p[1] = this.scaler.point(p[1]);
+    c.r = this.scaler.r(c.r);
+
+    this.impedance.reactance.arc.move(p[0], p[1], c.r, false, true);
   }
 
   private moveConductance(y: Point|undefined): void {
@@ -184,34 +190,30 @@ export class SmithCursor {
     }
     this.admittance.conductance.circle.show();
 
-    const r = this.calcs.conductanceCircle(y[0]).r;
-    const x = -1 + 2 * r;
-
-    this.admittance.conductance.circle.move(`M-1,0 A${r},${r} 0 1,0 ${x},0 A${r},${r} 0 1,0 -1,0`);
+    const c = this.scaler.circle(this.calcs.conductanceCircle(y[0]));
+    this.admittance.conductance.circle.move(c);
   }
 
   private moveSusceptance(y: Point|undefined) {
     if (y === undefined || Math.abs(y[1]) < this.epsilon) {
       this.admittance.susceptance.line.show();
+      this.admittance.susceptance.line.move(
+        this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
+      );
       this.admittance.susceptance.arc.hide();
       return;
     }
     this.admittance.susceptance.line.hide();
     this.admittance.susceptance.arc.show();
 
-    const c  = this.calcs.susceptanceCircle(y[1]);
+    const c = this.calcs.susceptanceCircle(y[1]);
     const p = this.calcs.circleCircleIntersection(c, this.yClipCircle);
 
-    this.admittance.susceptance.arc.move(p[0], p[1], c.r, false, false);
-  }
+    p[0] = this.scaler.point(p[0]);
+    p[1] = this.scaler.point(p[1]);
+    c.r = this.scaler.r(c.r);
 
-  public zoom(transform: Transform): void {
-    this.transform = transform;
-
-    const k = transform.k;
-    this.point.Element.attr('r', this.drawingOpts.point.radius / k);
-    this.impedance.group.attr('stroke-width', this.drawingOpts.impedance.width / k);
-    this.admittance.group.attr('stroke-width', this.drawingOpts.admittance.width / k);
+    this.admittance.susceptance.arc.move(p[0], p[1], c.r, false, true);
   }
 
   public show(): void {

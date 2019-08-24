@@ -1,8 +1,7 @@
 import * as d3 from 'd3';
 import { sprintf } from 'sprintf-js';
 
-import { Point } from './draw/Point';
-import { Circle } from './draw/Circle';
+import { Point } from './shapes/Point';
 
 import { SmithSvg } from './draw/SmithSvg';
 import { SmithGroup } from './draw/SmithGroup';
@@ -12,7 +11,9 @@ import { SmithData } from './draw/SmithData';
 import { SmithMarker } from './draw/SmithMarker';
 import { SmithCursor } from './draw/SmithCursor';
 
-import { ConstImpCircles } from './draw/ConstImpCircles';
+import { ConstResistance } from './draw/ConstResistance';
+import { ConstReactance } from './draw/ConstReactance';
+
 import { ConstAdmCircles } from './draw/ConstAdmCircles';
 import { ConstQCircles } from './draw/ConstQCircles';
 import { ConstSwrCircles } from './draw/ConstSwrCircles';
@@ -21,6 +22,9 @@ import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithDrawOptions } from './draw/SmithDrawOptions';
 
 import { S1P, S1PEntry } from './SnP';
+
+import { SmithScaler } from './draw/SmithScaler';
+import { SmithArcsDefs } from './SmithArcsDefs';
 
 interface SmithCirclesDrawOptions {
   stroke: string; minorWidth: string; majorWidth: string;
@@ -58,22 +62,27 @@ export interface SmithEvent {
   data: SmithCursorEvent|SmithMarkerEvent|undefined;
 }
 
-interface ZoomTransform { x: number; y: number; k: number; }
+interface Scalers {
+  default: SmithScaler;
+  impedance: SmithScaler;
+  admittance: SmithScaler;
+}
 
 export class Smith {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
-  private transform: ZoomTransform = { x: 0, y: 0, k: 0.95 };
+  private scalers: Scalers;
 
   private svg: SmithSvg;
   private container: SmithGroup;
 
-  private fgContainer: SmithGroup;
-  private fgContainerShape: SmithCircle;
+  // private fgContainer: SmithGroup;
+  // private fgContainerShape: SmithCircle;
 
-  private constImpCircles: ConstImpCircles;
-  private constAdmCircles: ConstAdmCircles;
-  private constSwrCircles: ConstSwrCircles;
-  private constQCircles: ConstQCircles;
+  private constResistance: ConstResistance;
+  private constReactance: ConstReactance;
+  // private constAdmCircles: ConstAdmCircles;
+  // private constSwrCircles: ConstSwrCircles;
+  // private constQCircles: ConstQCircles;
   private reactanceAxis: SmithCircle;
 
   private cursor: SmithCursor;
@@ -82,84 +91,108 @@ export class Smith {
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   constructor(private Z0: number = 50) {
-    this.constAdmCircles = new ConstAdmCircles(false);
-    this.constImpCircles = new ConstImpCircles(false);
-    this.constSwrCircles = new ConstSwrCircles();
-    this.constQCircles = new ConstQCircles();
-    this.reactanceAxis = this.drawReactanceAxis({
-      stroke: 'blue', strokeWidth: '0.005', fill: 'none'
-    });
-    this.cursor = this.initCursor(this.transform);
+    // this.constAdmCircles = new ConstAdmCircles(false);
+    // this.container.append(this.constAdmCircles.draw());
 
-    this.constImpCircles.show();
+    // this.constSwrCircles = new ConstSwrCircles();
+    // this.container.append(this.constSwrCircles.draw());
 
-    this.container = new SmithGroup().rotateY();
-    this.container.append(this.constAdmCircles.draw());
-    this.container.append(this.constImpCircles.draw());
-    this.container.append(this.constSwrCircles.draw());
-    this.container.append(this.constQCircles.draw());
-    this.container.append(this.reactanceAxis);
+    // this.constQCircles = new ConstQCircles();
+    // this.container.append(this.constQCircles.draw());
+
+    // this.fgContainer = new SmithGroup();
+    // this.fgContainerShape = this.drawFgContainerShape();
+    // this.fgContainer.append(this.fgContainerShape);
+    // this.svg.append(this.fgContainer);
+
+    const viewBoxSize = 500;
+
+    this.scalers = this.createScalers(viewBoxSize);
+    this.svg = new SmithSvg(viewBoxSize);
+
+    this.container = new SmithGroup();
+    this.svg.append(this.container);
+
+    this.cursor = this.initCursor();
     this.container.append(this.cursor.Group);
 
-    this.fgContainer = new SmithGroup();
-    this.fgContainerShape = this.drawFgContainerShape();
-    this.fgContainer.append(this.fgContainerShape);
+    this.reactanceAxis = this.drawReactanceAxis({
+      stroke: 'blue', strokeWidth: '1', fill: 'none'
+    });
+    this.container.append(this.reactanceAxis);
 
-    this.svg = new SmithSvg();
-    this.svg.append(this.container);
-    this.svg.append(this.fgContainer);
+    this.constResistance = new ConstResistance({
+      data: SmithArcsDefs.getData(),
+      scaler: this.scalers.default,
+      showMinor: true,
+    });
+    this.constResistance.show();
+    this.container.append(this.constResistance.draw());
+
+    this.constReactance = new ConstReactance({
+      data: SmithArcsDefs.getData(),
+      scaler: this.scalers.default,
+      showMinor: true,
+    });
+    this.constReactance.show();
+    this.container.append(this.constReactance.draw());
 
     // Initial zoom
-    this.bgContainerZoom(this.transform);
+    const shape = this.bgContainerZoom();
+    this.container.append(shape);
   }
 
   public draw(selector: string): void {
     d3.select(selector).append(() => this.svg.Node);
   }
 
-  private drawFgContainerShape(): SmithCircle {
-    const zoom = d3.zoom<SVGElement, {}>()
-      .scaleExtent([ 0.5, 40 ])
-      // .translateExtent([[600, 600], [0, 0]])
-      .on('zoom', () => this.zoomAll(d3.event.transform));
-
-    const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
-    const that = this;
-
-    shape.Element
-      .style('pointer-events', 'all')
-      .on('mousemove', function () {
-        that.cursorMove(d3.mouse(this as any));
-      })
-      .on('mouseleave', () => this.cursor.hide())
-      .call(zoom);
-
-    return shape;
+  private createScalers(size: number): Scalers {
+    const impedance = new SmithScaler(
+      d3.scaleLinear().domain([ -1,  1 ]).range([ 0, size     ]),
+      d3.scaleLinear().domain([  1, -1 ]).range([ 0, size     ]),
+      d3.scaleLinear().domain([  0,  1 ]).range([ 0, size / 2 ]),
+    );
+    const admittance = new SmithScaler(
+      d3.scaleLinear().domain([  1, -1 ]).range([ 0, size     ]),
+      d3.scaleLinear().domain([ -1,  1 ]).range([ 0, size     ]),
+      d3.scaleLinear().domain([  0,  1 ]).range([ 0, size / 2 ]),
+    );
+    return { default: impedance, impedance, admittance };
   }
+
+  // private drawFgContainerShape(): SmithCircle {
+  //   const zoom = d3.zoom<SVGElement, {}>()
+  //     .scaleExtent([ 0.5, 40 ])
+  //     .on('zoom', () => this.zoomAll(d3.event.transform));
+
+  //   const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
+  //   const that = this;
+
+  //   shape.Element
+  //     .style('pointer-events', 'all')
+  //     .on('mousemove', function () {
+  //       that.cursorMove(d3.mouse(this as any));
+  //     })
+  //     .on('mouseleave', () => this.cursor.hide())
+  //     .call(zoom);
+
+  //   return shape;
+  // }
 
   private cursorMove(p: Point): void {
-    this.cursor.Position = this.actionToPlot(p);
+    this.cursor.Position = this.scalers.default.pointInvert(p);
   }
 
-  private actionToPlot(p: Point): Point {
-    const po: Point = [p[0], p[1]];
-    po[0] -=  this.transform.x;
-    po[1] -=  this.transform.y;
-    po[0] /=  this.transform.k;
-    po[1] /= -this.transform.k;
-    return po;
-  }
+  // private zoomAll(transform: ZoomTransform): void {
+  //   this.transform = d3.event.transform;
 
-  private zoomAll(transform: ZoomTransform): void {
-    this.transform = d3.event.transform;
+  //   this.bgContainerZoom(transform);
+  //   this.cursor.zoom(transform);
+  //   this.data.forEach((d) => d.zoom(transform));
+  // }
 
-    this.bgContainerZoom(transform);
-    this.cursor.zoom(transform);
-    this.data.forEach((d) => d.zoom(transform));
-  }
-
-  private initCursor(transform: ZoomTransform): SmithCursor {
-    const cursor = new SmithCursor(transform);
+  private initCursor(): SmithCursor {
+    const cursor = new SmithCursor(this.scalers.default);
     cursor.setMoveHandler((rc) => {
       if (this.userActionHandler) {
         this.userActionHandler({
@@ -171,7 +204,7 @@ export class Smith {
   }
 
   public get CursorData(): SmithCursorEvent {
-    const rc = this.cursor.Position;
+    const rc: Point = this.cursor.Position;
     return {
       reflectionCoefficient: rc,
       impedance:    this.calcImpedance(rc),
@@ -183,15 +216,42 @@ export class Smith {
     };
   }
 
-  private bgContainerZoom(transform: ZoomTransform): void {
-    const x = transform.x;
-    const y = transform.y;
-    const k = transform.k;
-    this.container.Element.attr('transform', `translate(${x}, ${y}) scale(${k}, ${-k})`);
+  private bgContainerZoom(): SmithCircle {
+    const zoom = d3.zoom<SVGElement, {}>()
+      .scaleExtent([ 0.8, 6 ])
+      .on('zoom', () => {
+        this.container.Element.attr('transform', d3.event.transform);
+      });
+
+    const halfsize = 500 / 2;
+    const initScale = 0.8;
+    const initTranslate = (1 - initScale) * halfsize;
+    const that = this;
+
+    this.svg.Element
+      .call(zoom);
+      // .call(zoom.transform, d3.zoomIdentity
+      //   .translate(initTranslate, initTranslate)
+      //   .scale(initScale)
+      // );
+
+    const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
+
+    shape.Element.style('pointer-events', 'all')
+      .on('mousemove', function () {
+        that.cursorMove(d3.mouse(this as any));
+      })
+      .on('mouseleave', () => this.cursor.hide());
+
+    return shape;
   }
 
   private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
-    return new SmithCircle(this.calcs.resistanceCircle(0), opts);
+    const c = this.calcs.resistanceCircle(0);
+    c.p[0] = this.scalers.default.x(c.p[0]);
+    c.p[1] = this.scalers.default.y(c.p[1]);
+    c.r    = this.scalers.default.r(c.r);
+    return new SmithCircle(c, opts);
   }
 
   public getReactanceComponentValue(p: Point, f: number): string {
@@ -242,27 +302,27 @@ export class Smith {
     return (val / 1e-24).toFixed(3) + ' y';
   }
 
-  public addS1P(values: S1P): void {
-    if (values.length === 0) { return; }
-    const data = this.createSmithData(values, this.data.length);
-    this.data.push(data);
-  }
+  // public addS1P(values: S1P): void {
+  //   if (values.length === 0) { return; }
+  //   const data = this.createSmithData(values, this.data.length);
+  //   this.data.push(data);
+  // }
 
-  private createSmithData(values: S1P, dataset: number): SmithData {
-    const color = d3.schemeCategory10[1 + dataset];
-    const data = new SmithData(values, color,
-      this.transform, this.fgContainer, this.container
-    );
-    data.setMarkerMoveHandler((marker) => {
-      if (this.userActionHandler) {
-        this.userActionHandler({
-          type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
-        });
-      }
-    });
-    data.addMarker();
-    return data;
-  }
+  // private createSmithData(values: S1P, dataset: number): SmithData {
+  //   const color = d3.schemeCategory10[1 + dataset];
+  //   const data = new SmithData(values, color,
+  //     this.transform, this.fgContainer, this.container
+  //   );
+  //   data.setMarkerMoveHandler((marker) => {
+  //     if (this.userActionHandler) {
+  //       this.userActionHandler({
+  //         type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
+  //       });
+  //     }
+  //   });
+  //   data.addMarker();
+  //   return data;
+  // }
 
   public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent|undefined {
     if (!this.data[datasetNo]) { return; }
@@ -290,21 +350,21 @@ export class Smith {
     return this.data;
   }
 
-  public get ConstImpCircles(): ConstImpCircles {
-    return this.constImpCircles;
-  }
+  // public get ConstImpCircles(): ConstImpCircles {
+  //   return this.constImpCircles;
+  // }
 
-  public get ConstAdmCircles(): ConstAdmCircles {
-    return this.constAdmCircles;
-  }
+  // public get ConstAdmCircles(): ConstAdmCircles {
+  //   return this.constAdmCircles;
+  // }
 
-  public get ConstQCircles(): ConstQCircles {
-    return this.constQCircles;
-  }
+  // public get ConstQCircles(): ConstQCircles {
+  //   return this.constQCircles;
+  // }
 
-  public get ConstSwrCircles(): ConstSwrCircles {
-    return this.constSwrCircles;
-  }
+  // public get ConstSwrCircles(): ConstSwrCircles {
+  //   return this.constSwrCircles;
+  // }
 
   public setUserActionHandler(handler: (event: SmithEvent) => void): void {
     this.userActionHandler = handler;

@@ -1,9 +1,13 @@
+import { Tick } from './arcs/Tick';
+import { Line } from './shapes/Line';
+import { SmithConstantCircle } from './SmithConstantCircle';
+import { Circle } from './shapes/Circle';
 
 export enum SmithArcEntry { circle, clipCircles, arcOptions }
 
 export type SmithArcDef = [
   number,
-  [ number, number ][] | undefined,
+  [ number, number ][],
   [ boolean, boolean ]
 ];
 
@@ -12,26 +16,94 @@ export type SmithTickDef = [ number, number, {
   dy?: string;
 }];
 
+export interface SmithTicksShapes {
+  lines: Line[];
+  circles: Circle[];
+  arcs: SmithArcDef[];
+}
+
+export interface SmithTicksData {
+  resistance: {
+    major: SmithTicksShapes;
+    minor: SmithTicksShapes;
+  };
+  reactance: {
+    major: SmithTicksShapes;
+    minor: SmithTicksShapes;
+  };
+}
+
 export class SmithArcsDefs {
   private constructor() {
   }
 
-  public static textsTicks(): SmithTickDef[] {
-    // [ resistance circle, fractional digits ]
+  public static getData(): SmithTicksData {
+    const calcs = new SmithConstantCircle();
+    return {
+      resistance: {
+        major: {
+          lines: [],
+          circles: [
+            calcs.resistanceCircle(10),
+            calcs.resistanceCircle(50)
+          ],
+          arcs: SmithArcsDefs.resistanceMajor(),
+        },
+        minor: {
+          lines: [],
+          circles: [],
+          arcs: SmithArcsDefs.resistanceMinor(),
+        },
+      }, reactance: {
+        major: {
+          lines: [ { p1: [ -1, 0, ], p2: [ 1, 0 ] } ],
+          circles: [],
+          arcs: SmithArcsDefs.reactanceMajor(),
+        },
+        minor: {
+          lines: [],
+          circles: [],
+          arcs: SmithArcsDefs.reactanceMinor(),
+        },
+      }
+    };
+  }
+
+  public static resistanceLabels(): Tick[] {
     return [
-      [  0,    0, { dy: '-0.03', dx: '0.001' } ],
-      [  0.10, 1, {} ], [  0.20, 1, {} ], [  0.30, 1, {} ], [  0.40, 1, {} ], [  0.50, 1, {} ],
-      [  0.60, 1, {} ], [  0.70, 1, {} ], [  0.80, 1, {} ], [  0.90, 1, {} ], [  1.00, 1, {} ],
-      [  1.20, 1, {} ], [  1.40, 1, {} ], [  1.60, 1, {} ], [  1.80, 1, {} ], [  2.00, 1, {} ],
-      [  3.00, 1, {} ], [  4.00, 1, {} ], [  5.00, 1, {} ], [ 10.00, 0, {} ], [ 20.00, 0, {} ],
-      [ 50.00, 0, {} ]
+      new Tick({ point: { r:  0.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  8, rotate: -90 } }),
+      new Tick({ point: { r:  0.10, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.20, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.30, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.40, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.50, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.60, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.70, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.80, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  0.90, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  1.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  1.20, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  1.40, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  1.60, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  1.80, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  2.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  3.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  4.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:  5.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r: 10.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r: 20.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r: 50.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
+    ];
+  }
+
+  public static reactanceLabels(): Tick[] {
+    return [
+      new Tick({ point: { r:  1.00, i:  0.40 }, dp: 1, transform: { dx: -6, dy: 0, rotate: -157 } })
     ];
   }
 
   public static resistanceMajor(): SmithArcDef[] {
     return [
-      [  0.00, undefined,                     [ true,  true  ] ],
-      [  0.00, undefined,                     [ true,  false ] ],
       [  0.05, [ [  0.2, 0 ], [  -0.2, 1 ] ], [ false, true  ] ],
       [  0.10, [ [  2.0, 0 ], [  -2.0, 1 ] ], [ true,  true  ] ],
       [  0.15, [ [  0.2, 0 ], [  -0.2, 1 ] ], [ false, true  ] ],
@@ -52,11 +124,7 @@ export class SmithArcsDefs {
       [  3.00, [ [ 10.0, 0 ], [ -10.0, 1 ] ], [ true,  true  ] ],
       [  4.00, [ [ 20.0, 0 ], [ -20.0, 1 ] ], [ true,  true  ] ],
       [  5.00, [ [ 10.0, 0 ], [ -10.0, 1 ] ], [ true,  true  ] ],
-      [ 10.00, undefined,                     [ true,  true  ] ],
-      [ 10.00, undefined,                     [ true,  false ] ],
       [ 20.00, [ [ 50.0, 0 ], [ -50.0, 1 ] ], [ true,  true  ] ],
-      [ 50.00, undefined,                     [ true,  true  ] ],
-      [ 50.00, undefined,                     [ true,  false ] ],
     ];
   }
 

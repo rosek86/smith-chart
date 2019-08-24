@@ -6,8 +6,8 @@ import { SmithArc } from './SmithArc';
 import { SmithLine } from './SmithLine';
 import { SmithText } from './SmithText';
 import { SmithConstantCircle } from '../SmithConstantCircle';
-import { Circle } from './Circle';
-import { Point } from './Point';
+import { Circle } from '../shapes/Circle';
+import { Point } from '../shapes/Point';
 
 interface ConstAdmDrawOptions {
   stroke: string;
@@ -210,15 +210,21 @@ export class ConstAdmCircles {
       .attr('stroke',      'none')
       .attr('text-anchor', 'start');
 
-    SmithArcsDefs.textsTicks().forEach((e) => {
-      const p = this.calcs.admittanceToReflectionCoefficient([ e[0], 0 ]);
-      if (p === undefined) {
-        throw new Error('Invalid text tick coordinates');
-      }
-      const dx = e[2].dx === undefined ? '0.001' : e[2].dx;
-      const dy = e[2].dy === undefined ? '0.004' : e[2].dy;
-      group.append(new SmithText(p, e[0].toFixed(e[1]), { rotate: -90, dx, dy }));
-    });
+    // SmithArcsDefs.textsTicks().forEach((e) => {
+    //   const d = e.definition;
+
+    //   const p = this.calcs.admittanceToReflectionCoefficient([ d.point.r, -d.point.i ]);
+    //   if (p === undefined) {
+    //     throw new Error('Invalid text tick coordinates');
+    //   }
+
+    //   const text = d.label;
+    //   const dx = d.transform.dx.toString();
+    //   const dy = d.transform.dy.toString();
+    //   const rotate = d.transform.rotate;
+
+    //   group.append(new SmithText(p, text, { rotate, dx, dy }));
+    // });
 
     return group;
   }

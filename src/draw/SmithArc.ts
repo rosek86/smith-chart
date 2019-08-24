@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { Point } from './Point';
+import { Point } from '../shapes/Point';
 import { SmithShape } from './SmithShape';
 import { SmithDrawOptions } from './SmithDrawOptions';
 
@@ -25,12 +25,14 @@ export class SmithArc extends SmithShape {
   }
 
   public hide(): void {
-    // this.Element.attr('visibility', 'hidden');
     this.Element.attr('opacity', '0');
   }
 
   public show(): void {
-    // this.Element.attr('visibility', 'visible');
     this.Element.attr('opacity', null);
+  }
+
+  public nonScalingStroke(): void {
+    this.Element.attr('vector-effect',  'non-scaling-stroke');
   }
 }

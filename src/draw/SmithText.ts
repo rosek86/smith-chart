@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { Point } from './Point';
+import { Point } from '../shapes/Point';
 import { SmithShape } from './SmithShape';
 
 interface TextOptions {
@@ -21,7 +21,7 @@ export class SmithText extends SmithShape {
     ));
     this.element
       .attr('pointer-events', 'none')
-      .attr('transform', 'translate(0,0) scale(1,-1)')
+      .attr('text-anchor', 'middle')
       .text(text);
     if (opts) {
       this.setTextOptions(opts);
@@ -42,7 +42,7 @@ export class SmithText extends SmithShape {
 
   public setTextOptions(opts: TextOptions): SmithText {
     if (opts.dx        ) { this.element.attr('dx',          opts.dx        ); }
-    if (opts.dy        ) { this.element.attr('dy',          -opts.dy       ); }
+    if (opts.dy        ) { this.element.attr('dy',          opts.dy        ); }
     if (opts.stroke    ) { this.element.attr('stroke',      opts.stroke    ); }
     if (opts.fill      ) { this.element.attr('fill',        opts.fill      ); }
     if (opts.fontFamily) { this.element.attr('font-family', opts.fontFamily); }
@@ -52,7 +52,7 @@ export class SmithText extends SmithShape {
     if (opts.rotate !== undefined) {
       this.element.attr(
         'transform',
-        `rotate(${opts.rotate}, ${this.p[0]}, ${this.p[1]}) translate(0, 0) scale(1, -1)`
+        `rotate(${opts.rotate}, ${this.p[0]}, ${this.p[1]})`
       );
     }
     return this;

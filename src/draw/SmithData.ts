@@ -2,7 +2,7 @@ import { SmithGroup } from './SmithGroup';
 import { S1P, S1PEntry } from '../SnP';
 import { SmithCircle } from './SmithCircle';
 import { SmithMarker } from './SmithMarker';
-import { Point } from './Point';
+import { Point } from '../shapes/Point';
 
 import * as d3 from 'd3';
 

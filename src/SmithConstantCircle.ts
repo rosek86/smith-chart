@@ -1,5 +1,5 @@
-import { Circle } from './draw/Circle';
-import { Point } from './draw/Point';
+import { Circle } from './shapes/Circle';
+import { Point } from './shapes/Point';
 
 type Complex = [ number, number ];
 
