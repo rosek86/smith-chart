@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import { sprintf } from 'sprintf-js';
 
 import { Point } from './shapes/Point';
 
@@ -26,6 +25,7 @@ import { S1P, S1PEntry } from './SnP';
 
 import { SmithScaler } from './draw/SmithScaler';
 import { SmithArcsDefs } from './SmithArcsDefs';
+import { ZoomTransform } from 'd3';
 
 interface SmithCirclesDrawOptions {
   stroke: string; minorWidth: string; majorWidth: string;
@@ -73,8 +73,13 @@ export class Smith {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
   private scalers: Scalers;
 
+  private transform = d3.zoomIdentity;
+
   private svg: SmithSvg;
   private container: SmithGroup;
+  private fgContainer: SmithGroup;
+
+  private reactanceAxis: SmithCircle;
 
   private constResistance: ConstResistance;
   private constReactance: ConstReactance;
@@ -82,8 +87,6 @@ export class Smith {
   private constSusceptance: ConstSusceptance;
   private constSwrCircles: ConstSwrCircles;
   private constQCircles: ConstQCircles;
-
-  private reactanceAxis: SmithCircle;
 
   private cursor: SmithCursor;
   private data: SmithData[] = [];
@@ -147,9 +150,14 @@ export class Smith {
     this.constSwrCircles.hide();
     this.container.append(this.constSwrCircles.draw());
 
-    // Initial zoom
-    const shape = this.bgContainerZoom();
-    this.container.append(shape);
+    const cursorContainer = this.cursorContainer();
+    this.container.append(cursorContainer);
+
+    this.fgContainer = new SmithGroup();
+    this.container.append(this.fgContainer);
+    this.fgContainer.Element.raise();
+
+    this.initializeZoom();
   }
 
   public draw(selector: string): void {
@@ -170,36 +178,10 @@ export class Smith {
     return { default: impedance, impedance, admittance };
   }
 
-  // private drawFgContainerShape(): SmithCircle {
-  //   const zoom = d3.zoom<SVGElement, {}>()
-  //     .scaleExtent([ 0.5, 40 ])
-  //     .on('zoom', () => this.zoomAll(d3.event.transform));
-
-  //   const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
-  //   const that = this;
-
-  //   shape.Element
-  //     .style('pointer-events', 'all')
-  //     .on('mousemove', function () {
-  //       that.cursorMove(d3.mouse(this as any));
-  //     })
-  //     .on('mouseleave', () => this.cursor.hide())
-  //     .call(zoom);
-
-  //   return shape;
-  // }
 
   private cursorMove(p: Point): void {
     this.cursor.Position = this.scalers.default.pointInvert(p);
   }
-
-  // private zoomAll(transform: ZoomTransform): void {
-  //   this.transform = d3.event.transform;
-
-  //   this.bgContainerZoom(transform);
-  //   this.cursor.zoom(transform);
-  //   this.data.forEach((d) => d.zoom(transform));
-  // }
 
   private initCursor(): SmithCursor {
     const cursor = new SmithCursor(this.scalers.default);
@@ -226,25 +208,31 @@ export class Smith {
     };
   }
 
-  private bgContainerZoom(): SmithCircle {
+  private initializeZoom(): void {
     const zoom = d3.zoom<SVGElement, {}>()
-      .scaleExtent([ 0.8, 6 ])
-      .on('zoom', () => {
-        this.container.Element.attr('transform', d3.event.transform);
-      });
+      .scaleExtent([ 0.8, 20 ])
+      .on('zoom', () => this.onZoom(d3.event.transform));
 
     const halfsize = 500 / 2;
-    const initScale = 0.8;
+    const initScale = 0.9;
     const initTranslate = (1 - initScale) * halfsize;
+
+    this.svg.Element.call(zoom);
+
+    const transform = d3.zoomIdentity
+      .translate(initTranslate, initTranslate)
+      .scale(initScale);
+    this.svg.Element.transition().call(zoom.transform, transform);
+  }
+
+  private onZoom(transform: ZoomTransform): void {
+    this.transform = transform;
+    this.container.Element.attr('transform', transform.toString());
+    this.data.forEach((d) => d.zoom(transform));
+  }
+
+  private cursorContainer(): SmithCircle {
     const that = this;
-
-    this.svg.Element
-      .call(zoom);
-      // .call(zoom.transform, d3.zoomIdentity
-      //   .translate(initTranslate, initTranslate)
-      //   .scale(initScale)
-      // );
-
     const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
 
     shape.Element.style('pointer-events', 'all')
@@ -312,27 +300,27 @@ export class Smith {
     return (val / 1e-24).toFixed(3) + ' y';
   }
 
-  // public addS1P(values: S1P): void {
-  //   if (values.length === 0) { return; }
-  //   const data = this.createSmithData(values, this.data.length);
-  //   this.data.push(data);
-  // }
+  public addS1P(values: S1P): void {
+    if (values.length === 0) { return; }
+    const data = this.createSmithData(values, this.data.length);
+    this.data.push(data);
+  }
 
-  // private createSmithData(values: S1P, dataset: number): SmithData {
-  //   const color = d3.schemeCategory10[1 + dataset];
-  //   const data = new SmithData(values, color,
-  //     this.transform, this.fgContainer, this.container
-  //   );
-  //   data.setMarkerMoveHandler((marker) => {
-  //     if (this.userActionHandler) {
-  //       this.userActionHandler({
-  //         type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
-  //       });
-  //     }
-  //   });
-  //   data.addMarker();
-  //   return data;
-  // }
+  private createSmithData(values: S1P, dataset: number): SmithData {
+    const color = d3.schemeCategory10[1 + dataset];
+    const data = new SmithData(values, color,
+      this.transform, this.fgContainer, this.scalers.default
+    );
+    data.setMarkerMoveHandler((marker) => {
+      if (this.userActionHandler) {
+        this.userActionHandler({
+          type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
+        });
+      }
+    });
+    data.addMarker();
+    return data;
+  }
 
   public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent|undefined {
     if (!this.data[datasetNo]) { return; }

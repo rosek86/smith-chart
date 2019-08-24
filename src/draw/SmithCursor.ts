@@ -8,8 +8,8 @@ import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Point } from '../shapes/Point';
 
 interface DrawOptions {
-  point:      { radius: number; color: string; };
-  impedance:  { width: number;  color: string; };
+  point: { radius: number; color: string; };
+  impedance: { width: number;  color: string; };
   admittance: { width: number;  color: string; };
 }
 

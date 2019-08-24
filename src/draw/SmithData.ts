@@ -1,10 +1,10 @@
 import { SmithGroup } from './SmithGroup';
-import { S1P, S1PEntry } from '../SnP';
 import { SmithCircle } from './SmithCircle';
 import { SmithMarker } from './SmithMarker';
-import { Point } from '../shapes/Point';
+import { SmithScaler } from './SmithScaler';
 
-import * as d3 from 'd3';
+import { S1P, S1PEntry } from '../SnP';
+import { Point } from '../shapes/Point';
 
 interface Marker {
   marker: SmithMarker;
@@ -18,7 +18,7 @@ interface Transform {
 }
 
 export class SmithData {
-  private pointRadius = 0.005;
+  private pointRadius = 4;
 
   private group: SmithGroup;
 
@@ -31,9 +31,10 @@ export class SmithData {
       private data: S1P,
       private color: string,
       private transform: Transform,
-      private fgContainer: SmithGroup, private bgContainer: SmithGroup) {
+      private fgContainer: SmithGroup,
+      private scaler: SmithScaler) {
     this.group = this.drawPoints(data);
-    this.bgContainer.append(this.group);
+    this.fgContainer.append(this.group);
   }
 
   private drawPoints(data: S1P): SmithGroup {
@@ -41,7 +42,8 @@ export class SmithData {
       stroke: 'none', strokeWidth: 'none', fill: this.color
     });
     data.forEach((dp) => {
-      group.append(new SmithCircle({ p: dp.point, r: this.pointRadius }));
+      const p = this.scaler.point(dp.point);
+      group.append(new SmithCircle({ p, r: this.pointRadius }));
     });
     return group;
   }
@@ -58,10 +60,11 @@ export class SmithData {
   }
 
   private zoomAllMarkers(): void {
+    const k = this.transform.k;
     for (const marker of this.markers) {
-      const rc = marker.selectedPoint;
-      if (rc) {
-        marker.marker.move(this.bg2fg(rc.point));
+      const entry = marker.selectedPoint;
+      if (entry) {
+        marker.marker.zoom(k);
       }
     }
   }
@@ -77,12 +80,13 @@ export class SmithData {
     marker.Element.raise();
 
     marker.setDragHandler((mp) => {
-      const dp = this.findClosestPointTo(this.fg2bg(mp));
+      const dp = this.findClosestPointTo(this.scaler.pointInvert(mp));
 
       if (markerDesc.selectedPoint === dp) { return; }
       markerDesc.selectedPoint = dp;
 
-      marker.move(this.bg2fg(dp.point));
+      marker.move(this.scaler.point(dp.point));
+      marker.zoom(this.transform.k);
 
       setTimeout(() => {
         if (this.handler) {
@@ -92,7 +96,7 @@ export class SmithData {
     });
 
     marker.show();
-    marker.move(this.bg2fg(markerDesc.selectedPoint.point));
+    marker.move(this.scaler.point(markerDesc.selectedPoint.point));
 
     setTimeout(() => {
       if (this.handler) {
@@ -111,24 +115,6 @@ export class SmithData {
 
   public setMarkerMoveHandler(handler: (marker: number, data: S1PEntry) => void): void {
     this.handler = handler;
-  }
-
-  private fg2bg(p: Point): Point {
-    const po: Point = [p[0], p[1]];
-    po[0] -=  this.transform.x;
-    po[1] -=  this.transform.y;
-    po[0] /=  this.transform.k;
-    po[1] /= -this.transform.k;
-    return po;
-  }
-
-  private bg2fg(p: Point): Point {
-    const po: Point = [p[0], p[1]];
-    po[0] *=  this.transform.k;
-    po[1] *= -this.transform.k;
-    po[0] +=  this.transform.x;
-    po[1] +=  this.transform.y;
-    return po;
   }
 
   private findClosestPointTo(p: Point): S1PEntry {

@@ -4,7 +4,10 @@ import { SmithShape } from './SmithShape';
 import { Point } from '../shapes/Point';
 
 export class SmithMarker extends SmithShape {
+  private readonly size = 36;
+
   private triangle: d3.Selection<SVGPolygonElement, {}, null, undefined>;
+  private inner: d3.Selection<SVGPolygonElement, {}, null, undefined>;
   private text: d3.Selection<SVGTextElement, {}, null, undefined>;
 
   private rc: Point = [ 0, 0 ];
@@ -18,9 +21,12 @@ export class SmithMarker extends SmithShape {
     const g = this.Element;
 
     this.triangle = g.append<SVGPolygonElement>('polygon')
-      .attr('points', '0,0 0.03,-0.06 -0.03,-0.06')
-      .attr('stroke-width', '0.005')
-      .attr('stroke', 'gray')
+      .attr('stroke', 'none')
+      .attr('fill', 'gray')
+      .attr('transform', 'translate(0,0)');
+
+    this.inner = g.append<SVGPolygonElement>('polygon')
+      .attr('stroke', 'none')
       .attr('fill', color)
       .attr('transform', 'translate(0,0)');
 
@@ -28,27 +34,31 @@ export class SmithMarker extends SmithShape {
       .attr('pointer-events', 'none')
       .attr('transform', 'translate(0,0)')
       .attr('font-family', 'Verdana')
-      .attr('font-size',   '0.04')
       .attr('font-weight', 'normal')
       .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
       .attr('x', '0')
       .attr('y', '0')
-      .attr('dy', '-0.025')
       .attr('fill', 'white')
       .text(marker.toString());
 
+    this.zoom(1);
+
     this.triangle.call(d3.drag<SVGPolygonElement, {}>()
-      .on('start', () => {
-        this.triangle.attr('stroke', 'gray');
-      })
-      .on('drag', () => {
-        if (this.dragHandler) {
-          this.dragHandler([ d3.event.x, d3.event.y ]);
-        }
-      })
-      .on('end', () => {
-        this.triangle.attr('stroke', 'gray');
-      }));
+      .on('start', () => { })
+      .on('drag', () => this.onDrag())
+      .on('end', () => { }));
+
+    this.inner.call(d3.drag<SVGPolygonElement, {}>()
+      .on('start', () => { })
+      .on('drag', () => this.onDrag())
+      .on('end', () => { }));
+  }
+
+  private onDrag() {
+    if (this.dragHandler) {
+      this.dragHandler([ d3.event.x, d3.event.y ]);
+    }
   }
 
   public get Position(): Point {
@@ -58,7 +68,26 @@ export class SmithMarker extends SmithShape {
   public move(p: Point): void {
     this.rc = p;
     this.triangle.attr('transform', `translate(${p[0]},${p[1]})`);
+    this.inner.attr('transform', `translate(${p[0]},${p[1]})`);
     this.text.attr('x', `${p[0]}`).attr('y', `${p[1]}`);
+  }
+
+  public zoom(k: number) {
+    const size = this.size / k;
+
+    const h = size / 12;
+    const dy = -size / 1.6;
+    const fs = size / 1.8;
+
+    // calculate inner triangle
+    const alpha = Math.atan(1 / 2);
+    const beta = Math.PI / 2 - alpha;
+    const x = h / Math.sin(alpha);
+    const y = h / Math.sin(beta) + h / Math.tan(beta);
+
+    this.triangle.attr('points', `0,0 ${size / 2},${-size} ${-size / 2},${-size}`);
+    this.inner.attr('points', `0,${-x} ${size / 2 - y},${-size + h} ${-size / 2 + y},${-size + h}`);
+    this.text.attr('font-size', `${fs}`).attr('dy', `${dy}`);
   }
 
   public show(): void {
