@@ -4,7 +4,7 @@ import { SmithShape } from './SmithShape';
 import { Point } from '../shapes/Point';
 
 export class SmithMarker extends SmithShape {
-  private readonly size = 36;
+  private readonly size = 18;
 
   private triangle: d3.Selection<SVGPolygonElement, {}, null, undefined>;
   private inner: d3.Selection<SVGPolygonElement, {}, null, undefined>;

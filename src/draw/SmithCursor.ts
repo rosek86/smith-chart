@@ -17,9 +17,9 @@ export class SmithCursor {
   private epsilon = 1.5e-4;
 
   private drawingOpts: DrawOptions = {
-    point:      { radius: 10, color: 'red',  },
-    impedance:  { width:  2,  color: 'red'   },
-    admittance: { width:  2,  color: 'green' },
+    point:      { radius: 5, color: 'red',  },
+    impedance:  { width:  1, color: 'red'   },
+    admittance: { width:  1, color: 'green' },
   };
 
   private calcs = new SmithConstantCircle();

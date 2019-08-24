@@ -156,7 +156,7 @@ export abstract class ConstCircles {
 
   protected defaultDrawingOptions(): ConstCirclesDrawOptions {
     return {
-      stroke: 'black', majorWidth: '0.4', minorWidth: '0.1',
+      stroke: 'black', majorWidth: '0.2', minorWidth: '0.1',
       textColor: 'black', textFontFamily: 'Verdana', textFontSize: '1'
     };
   }

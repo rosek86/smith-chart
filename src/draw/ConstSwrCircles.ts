@@ -39,7 +39,7 @@ export class ConstSwrCircles {
   }
 
   private getDefaultDrawOptions(): ConstSwrDrawOptions {
-    return { stroke: 'orange', strokeWidth: '1' };
+    return { stroke: 'orange', strokeWidth: '0.2' };
   }
 
   public setDrawOptions(opts: ConstSwrDrawOptions): void {
