@@ -9,7 +9,7 @@ import { SmithTicksData, SmithTicksShapes } from '../SmithArcsDefs';
 
 import { Point } from '../shapes/Point';
 
-export class ConstReactance extends ConstCircles {
+export class ConstSusceptance extends ConstCircles {
   private data: SmithTicksData;
 
   protected major: SmithGroup;
@@ -39,16 +39,16 @@ export class ConstReactance extends ConstCircles {
   private drawMajor(): SmithGroup {
     const ticks = this.data.reactance.major;
     const width = this.opts.majorWidth;
-    return this.drawReactance(ticks, width);
+    return this.drawSusceptance(ticks, width);
   }
 
   private drawMinor(): SmithGroup {
     const ticks = this.data.reactance.minor;
     const width = this.opts.minorWidth;
-    return this.drawReactance(ticks, width);
+    return this.drawSusceptance(ticks, width);
   }
 
-  private drawReactance(ticks: SmithTicksShapes, width: string): SmithGroup {
+  private drawSusceptance(ticks: SmithTicksShapes, width: string): SmithGroup {
     const g = new SmithGroup();
     const shapes = this.getShapes(this.scaler, ticks);
     this.drawShapes(g.Element, this.opts.stroke, width, shapes);
@@ -57,17 +57,17 @@ export class ConstReactance extends ConstCircles {
 
   private getShapes(scaler: SmithScaler, data: SmithTicksShapes): Shapes {
     const lines = data.lines.map((l) => scaler.line(l));
-    const circles = data.circles.map((c) => scaler.circle(this.calcs.reactanceCircle(c)));
+    const circles = data.circles.map((c) => scaler.circle(this.calcs.susceptanceCircle(c)));
     const scaleArc = this.scaleArc.bind(this, scaler);
-    const arcs = data.arcs.map(this.reactanceArc.bind(this)).map<ArcData>(scaleArc);
+    const arcs = data.arcs.map(this.susceptanceArc.bind(this)).map<ArcData>(scaleArc);
     return { lines, circles, arcs };
   }
 
-  private reactanceArc(def: SmithArcDef): [Point, Point, number, boolean, boolean] {
+  private susceptanceArc(def: SmithArcDef): [Point, Point, number, boolean, boolean] {
     const cc = def[SmithArcEntry.clipCircles];
-    const c  = this.calcs.reactanceCircle(def[SmithArcEntry.circle]);
-    const i1 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[0][0]));
-    const i2 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[1][0]));
+    const c  = this.calcs.susceptanceCircle(def[SmithArcEntry.circle]);
+    const i1 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[0][0]));
+    const i2 = this.calcs.circleCircleIntersection(c, this.calcs.conductanceCircle(cc[1][0]));
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
     const arcOpts = def[SmithArcEntry.arcOptions];

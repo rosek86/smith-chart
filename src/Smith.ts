@@ -13,8 +13,9 @@ import { SmithCursor } from './draw/SmithCursor';
 
 import { ConstResistance } from './draw/ConstResistance';
 import { ConstReactance } from './draw/ConstReactance';
+import { ConstConductance } from './draw/ConstConductance';
+import { ConstSusceptance } from './draw/ConstSusceptance';
 
-import { ConstAdmCircles } from './draw/ConstAdmCircles';
 import { ConstQCircles } from './draw/ConstQCircles';
 import { ConstSwrCircles } from './draw/ConstSwrCircles';
 
@@ -75,14 +76,13 @@ export class Smith {
   private svg: SmithSvg;
   private container: SmithGroup;
 
-  // private fgContainer: SmithGroup;
-  // private fgContainerShape: SmithCircle;
-
   private constResistance: ConstResistance;
   private constReactance: ConstReactance;
-  // private constAdmCircles: ConstAdmCircles;
+  private constConductance: ConstConductance;
+  private constSusceptance: ConstSusceptance;
   // private constSwrCircles: ConstSwrCircles;
   // private constQCircles: ConstQCircles;
+
   private reactanceAxis: SmithCircle;
 
   private cursor: SmithCursor;
@@ -91,19 +91,11 @@ export class Smith {
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   constructor(private Z0: number = 50) {
-    // this.constAdmCircles = new ConstAdmCircles(false);
-    // this.container.append(this.constAdmCircles.draw());
-
     // this.constSwrCircles = new ConstSwrCircles();
     // this.container.append(this.constSwrCircles.draw());
 
     // this.constQCircles = new ConstQCircles();
     // this.container.append(this.constQCircles.draw());
-
-    // this.fgContainer = new SmithGroup();
-    // this.fgContainerShape = this.drawFgContainerShape();
-    // this.fgContainer.append(this.fgContainerShape);
-    // this.svg.append(this.fgContainer);
 
     const viewBoxSize = 500;
 
@@ -136,6 +128,22 @@ export class Smith {
     });
     this.constReactance.show();
     this.container.append(this.constReactance.draw());
+
+    this.constConductance = new ConstConductance({
+      data: SmithArcsDefs.getData(),
+      scaler: this.scalers.default,
+      showMinor: true,
+    });
+    this.constConductance.show();
+    this.container.append(this.constConductance.draw());
+
+    this.constSusceptance = new ConstSusceptance({
+      data: SmithArcsDefs.getData(),
+      scaler: this.scalers.default,
+      showMinor: true,
+    });
+    this.constSusceptance.show();
+    this.container.append(this.constSusceptance.draw());
 
     // Initial zoom
     const shape = this.bgContainerZoom();
@@ -193,7 +201,7 @@ export class Smith {
 
   private initCursor(): SmithCursor {
     const cursor = new SmithCursor(this.scalers.default);
-    cursor.setMoveHandler((rc) => {
+    cursor.setMoveHandler(() => {
       if (this.userActionHandler) {
         this.userActionHandler({
           type: SmithEventType.Cursor, data: this.CursorData,
@@ -238,7 +246,7 @@ export class Smith {
     const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
 
     shape.Element.style('pointer-events', 'all')
-      .on('mousemove', function () {
+      .on('mousemove', function() {
         that.cursorMove(d3.mouse(this as any));
       })
       .on('mouseleave', () => this.cursor.hide());
@@ -334,9 +342,8 @@ export class Smith {
     const freq = m.selectedPoint.freq;
 
     return {
-      datasetNo, markerNo,
+      datasetNo, markerNo, freq,
       reflectionCoefficient:  rc,
-      freq:                   freq,
       impedance:              this.calcImpedance(rc),
       admittance:             this.calcAdmittance(rc),
       swr:                    this.getSwr(rc),
@@ -350,13 +357,21 @@ export class Smith {
     return this.data;
   }
 
-  // public get ConstImpCircles(): ConstImpCircles {
-  //   return this.constImpCircles;
-  // }
+  public get ConstResistance(): ConstResistance {
+    return this.constResistance;
+  }
 
-  // public get ConstAdmCircles(): ConstAdmCircles {
-  //   return this.constAdmCircles;
-  // }
+  public get ConstReactance(): ConstReactance {
+    return this.constReactance;
+  }
+
+  public get ConstConductance(): ConstConductance {
+    return this.constConductance;
+  }
+
+  public get ConstSusceptance(): ConstSusceptance {
+    return this.constSusceptance;
+  }
 
   // public get ConstQCircles(): ConstQCircles {
   //   return this.constQCircles;

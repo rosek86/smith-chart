@@ -18,7 +18,7 @@ export type SmithTickDef = [ number, number, {
 
 export interface SmithTicksShapes {
   lines: Line[];
-  circles: Circle[];
+  circles: number[];
   arcs: SmithArcDef[];
 }
 
@@ -44,8 +44,7 @@ export class SmithArcsDefs {
         major: {
           lines: [],
           circles: [
-            calcs.resistanceCircle(10),
-            calcs.resistanceCircle(50)
+            10, 50
           ],
           arcs: SmithArcsDefs.resistanceMajor(),
         },
