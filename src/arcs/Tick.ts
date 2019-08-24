@@ -11,7 +11,18 @@ export interface TickDef {
   dp?: number;
 }
 
-export type TickDefRequired = Required<TickDef>;
+export interface TickDefRequired {
+  point: {
+    r: number;
+    i: number;
+  };
+  transform: {
+    dx: number;
+    dy: number;
+    rotate: number;
+  };
+  dp: number;
+}
 
 export class Tick {
   private _definition: TickDefRequired;
