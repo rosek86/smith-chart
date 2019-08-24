@@ -2,6 +2,7 @@
 import { SmithGroup } from './SmithGroup';
 import { SmithCircle } from './SmithCircle';
 import { SmithConstantCircle } from '../SmithConstantCircle';
+import { SmithScaler } from './SmithScaler';
 
 interface ConstSwrDrawOptions {
   stroke: string;
@@ -9,12 +10,12 @@ interface ConstSwrDrawOptions {
 }
 
 export class ConstSwrCircles {
-  private calcs: SmithConstantCircle = new SmithConstantCircle();
+  private calcs = new SmithConstantCircle();
   private circles = [ 1.2, 1.5, 2, 3, 5, 10 ];
   private opts: ConstSwrDrawOptions;
   private container: SmithGroup;
 
-  public constructor() {
+  public constructor(private scaler: SmithScaler) {
     this.container = new SmithGroup()
       .attr('fill', 'none')
       .hide();
@@ -30,14 +31,15 @@ export class ConstSwrCircles {
   }
 
   private drawConstSwrCircle(swr: number): void {
-    this.container.append(new SmithCircle({
+    const c = this.scaler.circle({
       p: [ 0, 0 ],
       r: this.calcs.swrToAbsReflectionCoefficient(swr)
-    }));
+    });
+    this.container.append(new SmithCircle(c));
   }
 
   private getDefaultDrawOptions(): ConstSwrDrawOptions {
-    return { stroke: 'orange', strokeWidth: '0.003' };
+    return { stroke: 'orange', strokeWidth: '1' };
   }
 
   public setDrawOptions(opts: ConstSwrDrawOptions): void {

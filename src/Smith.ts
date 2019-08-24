@@ -80,8 +80,8 @@ export class Smith {
   private constReactance: ConstReactance;
   private constConductance: ConstConductance;
   private constSusceptance: ConstSusceptance;
-  // private constSwrCircles: ConstSwrCircles;
-  // private constQCircles: ConstQCircles;
+  private constSwrCircles: ConstSwrCircles;
+  private constQCircles: ConstQCircles;
 
   private reactanceAxis: SmithCircle;
 
@@ -91,12 +91,6 @@ export class Smith {
   private userActionHandler: ((event: SmithEvent) => void)|null = null;
 
   constructor(private Z0: number = 50) {
-    // this.constSwrCircles = new ConstSwrCircles();
-    // this.container.append(this.constSwrCircles.draw());
-
-    // this.constQCircles = new ConstQCircles();
-    // this.container.append(this.constQCircles.draw());
-
     const viewBoxSize = 500;
 
     this.scalers = this.createScalers(viewBoxSize);
@@ -126,7 +120,7 @@ export class Smith {
       scaler: this.scalers.default,
       showMinor: true,
     });
-    this.constReactance.show();
+    this.constReactance.hide();
     this.container.append(this.constReactance.draw());
 
     this.constConductance = new ConstConductance({
@@ -134,7 +128,7 @@ export class Smith {
       scaler: this.scalers.default,
       showMinor: true,
     });
-    this.constConductance.show();
+    this.constConductance.hide();
     this.container.append(this.constConductance.draw());
 
     this.constSusceptance = new ConstSusceptance({
@@ -142,8 +136,16 @@ export class Smith {
       scaler: this.scalers.default,
       showMinor: true,
     });
-    this.constSusceptance.show();
+    this.constSusceptance.hide();
     this.container.append(this.constSusceptance.draw());
+
+    this.constQCircles = new ConstQCircles(this.scalers.default);
+    this.constQCircles.hide();
+    this.container.append(this.constQCircles.draw());
+
+    this.constSwrCircles = new ConstSwrCircles(this.scalers.default);
+    this.constSwrCircles.hide();
+    this.container.append(this.constSwrCircles.draw());
 
     // Initial zoom
     const shape = this.bgContainerZoom();
@@ -373,13 +375,13 @@ export class Smith {
     return this.constSusceptance;
   }
 
-  // public get ConstQCircles(): ConstQCircles {
-  //   return this.constQCircles;
-  // }
+  public get ConstQCircles(): ConstQCircles {
+    return this.constQCircles;
+  }
 
-  // public get ConstSwrCircles(): ConstSwrCircles {
-  //   return this.constSwrCircles;
-  // }
+  public get ConstSwrCircles(): ConstSwrCircles {
+    return this.constSwrCircles;
+  }
 
   public setUserActionHandler(handler: (event: SmithEvent) => void): void {
     this.userActionHandler = handler;

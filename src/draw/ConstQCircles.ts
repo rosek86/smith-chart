@@ -2,6 +2,8 @@
 import { SmithGroup } from './SmithGroup';
 import { SmithArc } from './SmithArc';
 import { SmithConstantCircle } from '../SmithConstantCircle';
+import { SmithScaler } from './SmithScaler';
+import { SmithCircle } from './SmithCircle';
 
 interface ConstQDrawOptions {
   stroke: string;
@@ -14,7 +16,7 @@ export class ConstQCircles {
   private opts: ConstQDrawOptions;
   private container: SmithGroup;
 
-  public constructor() {
+  public constructor(private scaler: SmithScaler) {
     this.container = new SmithGroup()
       .attr('fill', 'none')
       .hide();
@@ -31,12 +33,19 @@ export class ConstQCircles {
 
   private drawConstQCircle(Q: number): void {
     const r = this.calcs.constQCircle(Q).r;
-    this.container.append(new SmithArc([-1, 0], [1, 0], r, false, false));
-    this.container.append(new SmithArc([-1, 0], [1, 0], r, false, true));
+    const a = this.scaler.arc({ p1: [-1, 0], p2: [1, 0], r });
+
+    const a1 = new SmithArc(a.p1, a.p2, a.r, false, false);
+    a1.nonScalingStroke();
+    this.container.append(a1);
+
+    const a2 = new SmithArc(a.p1, a.p2, a.r, false, true);
+    a2.nonScalingStroke();
+    this.container.append(a2);
   }
 
   private getDefaultDrawOptions(): ConstQDrawOptions {
-    return { stroke: 'blue', strokeWidth: '0.001' };
+    return { stroke: 'blue', strokeWidth: '1' };
   }
 
   public setDrawOptions(opts: ConstQDrawOptions): void {
@@ -91,8 +100,8 @@ export class ConstQCircles {
     this.drawConstQCircle(Q);
   }
 
-  public remove(swr: number): void {
-    const index = this.circles.indexOf(swr);
+  public remove(Q: number): void {
+    const index = this.circles.indexOf(Q);
     if (index === -1) { return; }
 
     this.circles.splice(index, 1);
