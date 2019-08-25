@@ -78,32 +78,42 @@ export class ConstResistance extends ConstCircles {
   private drawLabels(): SmithGroup {
     const group = new SmithGroup()
       .attr('stroke',      'none')
-      .attr('text-anchor', 'center')
+      .attr('text-anchor', 'start')
       .attr('font-size',   '8')
       .attr('font-family', 'Verdana');
     for (const e of SmithArcsDefs.resistanceLabels()) {
       const d = e.definition;
-      group.append(this.drawTickLabel(d, d.point.r));
-    }
-    for (const e of SmithArcsDefs.reactanceLabels()) {
-      const d = e.definition;
-      group.append(this.drawTickLabel(d, d.point.i));
+      group.append(this.drawTickLabel(d));
     }
     return group;
   }
 
-  private drawTickLabel(d: TickDefRequired, label: number): SmithText {
-    const p = this.calcs.impedanceToReflectionCoefficient([ d.point.r, d.point.i ]);
+  private drawTickLabel(d: TickDefRequired): SmithText {
+    const rc = this.calcs.impedanceToReflectionCoefficient([ d.point.r, d.point.i ]);
 
-    if (p === undefined) {
+    if (rc === undefined) {
       throw new Error('Invalid text tick coordinates');
     }
 
-    const text    = label.toFixed(d.dp);
-    const dx      = d.transform.dx.toString();
-    const dy      = d.transform.dy.toString();
-    const rotate  = d.transform.rotate;
+    const value  = Math.abs(d.point.r).toFixed(d.dp);
+    const dx     = this.scaler.r(d.transform.dx).toString();
+    const dy     = this.scaler.r(d.transform.dy).toString();
+    const rotate = this.calcRotationAngle(d, rc);
 
-    return new SmithText(this.scaler.point(p), text, { rotate, dx, dy });
+    const text = new SmithText(this.scaler.point(rc), value, {
+      rotate, dx, dy,
+      textAnchor: d.textAnchor,
+      dominantBaseline: d.dominantBaseline,
+    });
+
+    return text;
+  }
+
+  private calcRotationAngle(d: TickDefRequired, rc: Point): number {
+    // calculate rotation angle
+    // as tangent to a circle, angle = atag(a)
+    const c = this.calcs.resistanceCircle(d.point.r);
+    const rotate = Math.atan((c.p[0] - rc[0]) / (rc[1] - c.p[1])) * 180 / Math.PI;
+    return -rotate + d.transform.rotate;
   }
 }

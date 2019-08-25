@@ -12,6 +12,7 @@ interface TextOptions {
   fontSize?: string;
   textAnchor?: string;
   rotate?: number;
+  dominantBaseline?: string;
 }
 
 export class SmithText extends SmithShape {
@@ -21,7 +22,6 @@ export class SmithText extends SmithShape {
     ));
     this.element
       .attr('pointer-events', 'none')
-      .attr('text-anchor', 'middle')
       .text(text);
     if (opts) {
       this.setTextOptions(opts);
@@ -41,13 +41,14 @@ export class SmithText extends SmithShape {
   }
 
   public setTextOptions(opts: TextOptions): SmithText {
-    if (opts.dx        ) { this.element.attr('dx',          opts.dx        ); }
-    if (opts.dy        ) { this.element.attr('dy',          opts.dy        ); }
-    if (opts.stroke    ) { this.element.attr('stroke',      opts.stroke    ); }
-    if (opts.fill      ) { this.element.attr('fill',        opts.fill      ); }
-    if (opts.fontFamily) { this.element.attr('font-family', opts.fontFamily); }
-    if (opts.fontSize  ) { this.element.attr('font-size',   opts.fontSize  ); }
-    if (opts.textAnchor) { this.element.attr('text-anchor', opts.textAnchor); }
+    if (opts.dx              ) { this.element.attr('dx',                opts.dx              ); }
+    if (opts.dy              ) { this.element.attr('dy',                opts.dy              ); }
+    if (opts.stroke          ) { this.element.attr('stroke',            opts.stroke          ); }
+    if (opts.fill            ) { this.element.attr('fill',              opts.fill            ); }
+    if (opts.fontFamily      ) { this.element.attr('font-family',       opts.fontFamily      ); }
+    if (opts.fontSize        ) { this.element.attr('font-size',         opts.fontSize        ); }
+    if (opts.textAnchor      ) { this.element.attr('text-anchor',       opts.textAnchor      ); }
+    if (opts.dominantBaseline) { this.element.attr('dominant-baseline', opts.dominantBaseline); }
 
     if (opts.rotate !== undefined) {
       this.element.attr(
@@ -56,5 +57,9 @@ export class SmithText extends SmithShape {
       );
     }
     return this;
+  }
+
+  public setDominantBaseline(db: string) {
+    this.element.attr('dominant-baseline', db);
   }
 }

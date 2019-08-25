@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { ZoomTransform } from 'd3';
 
 import { Point } from './shapes/Point';
 
@@ -7,25 +8,21 @@ import { SmithGroup } from './draw/SmithGroup';
 import { SmithCircle } from './draw/SmithCircle';
 
 import { SmithData } from './draw/SmithData';
-import { SmithMarker } from './draw/SmithMarker';
 import { SmithCursor } from './draw/SmithCursor';
 
 import { ConstResistance } from './draw/ConstResistance';
 import { ConstReactance } from './draw/ConstReactance';
 import { ConstConductance } from './draw/ConstConductance';
 import { ConstSusceptance } from './draw/ConstSusceptance';
-
 import { ConstQCircles } from './draw/ConstQCircles';
 import { ConstSwrCircles } from './draw/ConstSwrCircles';
 
-import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithDrawOptions } from './draw/SmithDrawOptions';
-
-import { S1P, S1PEntry } from './SnP';
-
 import { SmithScaler } from './draw/SmithScaler';
+
+import { S1P } from './SnP';
+import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithArcsDefs } from './SmithArcsDefs';
-import { ZoomTransform } from 'd3';
 
 interface SmithCirclesDrawOptions {
   stroke: string; minorWidth: string; majorWidth: string;
@@ -77,7 +74,7 @@ export class Smith {
 
   private svg: SmithSvg;
   private container: SmithGroup;
-  private fgContainer: SmithGroup;
+  private dataContainer: SmithGroup;
 
   private reactanceAxis: SmithCircle;
 
@@ -153,9 +150,9 @@ export class Smith {
     const cursorContainer = this.cursorContainer();
     this.container.append(cursorContainer);
 
-    this.fgContainer = new SmithGroup();
-    this.container.append(this.fgContainer);
-    this.fgContainer.Element.raise();
+    this.dataContainer = new SmithGroup();
+    this.container.append(this.dataContainer);
+    this.dataContainer.Element.raise();
 
     this.initializeZoom();
   }
@@ -309,7 +306,7 @@ export class Smith {
   private createSmithData(values: S1P, dataset: number): SmithData {
     const color = d3.schemeCategory10[1 + dataset];
     const data = new SmithData(values, color,
-      this.transform, this.fgContainer, this.scalers.default
+      this.transform, this.dataContainer, this.scalers.default
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {

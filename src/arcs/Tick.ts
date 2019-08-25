@@ -9,6 +9,8 @@ export interface TickDef {
     rotate?: number;
   };
   dp?: number;
+  textAnchor?: string;
+  dominantBaseline?: string;
 }
 
 export interface TickDefRequired {
@@ -22,10 +24,12 @@ export interface TickDefRequired {
     rotate: number;
   };
   dp: number;
+  textAnchor: string;
+  dominantBaseline: string;
 }
 
 export class Tick {
-  private _definition: TickDefRequired;
+  private def: TickDefRequired;
 
   constructor(def: TickDef) {
     if (def.transform === undefined) {
@@ -43,8 +47,14 @@ export class Tick {
     if (def.dp === undefined) {
       def.dp = 0;
     }
+    if (def.textAnchor === undefined) {
+      def.textAnchor = 'start';
+    }
+    if (def.dominantBaseline === undefined) {
+      def.dominantBaseline = 'baseline';
+    }
 
-    this._definition = {
+    this.def = {
       point: { r: def.point.r, i: def.point.i },
       transform: {
         dx: def.transform.dx,
@@ -52,10 +62,12 @@ export class Tick {
         rotate: def.transform.rotate,
       },
       dp: def.dp,
+      textAnchor: def.textAnchor,
+      dominantBaseline: def.dominantBaseline,
     };
   }
 
   get definition(): TickDefRequired {
-    return this._definition;
+    return this.def;
   }
 }

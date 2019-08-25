@@ -1,7 +1,5 @@
 import { Tick } from './arcs/Tick';
 import { Line } from './shapes/Line';
-import { SmithConstantCircle } from './SmithConstantCircle';
-import { Circle } from './shapes/Circle';
 
 export enum SmithArcEntry { circle, clipCircles, arcOptions }
 
@@ -38,7 +36,6 @@ export class SmithArcsDefs {
   }
 
   public static getData(): SmithTicksData {
-    const calcs = new SmithConstantCircle();
     return {
       resistance: {
         major: {
@@ -70,34 +67,96 @@ export class SmithArcsDefs {
 
   public static resistanceLabels(): Tick[] {
     return [
-      new Tick({ point: { r:  0.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  8, rotate: -90 } }),
-      new Tick({ point: { r:  0.10, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.20, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.30, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.40, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.50, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.60, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.70, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.80, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  0.90, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  1.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  1.20, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  1.40, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  1.60, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  1.80, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  2.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  3.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  4.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r:  5.00, i:  0.00 }, dp: 1, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r: 10.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r: 20.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
-      new Tick({ point: { r: 50.00, i:  0.00 }, dp: 0, transform: { dx:  6, dy:  0, rotate: -90 } }),
+      new Tick({ point: { r:   0.00, i:   0.00 }, dp: 0, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start',
+                                                                                              dominantBaseline: 'hanging' }),
+      new Tick({ point: { r:   0.10, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.20, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.30, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.40, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.50, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.60, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.70, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.80, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.90, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.20, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.40, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.60, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.80, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   2.00, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   3.00, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   4.00, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   5.00, i:   0.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:  10.00, i:   0.00 }, dp: 0, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:  20.00, i:   0.00 }, dp: 0, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:  50.00, i:   0.00 }, dp: 0, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:   1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.80, i:   1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.60, i:   1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.40, i:   1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.20, i:   1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:  -1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.80, i:  -1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.60, i:  -1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.40, i:  -1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.20, i:  -1.00 }, dp: 1, transform: { dx:  0, dy:  0, rotate:  180 }, textAnchor: 'end'   }),
     ];
   }
 
   public static reactanceLabels(): Tick[] {
     return [
-      new Tick({ point: { r:  1.00, i:  0.40 }, dp: 1, transform: { dx: -6, dy: 0, rotate: -157 } })
+      new Tick({ point: { r:   1.00, i:   0.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   1.00, i:   0.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   1.00, i:   0.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   1.00, i:   0.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   1.00, i:   1.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.10 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.30 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.50 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.70 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   0.90 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   1.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   1.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   1.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   1.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   1.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   2.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   3.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   4.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:   5.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:  10.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:  20.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   0.00, i:  50.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'end'   }),
+      new Tick({ point: { r:   1.00, i:  -0.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:  -0.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:  -0.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:  -0.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   1.00, i:  -1.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.10 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.30 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.50 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.70 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -0.90 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -1.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:    0 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -1.20 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -1.40 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -1.60 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -1.80 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -2.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -3.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -4.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i:  -5.00 }, dp: 1, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i: -10.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i: -20.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
+      new Tick({ point: { r:   0.00, i: -50.00 }, dp: 0, transform: { dx:  0, dy: 0, rotate:  180 }, textAnchor: 'start' }),
     ];
   }
 

@@ -4,10 +4,11 @@ import { SmithGroup } from './SmithGroup';
 import { SmithText } from './SmithText';
 import { SmithScaler } from './SmithScaler';
 
-import { SmithArcDef, SmithArcEntry } from '../SmithArcsDefs';
+import { SmithArcDef, SmithArcEntry, SmithArcsDefs } from '../SmithArcsDefs';
 import { SmithTicksData, SmithTicksShapes } from '../SmithArcsDefs';
 
 import { Point } from '../shapes/Point';
+import { TickDefRequired } from '../arcs/Tick';
 
 export class ConstReactance extends ConstCircles {
   private data: SmithTicksData;
@@ -74,10 +75,45 @@ export class ConstReactance extends ConstCircles {
     return [ p1, p2, c.r, arcOpts[0], arcOpts[1] ];
   }
 
+
   private drawLabels(): SmithGroup {
     const group = new SmithGroup()
       .attr('stroke',      'none')
-      .attr('text-anchor', 'start');
+      .attr('text-anchor', 'center')
+      .attr('font-size',   '8')
+      .attr('font-family', 'Verdana');
+    for (const e of SmithArcsDefs.reactanceLabels()) {
+      const d = e.definition;
+      group.append(this.drawTickLabel(d));
+    }
     return group;
+  }
+
+  private drawTickLabel(d: TickDefRequired): SmithText {
+    const rc = this.calcs.impedanceToReflectionCoefficient([ d.point.r, d.point.i ]);
+
+    if (rc === undefined) {
+      throw new Error('Invalid text tick coordinates');
+    }
+
+    const value  = Math.abs(d.point.i).toFixed(d.dp);
+    const dx     = this.scaler.r(d.transform.dx).toString();
+    const dy     = this.scaler.r(d.transform.dy).toString();
+    const rotate = this.calcRotationAngle(d, rc);
+
+    const text = new SmithText(this.scaler.point(rc), value, {
+      rotate, dx, dy,
+      textAnchor: d.textAnchor
+    });
+
+    return text;
+  }
+
+  private calcRotationAngle(d: TickDefRequired, rc: Point): number {
+    // calculate rotation angle
+    // as tangent to a circle, angle = atag(a)
+    const c = this.calcs.reactanceCircle(d.point.i);
+    const rotate = Math.atan((c.p[0] - rc[0]) / (rc[1] - c.p[1])) * 180 / Math.PI;
+    return -rotate + d.transform.rotate;
   }
 }

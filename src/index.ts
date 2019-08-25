@@ -8,8 +8,8 @@ $(document).ready(() => {
 
   smith.draw('#smith');
 
-  const constImpCircles = smith.ConstImpCircles;
-  const constAdmCircles = smith.ConstAdmCircles;
+  const constImpCircles = smith.ConstResistance;
+  const constAdmCircles = smith.ConstConductance;
   const constQCircles   = smith.ConstQCircles;
   const constSwrCircles = smith.ConstSwrCircles;
 
