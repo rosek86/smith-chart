@@ -184,4 +184,17 @@ export class SmithConstantCircle {
     Y[1] += B * this.Z0;
     return this.admittanceToReflectionCoefficient(Y);
   }
+
+  public tangentToCircleAngle(c: Circle, p: Point): number {
+    // tangent to a circle, angle = atag(a)
+    return this.rad2deg(Math.atan((c.p[0] - p[0]) / (p[1] - c.p[1])));
+  }
+
+  public rad2deg(rad: number): number {
+    return rad * 180.0 / Math.PI;
+  }
+
+  public deg2rad(deg: number): number {
+    return deg * Math.PI / 180.0;
+  }
 }

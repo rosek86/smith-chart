@@ -98,11 +98,7 @@ export class ConstSusceptance extends ConstCircles {
     const value  = Math.abs(d.point.i).toFixed(d.dp);
     const dx     = this.scaler.r(d.transform.dx).toString();
     const dy     = this.scaler.r(d.transform.dy).toString();
-    let rotate = this.calcRotationAngle(d, rc);
-
-    if (rotate !== 90) {
-      rotate += 180;
-    }
+    const rotate = this.calcRotationAngle(d, rc);
 
     const text = new SmithText(this.scaler.point(rc), value, {
       rotate, dx, dy,
@@ -114,10 +110,8 @@ export class ConstSusceptance extends ConstCircles {
   }
 
   private calcRotationAngle(d: TickDefRequired, rc: Point): number {
-    // calculate rotation angle
-    // as tangent to a circle, angle = atag(a)
     const c = this.calcs.susceptanceCircle(d.point.i);
-    const rotate = Math.atan((c.p[0] - rc[0]) / (rc[1] - c.p[1])) * 180 / Math.PI;
-    return -rotate + d.transform.rotate;
+    const angle = -this.calcs.tangentToCircleAngle(c, rc) + d.transform.rotate;
+    return angle === 90 ? angle : angle + 180;
   }
 }

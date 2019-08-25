@@ -109,10 +109,7 @@ export class ConstResistance extends ConstCircles {
   }
 
   private calcRotationAngle(d: TickDefRequired, rc: Point): number {
-    // calculate rotation angle
-    // as tangent to a circle, angle = atag(a)
     const c = this.calcs.resistanceCircle(d.point.r);
-    const rotate = Math.atan((c.p[0] - rc[0]) / (rc[1] - c.p[1])) * 180 / Math.PI;
-    return -rotate + d.transform.rotate;
+    return -this.calcs.tangentToCircleAngle(c, rc) + d.transform.rotate;
   }
 }
