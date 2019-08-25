@@ -78,8 +78,7 @@ export class ConstResistance extends ConstCircles {
   private drawLabels(): SmithGroup {
     const group = new SmithGroup()
       .attr('stroke',      'none')
-      .attr('text-anchor', 'start')
-      .attr('font-size',   '8')
+      .attr('font-size',   '7')
       .attr('font-family', 'Verdana');
     for (const e of SmithArcsDefs.resistanceLabels()) {
       const d = e.definition;
