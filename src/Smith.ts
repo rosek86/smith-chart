@@ -92,20 +92,10 @@ export class Smith {
 
   constructor(private Z0: number = 50) {
     const viewBoxSize = 500;
-
     this.scalers = this.createScalers(viewBoxSize);
+
     this.svg = new SmithSvg(viewBoxSize);
-
     this.container = new SmithGroup();
-    this.svg.append(this.container);
-
-    this.cursor = this.initCursor();
-    this.container.append(this.cursor.Group);
-
-    this.reactanceAxis = this.drawReactanceAxis({
-      stroke: 'blue', strokeWidth: '1', fill: 'none'
-    });
-    this.container.append(this.reactanceAxis);
 
     this.constResistance = new ConstResistance({
       data: SmithArcsDefs.getData(),
@@ -113,7 +103,6 @@ export class Smith {
       showMinor: true,
     });
     this.constResistance.show();
-    this.container.append(this.constResistance.draw());
 
     this.constReactance = new ConstReactance({
       data: SmithArcsDefs.getData(),
@@ -121,7 +110,6 @@ export class Smith {
       showMinor: true,
     });
     this.constReactance.hide();
-    this.container.append(this.constReactance.draw());
 
     this.constConductance = new ConstConductance({
       data: SmithArcsDefs.getData(),
@@ -129,7 +117,6 @@ export class Smith {
       showMinor: true,
     });
     this.constConductance.hide();
-    this.container.append(this.constConductance.draw());
 
     this.constSusceptance = new ConstSusceptance({
       data: SmithArcsDefs.getData(),
@@ -137,20 +124,33 @@ export class Smith {
       showMinor: true,
     });
     this.constSusceptance.hide();
-    this.container.append(this.constSusceptance.draw());
 
     this.constQCircles = new ConstQCircles(this.scalers.default);
     this.constQCircles.hide();
-    this.container.append(this.constQCircles.draw());
 
     this.constSwrCircles = new ConstSwrCircles(this.scalers.default);
     this.constSwrCircles.hide();
-    this.container.append(this.constSwrCircles.draw());
 
+    this.cursor = this.initCursor();
     const cursorContainer = this.cursorContainer();
-    this.container.append(cursorContainer);
+
+    this.reactanceAxis = this.drawReactanceAxis({
+      stroke: 'blue', strokeWidth: '1', fill: 'none'
+    });
 
     this.dataContainer = new SmithGroup();
+
+    // build chart
+    this.svg.append(this.container);
+    this.container.append(this.constConductance.draw());
+    this.container.append(this.constSusceptance.draw());
+    this.container.append(this.constResistance.draw());
+    this.container.append(this.constReactance.draw());
+    this.container.append(this.constQCircles.draw());
+    this.container.append(this.constSwrCircles.draw());
+    this.container.append(this.cursor.Group);
+    this.container.append(this.reactanceAxis);
+    this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
     this.dataContainer.Element.raise();
 
