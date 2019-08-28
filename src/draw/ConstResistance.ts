@@ -88,7 +88,7 @@ export class ConstResistance extends ConstCircles {
   }
 
   private drawTickLabel(d: TickDefRequired): SmithText {
-    const rc = this.calcs.impedanceToReflectionCoefficient([ d.point.r, d.point.i ]);
+    const rc = this.calcs.impedanceToRflCoeff([ d.point.r, d.point.i ]);
 
     if (rc === undefined) {
       throw new Error('Invalid text tick coordinates');

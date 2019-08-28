@@ -9,7 +9,7 @@ export class SmithConstantCircle {
   public constructor(public Z0: number = 50) {
   }
 
-  public reflectionCoefficientToImpedance(c: Complex): Complex|undefined {
+  public rflCoeffToImpedance(c: Complex): Complex|undefined {
     const gr = c[0];
     const gi = c[1];
     const d = (1 - gr) * (1 - gr) + gi * gi;
@@ -21,7 +21,7 @@ export class SmithConstantCircle {
     return [ zr, zi ];
   }
 
-  public impedanceToReflectionCoefficient(c: Complex): Complex|undefined {
+  public impedanceToRflCoeff(c: Complex): Complex|undefined {
     const zr = c[0];
     const zi = c[1];
     const d = (zr + 1) * (zr + 1) + zi * zi;
@@ -33,7 +33,7 @@ export class SmithConstantCircle {
     return [ gr, gi ];
   }
 
-  public reflectionCoefficientToAdmittance(c: Complex): Complex|undefined {
+  public rflCoeffToAdmittance(c: Complex): Complex|undefined {
     const gr = c[0];
     const gi = c[1];
     const d = (gr + 1) * (gr + 1) + gi * gi;
@@ -45,7 +45,7 @@ export class SmithConstantCircle {
     return [ yr, yi ];
   }
 
-  public admittanceToReflectionCoefficient(c: Complex): Complex|undefined {
+  public admittanceToRflCoeff(c: Complex): Complex|undefined {
     const yr = c[0];
     const yi = c[1];
     const d = (yr + 1) * (yr + 1) + yi * yi;
@@ -78,14 +78,18 @@ export class SmithConstantCircle {
     return { p: [ 0, 1 / q ], r: Math.sqrt(1 + 1 / (q * q)) };
   }
 
-  public reflectionCoefficientToSwr(rc: Complex): number {
+  public rflCoeffToSwr(rc: Complex): number {
     const x = rc[0];
     const y = rc[1];
     const gamma = Math.sqrt(x * x + y * y);
     return (1 + gamma) / (1 - gamma);
   }
 
-  public swrToAbsReflectionCoefficient(swr: number): number {
+  public rflCoeffToDBS(rc: Complex): number {
+    return this.swrTodBS(this.rflCoeffToSwr(rc));
+  }
+
+  public swrToAbsRflCoeff(swr: number): number {
     return (swr - 1) / (swr + 1);
   }
 
@@ -97,35 +101,41 @@ export class SmithConstantCircle {
     return 10 ** (dBS / 20.0);
   }
 
-  public dBSToAbsReflectionCoefficient(dBS: number): number {
+  public dBSToAbsRflCoeff(dBS: number): number {
     const swr = this.dBSToSwr(dBS);
-    return this.swrToAbsReflectionCoefficient(swr);
+    return this.swrToAbsRflCoeff(swr);
   }
 
-  public reflectionCoefficientToReturnLoss(rc: Complex): number {
-    const power = this.reflectionCoefficientAbs(rc);
-    return -20.0 * Math.log10(power);
+  public rflCoeffToReturnLoss(rc: Complex): number {
+    const abs = this.rflCoeffEOrI(rc);
+    return -20.0 * Math.log10(abs);
   }
 
-  public returnLossToReflectionCoefficientAbs(rl: number): number {
+  public returnLossToRflCoeffAbs(rl: number): number {
     return 10 ** (-rl / 20.0);
   }
 
-  public reflectionCoefficientToMismatchLoss(rc: Complex): number {
-    const power = this.reflectionCoefficientAbs(rc);
-    return -10.0 * Math.log10(1 - power * power);
+  public rflCoeffToMismatchLoss(rc: Complex): number {
+    const abs = this.rflCoeffEOrI(rc);
+    return -10.0 * Math.log10(1 - abs * abs);
   }
 
-  public reflectionCoefficientAbs(rc: Complex): number {
-    return Math.sqrt(this.reflectionCoefficientPower(rc));
+  public rflCoeffEOrI(rc: Complex): number {
+    return Math.sqrt(this.rflCoeffP(rc));
   }
 
-  public reflectionCoefficientPower(rc: Complex): number {
+  public rflCoeffP(rc: Complex): number {
     return rc[0] * rc[0] + rc[1] * rc[1];
   }
 
-  public rflCoeffPToRflCoeffEOrI(p: number): number {
+  public rflCoeffPToEOrI(p: number): number {
     return Math.sqrt(p);
+  }
+
+  public rflCoeffToQ(rc: Complex): number|undefined {
+    const impedance = this.rflCoeffToImpedance(rc);
+    if (!impedance) { return; }
+    return Math.abs(impedance[1] / impedance[0]);
   }
 
   public circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
@@ -195,23 +205,23 @@ export class SmithConstantCircle {
   }
 
   public addImpedance(rc: Point, [R, X]: [number, number]): Point|undefined {
-    const Z = this.reflectionCoefficientToImpedance(rc);
+    const Z = this.rflCoeffToImpedance(rc);
     if (Z === undefined) {
       return undefined;
     }
     Z[0] += R / this.Z0;
     Z[1] += X / this.Z0;
-    return this.impedanceToReflectionCoefficient(Z);
+    return this.impedanceToRflCoeff(Z);
   }
 
   public addAdmittance(rc: Point, [G, B]: [number, number]): Point|undefined {
-    const Y = this.reflectionCoefficientToAdmittance(rc);
+    const Y = this.rflCoeffToAdmittance(rc);
     if (Y === undefined) {
       return undefined;
     }
     Y[0] += G * this.Z0;
     Y[1] += B * this.Z0;
-    return this.admittanceToReflectionCoefficient(Y);
+    return this.admittanceToRflCoeff(Y);
   }
 
   public tangentToCircleAngle(c: Circle, p: Point): number {

@@ -14,7 +14,7 @@ interface DrawOptions {
 }
 
 export class SmithCursor {
-  private epsilon = 1.5e-6;
+  private epsilon = 1.5e-4;
 
   private drawingOpts: DrawOptions = {
     point:      { radius: 5, color: 'red',  },
@@ -125,8 +125,8 @@ export class SmithCursor {
 
     this.rc = rc;
 
-    const z = this.calcs.reflectionCoefficientToImpedance(rc);
-    const y = this.calcs.reflectionCoefficientToAdmittance(rc);
+    const z = this.calcs.rflCoeffToImpedance(rc);
+    const y = this.calcs.rflCoeffToAdmittance(rc);
 
     this.movePoint(rc);
     this.moveResistance(z);

@@ -38,6 +38,9 @@ export interface SmithCursorEvent {
   returnLoss: number;
   mismatchLoss: number;
   Q: number|undefined;
+  dBS: number;
+  rflCoeffP: number;
+  rflCoeffEOrI: number;
 }
 
 export interface SmithMarkerEvent {
@@ -206,10 +209,13 @@ export class Smith {
       reflectionCoefficient: rc,
       impedance:    this.calcImpedance(rc),
       admittance:   this.calcAdmittance(rc),
-      swr:          this.getSwr(rc),
-      returnLoss:   this.getReturnLoss(rc),
-      mismatchLoss: this.getMismatchLoss(rc),
-      Q:            this.getQ(rc)
+      swr:          this.calcs.rflCoeffToSwr(rc),
+      returnLoss:   this.calcs.rflCoeffToReturnLoss(rc),
+      mismatchLoss: this.calcs.rflCoeffToMismatchLoss(rc),
+      Q:            this.calcs.rflCoeffToQ(rc),
+      dBS:          this.calcs.rflCoeffToDBS(rc),
+      rflCoeffP:    this.calcs.rflCoeffP(rc),
+      rflCoeffEOrI: this.calcs.rflCoeffEOrI(rc),
     };
   }
 
@@ -258,7 +264,7 @@ export class Smith {
   }
 
   public getReactanceComponentValue(p: Point, f: number): string {
-    const z = this.calcs.reflectionCoefficientToImpedance(p);
+    const z = this.calcs.rflCoeffToImpedance(p);
     if (!z) {
       return 'Undefined';
     }
@@ -341,10 +347,10 @@ export class Smith {
       reflectionCoefficient:  rc,
       impedance:              this.calcImpedance(rc),
       admittance:             this.calcAdmittance(rc),
-      swr:                    this.getSwr(rc),
-      returnLoss:             this.getReturnLoss(rc),
-      mismatchLoss:           this.getMismatchLoss(rc),
-      Q:                      this.getQ(rc),
+      swr:                    this.calcs.rflCoeffToSwr(rc),
+      returnLoss:             this.calcs.rflCoeffToReturnLoss(rc),
+      mismatchLoss:           this.calcs.rflCoeffToMismatchLoss(rc),
+      Q:                      this.calcs.rflCoeffToQ(rc),
     };
   }
 
@@ -381,7 +387,7 @@ export class Smith {
   }
 
   public calcImpedance(rc: Point): Point|undefined {
-    const impedance = this.calcs.reflectionCoefficientToImpedance(rc);
+    const impedance = this.calcs.rflCoeffToImpedance(rc);
     if (impedance) {
       impedance[0] *= this.Z0;
       impedance[1] *= this.Z0;
@@ -389,25 +395,11 @@ export class Smith {
     return impedance;
   }
   public calcAdmittance(rc: Point): Point|undefined {
-    const admittance = this.calcs.reflectionCoefficientToAdmittance(rc);
+    const admittance = this.calcs.rflCoeffToAdmittance(rc);
     if (admittance) {
       admittance[0] *= 1 / this.Z0 * 1000.0; // mS
       admittance[1] *= 1 / this.Z0 * 1000.0; // mS
     }
     return admittance;
-  }
-  private getQ(rc: Point): number|undefined {
-    const impedance = this.calcs.reflectionCoefficientToImpedance(rc);
-    if (!impedance) { return; }
-    return Math.abs(impedance[1] / impedance[0]);
-  }
-  private getSwr(rc: Point): number {
-    return this.calcs.reflectionCoefficientToSwr(rc);
-  }
-  private getReturnLoss(rc: Point): number {
-    return this.calcs.reflectionCoefficientToReturnLoss(rc);
-  }
-  private getMismatchLoss(rc: Point): number {
-    return this.calcs.reflectionCoefficientToMismatchLoss(rc);
   }
 }

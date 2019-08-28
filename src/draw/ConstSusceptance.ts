@@ -89,7 +89,7 @@ export class ConstSusceptance extends ConstCircles {
   }
 
   private drawTickLabel(d: TickDefRequired): SmithText {
-    const rc = this.calcs.admittanceToReflectionCoefficient([ d.point.r, d.point.i ]);
+    const rc = this.calcs.admittanceToRflCoeff([ d.point.r, d.point.i ]);
 
     if (rc === undefined) {
       throw new Error('Invalid text tick coordinates');

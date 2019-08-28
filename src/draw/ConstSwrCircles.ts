@@ -33,7 +33,7 @@ export class ConstSwrCircles {
   private drawConstSwrCircle(swr: number): void {
     const c = this.scaler.circle({
       p: [ 0, 0 ],
-      r: this.calcs.swrToAbsReflectionCoefficient(swr)
+      r: this.calcs.swrToAbsRflCoeff(swr)
     });
     this.container.append(new SmithCircle(c));
   }

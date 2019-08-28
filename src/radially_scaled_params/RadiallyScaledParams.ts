@@ -21,7 +21,7 @@ export class RadiallyScaledParams {
       1, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 4, 5, 10, 20, 40, 100, Number.MAX_VALUE
     ];
     for (const swr of swrTicks) {
-      const rc = this.calcs.swrToAbsReflectionCoefficient(swr);
+      const rc = this.calcs.swrToAbsRflCoeff(swr);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset ]),
         this.scaler.point([ -rc, offset + tickSize ]), {
@@ -38,7 +38,7 @@ export class RadiallyScaledParams {
       1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, Number.MAX_VALUE
     ];
     for (const dbs of dbsTicks) {
-      const rc = this.calcs.dBSToAbsReflectionCoefficient(dbs);
+      const rc = this.calcs.dBSToAbsRflCoeff(dbs);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset - tickSize ]),
         this.scaler.point([ -rc, offset ]), {
@@ -57,7 +57,7 @@ export class RadiallyScaledParams {
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 20, 30
     ];
     for (const rl of rlTicks) {
-      const rc = this.calcs.returnLossToReflectionCoefficientAbs(rl);
+      const rc = this.calcs.returnLossToRflCoeffAbs(rl);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset ]),
         this.scaler.point([ -rc, offset + tickSize ]), {
@@ -74,7 +74,7 @@ export class RadiallyScaledParams {
       1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.01, 0
     ];
     for (const rcp of rcpTicks) {
-      const rc = this.calcs.rflCoeffPToRflCoeffEOrI(rcp);
+      const rc = this.calcs.rflCoeffPToEOrI(rcp);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset - tickSize ]),
         this.scaler.point([ -rc, offset ]), {
@@ -135,8 +135,8 @@ export class RadiallyScaledParams {
         }
       ));
       group.append(new SmithLine(
-        this.scaler.point([ 1.05,       offset       ]),
-        this.scaler.point([ 1.05 + len, offset + len ]), {
+        this.scaler.point([  1.05,       offset       ]),
+        this.scaler.point([  1.05 + len, offset + len ]), {
           stroke:       'black',
           strokeWidth:  '1'
         }
