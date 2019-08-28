@@ -14,7 +14,7 @@ interface DrawOptions {
 }
 
 export class SmithCursor {
-  private epsilon = 1.5e-4;
+  private epsilon = 1.5e-6;
 
   private drawingOpts: DrawOptions = {
     point:      { radius: 5, color: 'red',  },
@@ -163,10 +163,10 @@ export class SmithCursor {
 
   private moveReactance(z: Point|undefined): void {
     if (z === undefined || Math.abs(z[1]) < this.epsilon) {
-      this.impedance.reactance.line.show();
       this.impedance.reactance.line.move(
         this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
       );
+      this.impedance.reactance.line.show();
       this.impedance.reactance.arc.hide();
       return;
     }
@@ -196,10 +196,10 @@ export class SmithCursor {
 
   private moveSusceptance(y: Point|undefined) {
     if (y === undefined || Math.abs(y[1]) < this.epsilon) {
-      this.admittance.susceptance.line.show();
       this.admittance.susceptance.line.move(
         this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
       );
+      this.admittance.susceptance.line.show();
       this.admittance.susceptance.arc.hide();
       return;
     }

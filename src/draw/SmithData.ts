@@ -18,7 +18,7 @@ interface Transform {
 }
 
 export class SmithData {
-  private pointRadius = 4;
+  private pointRadius = 2;
 
   private group: SmithGroup;
 

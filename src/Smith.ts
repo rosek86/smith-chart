@@ -24,6 +24,8 @@ import { S1P } from './SnP';
 import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithArcsDefs } from './SmithArcsDefs';
 
+import { RadiallyScaledParams } from './radially_scaled_params/RadiallyScaledParams';
+
 interface SmithCirclesDrawOptions {
   stroke: string; minorWidth: string; majorWidth: string;
 }
@@ -85,6 +87,8 @@ export class Smith {
   private constSwrCircles: ConstSwrCircles;
   private constQCircles: ConstQCircles;
 
+  private radiallyScaledParams: RadiallyScaledParams;
+
   private cursor: SmithCursor;
   private data: SmithData[] = [];
 
@@ -140,6 +144,9 @@ export class Smith {
 
     this.dataContainer = new SmithGroup();
 
+    this.radiallyScaledParams = new RadiallyScaledParams(this.scalers.default);
+    const rspContainer = this.radiallyScaledParams.draw();
+
     // build chart
     this.svg.append(this.container);
     this.container.append(this.constConductance.draw());
@@ -152,6 +159,7 @@ export class Smith {
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
+    this.container.append(rspContainer);
     this.dataContainer.Element.raise();
 
     this.initializeZoom();

@@ -89,14 +89,43 @@ export class SmithConstantCircle {
     return (swr - 1) / (swr + 1);
   }
 
+  public swrTodBS(swr: number): number {
+    return 20 * Math.log10(swr);
+  }
+
+  public dBSToSwr(dBS: number): number {
+    return 10 ** (dBS / 20.0);
+  }
+
+  public dBSToAbsReflectionCoefficient(dBS: number): number {
+    const swr = this.dBSToSwr(dBS);
+    return this.swrToAbsReflectionCoefficient(swr);
+  }
+
   public reflectionCoefficientToReturnLoss(rc: Complex): number {
-    const abs = Math.sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
-    return -20.0 * Math.log10(abs);
+    const power = this.reflectionCoefficientAbs(rc);
+    return -20.0 * Math.log10(power);
+  }
+
+  public returnLossToReflectionCoefficientAbs(rl: number): number {
+    return 10 ** (-rl / 20.0);
   }
 
   public reflectionCoefficientToMismatchLoss(rc: Complex): number {
-    const abs = Math.sqrt(rc[0] * rc[0] + rc[1] * rc[1]);
-    return -10.0 * Math.log10(1 - abs * abs);
+    const power = this.reflectionCoefficientAbs(rc);
+    return -10.0 * Math.log10(1 - power * power);
+  }
+
+  public reflectionCoefficientAbs(rc: Complex): number {
+    return Math.sqrt(this.reflectionCoefficientPower(rc));
+  }
+
+  public reflectionCoefficientPower(rc: Complex): number {
+    return rc[0] * rc[0] + rc[1] * rc[1];
+  }
+
+  public rflCoeffPToRflCoeffEOrI(p: number): number {
+    return Math.sqrt(p);
   }
 
   public circleCircleIntersection(c1: Circle, c2: Circle): Point[] {
