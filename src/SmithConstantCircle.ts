@@ -89,7 +89,7 @@ export class SmithConstantCircle {
     return this.swrTodBS(this.rflCoeffToSwr(rc));
   }
 
-  public swrToAbsRflCoeff(swr: number): number {
+  public swrToRflCoeffEOrI(swr: number): number {
     return (swr - 1) / (swr + 1);
   }
 
@@ -103,21 +103,25 @@ export class SmithConstantCircle {
 
   public dBSToAbsRflCoeff(dBS: number): number {
     const swr = this.dBSToSwr(dBS);
-    return this.swrToAbsRflCoeff(swr);
+    return this.swrToRflCoeffEOrI(swr);
   }
 
   public rflCoeffToReturnLoss(rc: Complex): number {
-    const abs = this.rflCoeffEOrI(rc);
-    return -20.0 * Math.log10(abs);
+    return -20.0 * Math.log10(this.rflCoeffEOrI(rc));
   }
 
-  public returnLossToRflCoeffAbs(rl: number): number {
+  public returnLossToRflCoeffEOrI(rl: number): number {
     return 10 ** (-rl / 20.0);
   }
 
   public rflCoeffToMismatchLoss(rc: Complex): number {
+    // mismatch loss is reflection loss
     const abs = this.rflCoeffEOrI(rc);
-    return -10.0 * Math.log10(1 - abs * abs);
+    return -10.0 * Math.log10(1 - abs ** 2);
+  }
+
+  public mismatchLossToRflCoeffEOrI(ml: number): number {
+    return Math.sqrt(1 - 10 ** (-ml / 10));
   }
 
   public rflCoeffEOrI(rc: Complex): number {
@@ -136,6 +140,50 @@ export class SmithConstantCircle {
     const impedance = this.rflCoeffToImpedance(rc);
     if (!impedance) { return; }
     return Math.abs(impedance[1] / impedance[0]);
+  }
+
+  public rflCoeffToTransmCoeffP(rc: Complex): number {
+    return 1 - this.rflCoeffEOrI(rc) ** 2;
+  }
+
+  public transmCoeffPToRflCoeffEOrI(tcp: number): number {
+    return Math.sqrt(1.0 - tcp);
+  }
+
+  public rflCoeffToTransmCoeff(rc: Complex): Complex {
+    // T = R + 1
+    return [ rc[0] + 1, rc[1] ];
+  }
+
+  public transmCoeffToRflCoeff(tc: Complex): Complex {
+    return [ tc[0] - 1, tc[1] ];
+  }
+
+  public rflCoeffToTransmCoeffEOrI(rc: Complex): number {
+    // T = R + 1
+    const tc = this.rflCoeffToTransmCoeff(rc);
+    return Math.sqrt(tc[0] ** 2 + tc[1] ** 2);
+  }
+
+  // s. w. peak (const. p)
+  // MAX. LIMITS = |V|max/|V|max,0 = sqrt(VSWR)
+  public rflCoeffToSwPeakConstP(rc: Complex): number {
+    return Math.sqrt(this.rflCoeffToSwr(rc));
+  }
+
+  public swPeakConstPToRflCoeffEOrI(swPeak: number): number {
+    return this.swrToRflCoeffEOrI(swPeak ** 2);
+  }
+
+  // SW. LOSS COEF. = (Pincident + Preflect) / (Pincident - Preflect)
+  // SW. LOSS COEF. = (1+|S|^2) / (1-|S|^2)
+  public rflCoeffToSwLossCoeff(rc: Complex): number {
+    const abs = this.rflCoeffEOrI(rc);
+    return (1 + abs ** 2) / (1 - abs ** 2);
+  }
+
+  public swLossCoeffToRflCoeffEOrI(swl: number): number {
+    return Math.sqrt((swl - 1) / (swl + 1));
   }
 
   public circleCircleIntersection(c1: Circle, c2: Circle): Point[] {

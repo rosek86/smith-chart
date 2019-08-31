@@ -18,10 +18,10 @@ export class RadiallyScaledParams {
     // swr
     const swrTicksGroup = new SmithGroup();
     const swrTicks = [
-      1, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 4, 5, 10, 20, 40, 100, Number.MAX_VALUE
+      1, 1.1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 4, 5, 10, 20, 40, 100, 1e9
     ];
     for (const swr of swrTicks) {
-      const rc = this.calcs.swrToAbsRflCoeff(swr);
+      const rc = this.calcs.swrToRflCoeffEOrI(swr);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset ]),
         this.scaler.point([ -rc, offset + tickSize ]), {
@@ -35,7 +35,7 @@ export class RadiallyScaledParams {
     // dB referred to Standing Wave Ratio (dBS)
     const dbsTicksGroup = new SmithGroup();
     const dbsTicks = [
-      1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, Number.MAX_VALUE
+      1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 1e9
     ];
     for (const dbs of dbsTicks) {
       const rc = this.calcs.dBSToAbsRflCoeff(dbs);
@@ -49,6 +49,23 @@ export class RadiallyScaledParams {
       dbsTicksGroup.append(tick);
     }
 
+    // SW. LOSS COEF.
+    const swLossCoeffTicksGroup = new SmithGroup();
+    const swLossCoeffTicks = [
+      1, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 2, 3, 4, 5, 10, 20, 1e9
+    ];
+    for (const swl of swLossCoeffTicks) {
+      const rc = this.calcs.swLossCoeffToRflCoeffEOrI(swl);
+      const tick = new SmithLine(
+        this.scaler.point([ rc, offset - tickSize ]),
+        this.scaler.point([ rc, offset ]), {
+          stroke:       'black',
+          strokeWidth:  '1'
+        }
+      );
+      swLossCoeffTicksGroup.append(tick);
+    }
+
     offset = offsets[1];
 
     // return loss (dB)
@@ -57,7 +74,7 @@ export class RadiallyScaledParams {
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 20, 30
     ];
     for (const rl of rlTicks) {
-      const rc = this.calcs.returnLossToRflCoeffAbs(rl);
+      const rc = this.calcs.returnLossToRflCoeffEOrI(rl);
       const tick = new SmithLine(
         this.scaler.point([ -rc, offset ]),
         this.scaler.point([ -rc, offset + tickSize ]), {
@@ -85,7 +102,42 @@ export class RadiallyScaledParams {
       rcpTicksGroup.append(tick);
     }
 
+    // reflection loss
+    const mismatchLossTicksGroup = new SmithGroup();
+    const mismatchLossTicks = [
+      0, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 3, 4, 5, 10, 15, 1e9
+    ];
+    for (const rl of mismatchLossTicks) {
+      const rc = this.calcs.mismatchLossToRflCoeffEOrI(rl);
+      const tick = new SmithLine(
+        this.scaler.point([ rc, offset + tickSize ]),
+        this.scaler.point([ rc, offset ]), {
+          stroke:       'black',
+          strokeWidth:  '1'
+        }
+      );
+      mismatchLossTicksGroup.append(tick);
+    }
+
+    // s. w. peak (const. p)
+    const swPeakTicksGroup = new SmithGroup();
+    const swPeakTicks = [
+      0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.5, 3, 4, 5, 10, 1e9
+    ];
+    for (const swp of swPeakTicks) {
+      const rc = this.calcs.swPeakConstPToRflCoeffEOrI(swp);
+      const tick = new SmithLine(
+        this.scaler.point([ rc, offset - tickSize ]),
+        this.scaler.point([ rc, offset ]), {
+          stroke:       'black',
+          strokeWidth:  '1'
+        }
+      );
+      swPeakTicksGroup.append(tick);
+    }
+
     offset = offsets[2];
+
     const rcTicksGroup = new SmithGroup();
     const rcTicks = [
       1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0
@@ -101,6 +153,42 @@ export class RadiallyScaledParams {
       rcTicksGroup.append(tick);
     }
 
+    const tcpTicksGroup = new SmithGroup();
+    const tcpTicks = [
+      1, 0.99, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0
+    ];
+    for (const tcp of tcpTicks) {
+      const rc = this.calcs.transmCoeffPToRflCoeffEOrI(tcp);
+      const tick = new SmithLine(
+        this.scaler.point([ rc, offset + tickSize ]),
+        this.scaler.point([ rc, offset ]), {
+          stroke:       'black',
+          strokeWidth:  '1'
+        }
+      );
+      tcpTicksGroup.append(tick);
+    }
+
+    offset = offsets[3];
+
+    const tcTicksGroup = new SmithGroup();
+    const tcTicks = [
+      0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+      1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,
+      2.0
+    ];
+    for (const tc of tcTicks) {
+      const rc = this.calcs.transmCoeffToRflCoeff([ tc, 0 ])[0];
+      const tick = new SmithLine(
+        this.scaler.point([ rc, offset + tickSize ]),
+        this.scaler.point([ rc, offset ]), {
+          stroke:       'black',
+          strokeWidth:  '1'
+        }
+      );
+      tcTicksGroup.append(tick);
+    }
+
     const container = new SmithGroup();
     container.append(this.drawAxis(offsets));
     container.append(swrTicksGroup);
@@ -108,6 +196,11 @@ export class RadiallyScaledParams {
     container.append(dbsTicksGroup);
     container.append(rcpTicksGroup);
     container.append(rcTicksGroup);
+    container.append(mismatchLossTicksGroup);
+    container.append(tcpTicksGroup);
+    container.append(swPeakTicksGroup);
+    container.append(swLossCoeffTicksGroup);
+    container.append(tcTicksGroup);
 
     return container;
   }

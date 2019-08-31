@@ -36,11 +36,12 @@ export interface SmithCursorEvent {
   admittance: Point|undefined;
   swr: number;
   returnLoss: number;
-  mismatchLoss: number;
+  mismatchLoss: number; // reflection loss
   Q: number|undefined;
   dBS: number;
   rflCoeffP: number;
   rflCoeffEOrI: number;
+  transmCoeffP: number;
 }
 
 export interface SmithMarkerEvent {
@@ -216,22 +217,24 @@ export class Smith {
       dBS:          this.calcs.rflCoeffToDBS(rc),
       rflCoeffP:    this.calcs.rflCoeffP(rc),
       rflCoeffEOrI: this.calcs.rflCoeffEOrI(rc),
+      transmCoeffP: this.calcs.rflCoeffToTransmCoeffP(rc),
     };
   }
 
   private initializeZoom(): void {
     const zoom = d3.zoom<SVGElement, {}>()
-      .scaleExtent([ 0.8, 20 ])
+      .scaleExtent([ 0.6, 1000 ])
       .on('zoom', () => this.onZoom(d3.event.transform));
 
     const halfsize = 500 / 2;
-    const initScale = 0.9;
-    const initTranslate = (1 - initScale) * halfsize;
+    const initScale = 0.8;
+    const xTranslate = (1 - initScale) * halfsize;
+    const yTranslate = (1 - initScale - 0.15) * halfsize;
 
     this.svg.Element.call(zoom);
 
     const transform = d3.zoomIdentity
-      .translate(initTranslate, initTranslate)
+      .translate(xTranslate, yTranslate)
       .scale(initScale);
     this.svg.Element.transition().call(zoom.transform, transform);
   }
