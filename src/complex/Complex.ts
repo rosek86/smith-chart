@@ -7,8 +7,12 @@ export class Complex {
     this.im = im;
   }
 
-  public static create(re: number, im: number) {
+  public static from(re: number, im: number): Complex {
     return new Complex(re, im);
+  }
+
+  public static fromArray(a: [number, number]): Complex {
+    return Complex.from(...a);
   }
 
   public get real(): number {
@@ -19,36 +23,79 @@ export class Complex {
     return this.im;
   }
 
-  public add(c: Complex): Complex {
-    return Complex.create(
-      this.re + c.re,
-      this.im + c.im
-    );
+  public add(v: number|Complex): Complex {
+    if (typeof v === 'number') {
+      return Complex.from(
+        this.re + v,
+        this.im
+      );
+    } else {
+      return Complex.from(
+        this.re + v.re,
+        this.im + v.im
+      );
+    }
   }
 
-  public sub(c: Complex): Complex {
-    return Complex.create(
-      this.re - c.re,
-      this.im - c.im
-    );
+  public sub(v: number|Complex): Complex {
+    if (typeof v === 'number') {
+      return Complex.from(
+        this.re - v,
+        this.im
+      );
+    } else {
+      return Complex.from(
+        this.re - v.re,
+        this.im - v.im
+      );
+    }
   }
 
-  // public mul(c: Complex): Complex {
-  //   // todo
-  // }
+  public mul(v: number|Complex): Complex {
+    if (typeof v === 'number') {
+      return Complex.from(
+        this.re * v,
+        this.im * v
+      );
+    } else {
+      return Complex.from(
+        this.re * v.re - this.im * v.im,
+        this.re * v.im + this.im * v.re
+      );
+    }
+  }
 
-  // public div(c: Complex): Complex {
-  //   // todo
-  // }
+  public div(v: number|Complex): Complex {
+    if (typeof v === 'number') {
+      return Complex.from(
+        this.re / v,
+        this.im / v
+      );
+    } else {
+      const d = v.re ** 2 + v.im ** 2;
+      return Complex.from(
+        (this.re * v.re + this.im * v.im) / d,
+        (this.im * v.re - this.re * v.im) / d
+      );
+    }
+  }
 
   public abs(): number {
     return Math.sqrt(this.re ** 2 + this.im ** 2);
   }
 
+  public arg(): number {
+    return Math.atan2(this.im, this.re);
+  }
+
   public neg(): Complex {
-    return Complex.create(
+    return Complex.from(
       -this.re,
       -this.im
     );
+  }
+
+  public toArray(): [number, number] {
+    return [ this.re, this.im ];
   }
 }

@@ -6,6 +6,7 @@ import { SmithScaler } from './SmithScaler';
 
 import { SmithConstantCircle } from '../SmithConstantCircle';
 import { Point } from '../shapes/Point';
+import { Complex } from '../complex/Complex';
 
 interface DrawOptions {
   point: { radius: number; color: string; };
@@ -26,7 +27,7 @@ export class SmithCursor {
   private zClipCircle = this.calcs.resistanceCircle(0);
   private yClipCircle = this.calcs.conductanceCircle(0);
 
-  private rc: Point = [ 0, 0 ];
+  private rc: Complex = Complex.from(0, 0);
 
   private group: SmithGroup;
   private point: SmithLine;
@@ -43,7 +44,7 @@ export class SmithCursor {
     susceptance: { arc: SmithArc; line: SmithLine; };
   };
 
-  private moveHandler: ((rc: Point) => void)|null = null;
+  private moveHandler: ((rc: Complex) => void)|null = null;
 
   public constructor(private scaler: SmithScaler) {
     this.group = new SmithGroup();
@@ -113,11 +114,11 @@ export class SmithCursor {
     return this.group;
   }
 
-  public get Position(): Point {
+  public get Position(): Complex {
     return this.rc;
   }
 
-  public set Position(rc: Point) {
+  public set Position(rc: Complex) {
     if (this.isWithinPlot(rc) === false) {
       this.hide();
       return;
@@ -142,27 +143,28 @@ export class SmithCursor {
     }, 0);
   }
 
-  private isWithinPlot(p: Point): boolean {
-    return this.calcs.isPointWithinCircle(p, this.zClipCircle);
+  private isWithinPlot(p: Complex): boolean {
+    return this.calcs.isPointWithinCircle([ p.real, p.imag ], this.zClipCircle);
   }
 
-  private movePoint(rc: Point): void {
-    this.point.move(this.scaler.point(rc), this.scaler.point(rc));
+  private movePoint(rc: Complex): void {
+    const p = rc.toArray();
+    this.point.move(this.scaler.point(p), this.scaler.point(p));
   }
 
-  private moveResistance(z: Point|undefined): void {
+  private moveResistance(z: Complex|undefined): void {
     if (z === undefined) {
       this.impedance.resistance.circle.hide();
       return;
     }
     this.impedance.resistance.circle.show();
 
-    const c = this.scaler.circle(this.calcs.resistanceCircle(z[0]));
+    const c = this.scaler.circle(this.calcs.resistanceCircle(z.real));
     this.impedance.resistance.circle.move(c);
   }
 
-  private moveReactance(z: Point|undefined): void {
-    if (z === undefined || Math.abs(z[1]) < this.epsilon) {
+  private moveReactance(z: Complex|undefined): void {
+    if (z === undefined || Math.abs(z.imag) < this.epsilon) {
       this.impedance.reactance.line.move(
         this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
       );
@@ -173,7 +175,7 @@ export class SmithCursor {
     this.impedance.reactance.line.hide();
     this.impedance.reactance.arc.show();
 
-    const c = this.calcs.reactanceCircle(z[1]);
+    const c = this.calcs.reactanceCircle(z.imag);
     const p = this.calcs.circleCircleIntersection(c, this.zClipCircle);
 
     p[0] = this.scaler.point(p[0]);
@@ -183,19 +185,19 @@ export class SmithCursor {
     this.impedance.reactance.arc.move(p[0], p[1], c.r, false, true);
   }
 
-  private moveConductance(y: Point|undefined): void {
+  private moveConductance(y: Complex|undefined): void {
     if (y === undefined) {
       this.admittance.conductance.circle.hide();
       return;
     }
     this.admittance.conductance.circle.show();
 
-    const c = this.scaler.circle(this.calcs.conductanceCircle(y[0]));
+    const c = this.scaler.circle(this.calcs.conductanceCircle(y.real));
     this.admittance.conductance.circle.move(c);
   }
 
-  private moveSusceptance(y: Point|undefined) {
-    if (y === undefined || Math.abs(y[1]) < this.epsilon) {
+  private moveSusceptance(y: Complex|undefined) {
+    if (y === undefined || Math.abs(y.imag) < this.epsilon) {
       this.admittance.susceptance.line.move(
         this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
       );
@@ -206,7 +208,7 @@ export class SmithCursor {
     this.admittance.susceptance.line.hide();
     this.admittance.susceptance.arc.show();
 
-    const c = this.calcs.susceptanceCircle(y[1]);
+    const c = this.calcs.susceptanceCircle(y.imag);
     const p = this.calcs.circleCircleIntersection(c, this.yClipCircle);
 
     p[0] = this.scaler.point(p[0]);
@@ -224,7 +226,7 @@ export class SmithCursor {
     this.group.hide();
   }
 
-  public setMoveHandler(handler: (rc: Point) => void): void {
+  public setMoveHandler(handler: (rc: Complex) => void): void {
     this.moveHandler = handler;
   }
 

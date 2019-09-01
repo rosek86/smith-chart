@@ -9,6 +9,7 @@ import { SmithTicksData, SmithTicksShapes } from '../SmithArcsDefs';
 
 import { Point } from '../shapes/Point';
 import { TickDefRequired } from '../arcs/Tick';
+import { Complex } from '../complex/Complex';
 
 export class ConstReactance extends ConstCircles {
   private data: SmithTicksData;
@@ -89,7 +90,9 @@ export class ConstReactance extends ConstCircles {
   }
 
   private drawTickLabel(d: TickDefRequired): SmithText {
-    const rc = this.calcs.impedanceToRflCoeff([ d.point.r, d.point.i ]);
+    const rc = this.calcs.impedanceToRflCoeff(
+      Complex.from(d.point.r, d.point.i)
+    );
 
     if (rc === undefined) {
       throw new Error('Invalid text tick coordinates');
@@ -98,9 +101,9 @@ export class ConstReactance extends ConstCircles {
     const value  = Math.abs(d.point.i).toFixed(d.dp);
     const dx     = this.scaler.r(d.transform.dx).toString();
     const dy     = this.scaler.r(d.transform.dy).toString();
-    const rotate = this.calcRotationAngle(d, rc);
+    const rotate = this.calcRotationAngle(d, rc.toArray());
 
-    const text = new SmithText(this.scaler.point(rc), value, {
+    const text = new SmithText(this.scaler.point(rc.toArray()), value, {
       rotate, dx, dy,
       textAnchor: d.textAnchor
     });

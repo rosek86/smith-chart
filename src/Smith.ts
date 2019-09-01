@@ -25,15 +25,12 @@ import { SmithConstantCircle } from './SmithConstantCircle';
 import { SmithArcsDefs } from './SmithArcsDefs';
 
 import { RadiallyScaledParams } from './radially_scaled_params/RadiallyScaledParams';
-
-interface SmithCirclesDrawOptions {
-  stroke: string; minorWidth: string; majorWidth: string;
-}
+import { Complex } from './complex/Complex';
 
 export interface SmithCursorEvent {
-  reflectionCoefficient: Point;
-  impedance: Point|undefined;
-  admittance: Point|undefined;
+  reflectionCoefficient: Complex;
+  impedance: Complex|undefined;
+  admittance: Complex|undefined;
   swr: number;
   returnLoss: number;
   mismatchLoss: number; // reflection loss
@@ -47,9 +44,9 @@ export interface SmithCursorEvent {
 export interface SmithMarkerEvent {
   datasetNo: number;
   markerNo: number;
-  reflectionCoefficient: Point;
-  impedance: Point|undefined;
-  admittance: Point|undefined;
+  reflectionCoefficient: Complex;
+  impedance: Complex|undefined;
+  admittance: Complex|undefined;
   swr: number;
   returnLoss: number;
   mismatchLoss: number;
@@ -189,7 +186,9 @@ export class Smith {
 
 
   private cursorMove(p: Point): void {
-    this.cursor.Position = this.scalers.default.pointInvert(p);
+    this.cursor.Position = Complex.fromArray(
+      this.scalers.default.pointInvert(p)
+    );
   }
 
   private initCursor(): SmithCursor {
@@ -205,7 +204,7 @@ export class Smith {
   }
 
   public get CursorData(): SmithCursorEvent {
-    const rc: Point = this.cursor.Position;
+    const rc = this.cursor.Position;
     return {
       reflectionCoefficient: rc,
       impedance:    this.calcImpedance(rc),
@@ -266,13 +265,13 @@ export class Smith {
     return new SmithCircle(c, opts);
   }
 
-  public getReactanceComponentValue(p: Point, f: number): string {
+  public getReactanceComponentValue(p: Complex, f: number): string {
     const z = this.calcs.rflCoeffToImpedance(p);
     if (!z) {
       return 'Undefined';
     }
 
-    const x = z[1] * this.Z0;
+    const x = z.imag * this.Z0;
 
     if (x < 0) {
       const cap = 1 / (2 * Math.PI * f * -x);
@@ -283,14 +282,14 @@ export class Smith {
     return this.formatNumber(ind) + 'H';
   }
 
-  public formatComplex(c: Point, unit: string = '', dp: number = 3): string {
+  public formatComplex(c: Complex, unit: string = '', dp: number = 3): string {
     if (unit !== '') { unit = `[${unit}]`; }
-    return `${c[0].toFixed(dp)} ${c[1] < 0 ? '-' : '+'} j ${Math.abs(c[1]).toFixed(dp)} ${unit}`;
+    return `${c.real.toFixed(dp)} ${c.imag < 0 ? '-' : '+'} j ${Math.abs(c.imag).toFixed(dp)} ${unit}`;
   }
 
-  public formatComplexPolar(c: Point, unit: string = '', dp: number = 3): string {
-    const m = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
-    const a = Math.atan2(c[1], c[0]) * 180.0 / Math.PI;
+  public formatComplexPolar(c: Complex, unit: string = '', dp: number = 3): string {
+    const m = c.abs();
+    const a = c.arg() * 180.0 / Math.PI;
     return `${m.toFixed(dp)} ${unit} ∠${a.toFixed(dp)}°`;
   }
 
@@ -342,7 +341,7 @@ export class Smith {
     const m = this.data[datasetNo].getMarker(markerNo);
     if (!m) { return; }
 
-    const rc = m.selectedPoint.point;
+    const rc = Complex.from(...m.selectedPoint.point);
     const freq = m.selectedPoint.freq;
 
     return {
@@ -389,19 +388,17 @@ export class Smith {
     this.userActionHandler = handler;
   }
 
-  public calcImpedance(rc: Point): Point|undefined {
+  public calcImpedance(rc: Complex): Complex|undefined {
     const impedance = this.calcs.rflCoeffToImpedance(rc);
     if (impedance) {
-      impedance[0] *= this.Z0;
-      impedance[1] *= this.Z0;
+      return impedance.mul(this.Z0);
     }
     return impedance;
   }
-  public calcAdmittance(rc: Point): Point|undefined {
+  public calcAdmittance(rc: Complex): Complex|undefined {
     const admittance = this.calcs.rflCoeffToAdmittance(rc);
     if (admittance) {
-      admittance[0] *= 1 / this.Z0 * 1000.0; // mS
-      admittance[1] *= 1 / this.Z0 * 1000.0; // mS
+      return admittance.mul(1 / this.Z0 * 1000.0); // mS
     }
     return admittance;
   }

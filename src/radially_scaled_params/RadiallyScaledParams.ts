@@ -2,6 +2,7 @@ import { SmithLine } from '../draw/SmithLine';
 import { SmithGroup } from '../draw/SmithGroup';
 import { SmithScaler } from '../draw/SmithScaler';
 import { SmithConstantCircle } from '../SmithConstantCircle';
+import { Complex } from '../complex/Complex';
 
 export class RadiallyScaledParams {
   private calcs = new SmithConstantCircle();
@@ -178,7 +179,7 @@ export class RadiallyScaledParams {
       2.0
     ];
     for (const tc of tcTicks) {
-      const rc = this.calcs.transmCoeffToRflCoeff([ tc, 0 ])[0];
+      const rc = this.calcs.transmCoeffToRflCoeff(Complex.from(tc, 0)).imag;
       const tick = new SmithLine(
         this.scaler.point([ rc, offset + tickSize ]),
         this.scaler.point([ rc, offset ]), {
