@@ -284,12 +284,12 @@ export class Smith {
 
   public formatComplex(c: Complex, unit: string = '', dp: number = 3): string {
     if (unit !== '') { unit = `[${unit}]`; }
-    return `${c.real.toFixed(dp)} ${c.imag < 0 ? '-' : '+'} j ${Math.abs(c.imag).toFixed(dp)} ${unit}`;
+    return `${c.toString(dp)} ${unit}`;
   }
 
   public formatComplexPolar(c: Complex, unit: string = '', dp: number = 3): string {
     const m = c.abs();
-    const a = c.arg() * 180.0 / Math.PI;
+    const a = this.calcs.rad2deg(c.arg());
     return `${m.toFixed(dp)} ${unit} ∠${a.toFixed(dp)}°`;
   }
 

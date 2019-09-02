@@ -2,8 +2,6 @@ import { Circle } from './shapes/Circle';
 import { Point } from './shapes/Point';
 import { Complex } from './complex/Complex';
 
-// type Complex = [ number, number ];
-
 export class SmithConstantCircle {
   private epsilon = 1e-10;
 
