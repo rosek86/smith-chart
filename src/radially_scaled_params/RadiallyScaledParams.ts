@@ -179,7 +179,7 @@ export class RadiallyScaledParams {
       2.0
     ];
     for (const tc of tcTicks) {
-      const rc = this.calcs.transmCoeffToRflCoeff(Complex.from(tc, 0)).imag;
+      const rc = this.calcs.transmCoeffToRflCoeff(Complex.fromReal(tc)).real;
       const tick = new SmithLine(
         this.scaler.point([ rc, offset + tickSize ]),
         this.scaler.point([ rc, offset ]), {
