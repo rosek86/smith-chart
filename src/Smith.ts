@@ -155,7 +155,7 @@ export class Smith {
     const cursorContainer = this.cursorContainer();
 
     this.reactanceAxis = this.drawReactanceAxis({
-      stroke: 'blue',
+      stroke: '#334155',
       strokeWidth: '1',
       fill: 'none',
     });
@@ -311,7 +311,7 @@ export class Smith {
 
   public resetView(): void {
     this.assertAlive();
-    const transform = d3.zoomIdentity.translate(75, 75).scale(0.7);
+    const transform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
     this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 

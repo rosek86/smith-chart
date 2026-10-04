@@ -18,8 +18,8 @@ test('peripheral indicators share marker selection and follow chart zoom', async
   expect(Number(await dot('transmission-phase').getAttribute('data-value'))).toBeCloseTo(
     26.565051177,
   );
-  expect(Number(await dot('transmission-phase').getAttribute('cx'))).toBeCloseTo(250 + 258 * 0.6);
-  expect(Number(await dot('transmission-phase').getAttribute('cy'))).toBeCloseTo(250 - 258 * 0.8);
+  expect(Number(await dot('transmission-phase').getAttribute('cx'))).toBeCloseTo(250 + 250 * 0.6);
+  expect(Number(await dot('transmission-phase').getAttribute('cy'))).toBeCloseTo(250 - 250 * 0.8);
   const before = await dot('reflection-phase').boundingBox();
   const surface = page.locator('#smith circle[fill=transparent]');
   await surface.hover();
@@ -74,7 +74,7 @@ test('peripheral scales hide undefined angles and invalid input', async ({ page 
   });
   expect(result).toEqual({
     center: ['transmission-phase'],
-    short: ['reflection-phase', 'wavelengths-generator', 'wavelengths-load'],
+    short: ['reflection-phase', 'wavelengths-load', 'wavelengths-generator'],
     invalid: [[], [], [], []],
     hidden: '0',
     shown: null,
