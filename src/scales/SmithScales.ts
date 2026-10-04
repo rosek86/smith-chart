@@ -18,7 +18,7 @@ export class SmithScales {
     .data(this.scales)
     .join('svg')
     .attr('xmlns', 'http://www.w3.org/2000/svg')
-    .attr('viewBox', '0 0 320 72')
+    .attr('viewBox', '0 0 320 60')
     .attr('role', 'img')
     .attr('aria-label', (scale) => scale.title)
     .attr('data-scale', (scale) => scale.id)
@@ -30,7 +30,7 @@ export class SmithScales {
     this.axes
       .append('text')
       .attr('x', this.start)
-      .attr('y', 16)
+      .attr('y', 12)
       .attr('font-family', 'system-ui, sans-serif')
       .attr('font-size', 12)
       .attr('fill', '#334155')
@@ -39,7 +39,7 @@ export class SmithScales {
       .append('text')
       .attr('class', 'scale-value')
       .attr('x', this.start)
-      .attr('y', 30)
+      .attr('y', 25)
       .attr('font-family', 'system-ui, sans-serif')
       .attr('font-size', 11)
       .attr('font-weight', 600)
@@ -50,8 +50,8 @@ export class SmithScales {
       .attr('class', 'scale-axis')
       .attr('x1', this.start)
       .attr('x2', this.start + this.length)
-      .attr('y1', 44)
-      .attr('y2', 44)
+      .attr('y1', 36)
+      .attr('y2', 36)
       .attr('stroke', '#64748b')
       .attr('stroke-width', 1);
     const start = this.start;
@@ -61,11 +61,11 @@ export class SmithScales {
         .selectAll('g')
         .data(scale.values)
         .join('g')
-        .attr('transform', (value) => `translate(${start + length * scale.position(value)},44)`);
+        .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`);
       ticks.append('line').attr('y2', 5).attr('stroke', '#64748b').attr('stroke-width', 1);
       ticks
         .append('text')
-        .attr('y', 20)
+        .attr('y', 17)
         .attr('font-size', 10)
         .attr('font-family', 'system-ui, sans-serif')
         .attr('fill', '#334155')
@@ -79,12 +79,12 @@ export class SmithScales {
       .attr('class', 'scale-indicator')
       .attr('visibility', 'hidden')
       .attr('cx', this.start)
-      .attr('cy', 44)
+      .attr('cy', 36)
       .attr('r', 4)
       .attr('fill', '#dc2626')
       .attr('stroke', 'white')
       .attr('stroke-width', 1);
-    this.axes.append('title').text((scale) => scale.title);
+    this.axes.append('title').text((scale) => scale.description ?? scale.title);
   }
 
   public draw(target: string | HTMLElement): void {
@@ -103,8 +103,8 @@ export class SmithScales {
     if (!gamma || !Number.isFinite(magnitude) || magnitude > 1) {
       this.axes.select('circle').attr('visibility', 'hidden').attr('data-position', null);
       this.axes.select('.scale-value').text('—');
-      this.axes.attr('aria-label', (scale) => scale.title);
-      this.axes.select('title').text((scale) => scale.title);
+      this.axes.attr('aria-label', (scale) => `${scale.title}. ${scale.description ?? ''}`.trim());
+      this.axes.select('title').text((scale) => scale.description ?? scale.title);
       return;
     }
     const start = this.start;
@@ -116,7 +116,7 @@ export class SmithScales {
       const number = value === Infinity ? '∞' : format('.4~g')(value);
       const suffix = scale.unit === 'dB' ? ' dB' : scale.id === 'vswr' ? ' : 1' : '';
       const readout = number + suffix;
-      const label = `${scale.title}: ${readout}`;
+      const label = `${scale.title}: ${readout}${scale.description ? `. ${scale.description}` : ''}`;
       axis.select('.scale-value').text(readout);
       axis.attr('aria-label', label).select('title').text(label);
       axis

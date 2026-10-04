@@ -2,6 +2,8 @@
 
 ## 0.1.0 — Unreleased
 
+- Add attenuation and current-transmission rulers, bringing the independent scale panel to twelve axes.
+- Add chart-mounted phase and electrical-length rulers with cursor/marker indicators and zoom-aware framing.
 - Improve grid visibility with stronger default strokes and keep VSWR stroke widths fixed during zoom.
 
 - Introduce Smithkit as an ESM library with TypeScript declarations and a separate D3 demo.

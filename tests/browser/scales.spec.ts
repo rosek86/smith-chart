@@ -1,34 +1,124 @@
 import { expect, test } from '@playwright/test';
 import { loadLibrary } from './library';
 
-test('cursor dots follow all ten scales, including phase-dependent voltage transmission', async ({
+test('peripheral indicators share marker selection and follow chart zoom', async ({ page }) => {
+  await page.goto('./');
+  const rings = page.locator('#smith [data-layer=peripheral-scales]');
+  await expect(rings.locator('[data-scale]')).toHaveCount(4);
+  await page.locator('#file').setInputFiles({
+    name: 'phase.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# GHz S RI R 50\n1 0 0.5'),
+  });
+  await page.getByRole('tab', { name: 'Marker', exact: true }).click();
+  const dot = (id: string) => rings.locator(`[data-scale=${id}] .peripheral-indicator`);
+  await expect(dot('reflection-phase')).toHaveAttribute('data-value', '90');
+  await expect(dot('wavelengths-generator')).toHaveAttribute('data-value', '0.125');
+  await expect(dot('wavelengths-load')).toHaveAttribute('data-value', '0.375');
+  expect(Number(await dot('transmission-phase').getAttribute('data-value'))).toBeCloseTo(
+    26.565051177,
+  );
+  expect(Number(await dot('transmission-phase').getAttribute('cx'))).toBeCloseTo(250 + 258 * 0.6);
+  expect(Number(await dot('transmission-phase').getAttribute('cy'))).toBeCloseTo(250 - 258 * 0.8);
+  const before = await dot('reflection-phase').boundingBox();
+  const surface = page.locator('#smith circle[fill=transparent]');
+  await surface.hover();
+  await page.mouse.wheel(0, -160);
+  await expect.poll(() => dot('reflection-phase').boundingBox()).not.toEqual(before);
+  await expect(dot('reflection-phase')).toHaveAttribute('data-value', '90');
+  await page.getByRole('button', { name: 'Reset view' }).click();
+  await expect.poll(() => dot('reflection-phase').boundingBox()).toEqual(before);
+
+  await page.getByRole('tab', { name: 'Cursor', exact: true }).click();
+  await surface.dispatchEvent('pointerleave');
+  for (const indicator of await rings.locator('.peripheral-indicator').all()) {
+    await expect(indicator).toHaveAttribute('visibility', 'hidden');
+  }
+});
+
+test('peripheral scales hide undefined angles and invalid input', async ({ page }) => {
+  await page.setContent('<div id="chart"></div>');
+  await loadLibrary(page);
+  const result = await page.evaluate(() => {
+    const { Smith, Complex } = window.SmithTest;
+    const chart = new Smith();
+    chart.draw('#chart');
+    const scales = chart.PeripheralScales;
+    const visible = () =>
+      [...document.querySelectorAll('.peripheral-indicator')]
+        .filter((dot) => dot.getAttribute('visibility') !== 'hidden')
+        .map((dot) => dot.parentElement!.getAttribute('data-scale'));
+    scales.update(Complex.zero());
+    const center = visible();
+    scales.update(Complex.from(-1));
+    const short = visible();
+    const invalid = [null, Complex.from(1.1), Complex.from(NaN), Complex.from(Infinity)].map(
+      (gamma) => {
+        scales.update(gamma);
+        return visible();
+      },
+    );
+    scales.hide();
+    const hidden = scales.Node!.getAttribute('opacity');
+    scales.show();
+    const shown = scales.Node!.getAttribute('opacity');
+    chart.destroy();
+    return {
+      center,
+      short,
+      invalid,
+      hidden,
+      shown,
+      remaining: document.querySelectorAll('svg').length,
+    };
+  });
+  expect(result).toEqual({
+    center: ['transmission-phase'],
+    short: ['reflection-phase', 'wavelengths-generator', 'wavelengths-load'],
+    invalid: [[], [], [], []],
+    hidden: '0',
+    shown: null,
+    remaining: 0,
+  });
+});
+
+test('cursor dots follow all twelve scales, including voltage and current transmission', async ({
   page,
 }) => {
   await page.goto('./');
   const svg = page.locator('#smith svg');
   const dots = page.locator('#smith-scales .scale-indicator');
-  await expect(dots).toHaveCount(10);
+  await expect(dots).toHaveCount(12);
   await expect(dots.first()).toHaveAttribute('visibility', 'hidden');
-  const box = (await svg.boundingBox())!;
+  const surface = svg.locator('circle[fill=transparent]');
   for (const [re, im] of [
     [0, 0],
     [0.5, 0],
     [-0.5, 0],
     [0, 0.5],
   ]) {
-    await page.mouse.move(
-      box.x + box.width * (0.5 + 0.4 * re),
-      box.y + box.height * (0.5 - 0.4 * im),
+    await surface.evaluate(
+      (node, [real, imaginary]) => {
+        const box = node.getBoundingClientRect();
+        node.dispatchEvent(
+          new PointerEvent('pointermove', {
+            clientX: box.x + box.width * (0.5 + real / 2),
+            clientY: box.y + box.height * (0.5 - imaginary / 2),
+          }),
+        );
+      },
+      [re, im],
     );
     await expect(dots.first()).not.toHaveAttribute('visibility', 'hidden');
     await expect(async () => {
       const positions = await dots.evaluateAll((nodes) =>
         nodes.map((node) => Number(node.getAttribute('data-position'))),
       );
-      for (const position of positions.slice(0, 9)) {
+      for (const position of positions.slice(0, 10)) {
         expect(position).toBeCloseTo(Math.hypot(re, im), 2);
       }
-      expect(positions[9]).toBeCloseTo(Math.hypot(1 + re, im) / 2, 2);
+      expect(positions[10]).toBeCloseTo(Math.hypot(1 + re, im) / 2, 2);
+      expect(positions[11]).toBeCloseTo(Math.hypot(1 - re, im) / 2, 2);
     }).toPass();
   }
   await expect(page.getByRole('heading', { name: 'Cursor', exact: true })).toHaveCount(0);
@@ -41,7 +131,7 @@ test('cursor dots follow all ten scales, including phase-dependent voltage trans
   await expect(page.locator('[data-scale=return-loss] .scale-value')).toHaveText('6.021 dB');
   await expect(page.locator('[data-scale=mismatch-loss] .scale-value')).toHaveText('1.249 dB');
   await page.screenshot({ path: 'test-results/cursor-scales.png', fullPage: true });
-  await page.mouse.move(5, 5);
+  await surface.dispatchEvent('pointerleave');
   await expect(page.locator('#parameter-gamma')).toHaveText('—');
   for (const value of await page.locator('.scale-value').all()) {
     await expect(value).toHaveText('—');
@@ -169,8 +259,8 @@ test('independent scale components handle boundaries, invalid input, mounting an
   });
   expect(result).toEqual({
     count: 2,
-    negative: [...Array(9).fill(1), 0],
-    positive: Array(10).fill(1),
+    negative: [...Array(10).fill(1), 0, 1],
+    positive: [...Array(10).fill(1), 1, 0],
     geometry: true,
     endpoints: 'VSWR: ∞ : 1',
     hidden: [true, true, true, true],

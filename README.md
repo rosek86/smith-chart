@@ -11,7 +11,8 @@ S11 measurement plotting, draggable markers, and Touchstone import.
 - Zoom, pan, view reset, and cursor readouts.
 - Multiple S11 datasets with markers that snap to measurement samples.
 - Impedance, admittance, VSWR, return loss, mismatch loss, and Q calculations.
-- Ten independently mounted parameter scales with cursor indicators.
+- Twelve independently mounted parameter scales with cursor and marker indicators.
+- Four peripheral rulers for reflection/transmission phase and electrical length.
 - One-port Touchstone 1.x parsing: RI, MA, and DB representations.
 - ESM modules and TypeScript declarations; no framework or global D3 object required.
 
@@ -97,6 +98,7 @@ scales.draw('#smith-scales');
 chart.setUserActionHandler((event) => {
   if (event.type === SmithEventType.Cursor) {
     scales.update(event.data?.reflectionCoefficient ?? null);
+    chart.PeripheralScales.update(event.data?.reflectionCoefficient ?? null);
   }
 });
 
@@ -106,11 +108,45 @@ chart.setUserActionHandler((event) => {
 ```
 
 `update(gamma)` positions the dots for a `Complex` reflection coefficient.
-Nine scales depend on `|Γ|`; voltage transmission uses `|1 + Γ|`, so its dot also
-responds to phase. Values appear directly above each axis, as well as in its tooltip and accessible
+Ten scales depend on `|Γ|`; voltage transmission uses `|1 + Γ|` and current transmission
+uses `|1 − Γ|`, with Γ defined as the voltage reflection coefficient. Both transmission dots
+respond to phase. Values appear directly above each axis, as well as in its tooltip and accessible
 label. Loss and standing-wave dB scales use dB; all other scales show dimensionless
 ratios, with VSWR written as `value : 1`. `update(null)`, non-finite coordinates, and values outside the passive-load
 unit circle hide the dots and reset the displayed values to a dash. Dots start hidden.
+
+Scale labels follow the complete Smith chart terminology: **Reflection loss** (also
+called mismatch loss), **Power reflection coefficient**, **Power transmission coefficient**,
+and separate **Voltage transmission coefficient** and **Current transmission coefficient**
+rulers. Coefficients are dimensionless; their formulas appear in tooltips. Existing
+`mismatchLoss` API fields and scale identifiers remain compatible.
+
+The attenuation ruler reads `−10 log10|Γ|` in dB (half the return loss). Its one-way
+loss interpretation assumes a matched line or attenuator terminated in an open or short
+circuit, so the reflected wave traverses it twice. It does not measure insertion loss
+of an arbitrary load from S11 alone. For example, `|Γ| = 0.1` gives 10 dB attenuation
+and 20 dB return loss. The same explanation is available in the ruler's tooltip.
+
+The chart includes `chart.PeripheralScales`, which supports `show()`, `hide()`, and
+`update(gamma | null)`. Connect it to the same cursor or marker events as `SmithScales`
+to synchronize its dots. These four rulers zoom and pan with the chart:
+
+- Reflection phase: `arg(Γ)` in degrees; undefined at Γ = 0.
+- Voltage transmission phase: `arg(1 + Γ)` in degrees; undefined at Γ = −1.
+  The ruler projects a ray from Γ = −1 to the perimeter, so its perimeter angle is
+  twice the transmission phase, rather than the angle measured from the chart center.
+- Wavelengths toward generator: clockwise, from 0 to 0.5 λ per full revolution.
+- Wavelengths toward load: counterclockwise, with the same half-wavelength period.
+
+Both wavelength rulers start at the negative real axis. They show electrical-length
+coordinates modulo 0.5 λ, not physical cable lengths. Differences along the chosen
+direction give a line's electrical length; phase and wavelength coordinates are
+undefined at perfect match. Invalid or active-load inputs hide all peripheral dots.
+`resetView()` frames the chart and its peripheral labels together.
+
+Scale conventions follow the [complete Smith chart reference](https://www.uiyinc.com/assets/The-Complete-Smith-Chart-Black-Magic-Design.jpg)
+and the [CERN Smith chart introduction](https://arxiv.org/abs/1201.4068), including the
+attenuation interpretation in Appendix B.
 
 `draw` accepts a selector or an `HTMLElement` and moves the existing component
 when called again. A missing container throws. Call `destroy()` independently

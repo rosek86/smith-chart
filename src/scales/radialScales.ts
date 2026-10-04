@@ -4,6 +4,7 @@ import type { Complex } from '../complex/Complex.js';
 export interface RadialScale {
   id: string;
   title: string;
+  description?: string;
   unit: 'dB' | 'ratio';
   read: (gamma: Complex) => number;
   values: number[];
@@ -42,7 +43,8 @@ export function radialScales(): RadialScale[] {
       id: 'mismatch-loss',
       unit: 'dB',
       read: (gamma) => calcs.rflCoeffToMismatchLoss(gamma),
-      title: 'Mismatch loss · dB',
+      title: 'Reflection loss · dB',
+      description: 'Reflection loss (mismatch loss): −10 log10(1 − |Γ|²), in dB.',
       values: [0, 0.1, 0.5, 1, 2, 4, Infinity],
       position: (v) => calcs.mismatchLossToRflCoeffEOrI(v),
     },
@@ -50,7 +52,8 @@ export function radialScales(): RadialScale[] {
       id: 'reflected-power',
       unit: 'ratio',
       read: (gamma) => calcs.rflCoeffP(gamma),
-      title: 'Reflected power · |Γ|²',
+      title: 'Power reflection coefficient',
+      description: 'Reflected power divided by incident power: |Γ|² (dimensionless).',
       values: [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1],
       position: (v) => calcs.rflCoeffPToEOrI(v),
     },
@@ -58,7 +61,9 @@ export function radialScales(): RadialScale[] {
       id: 'transmitted-power',
       unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToTransmCoeffP(gamma),
-      title: 'Transmitted power · 1 − |Γ|²',
+      title: 'Power transmission coefficient',
+      description:
+        'Net power delivered to the load divided by incident power: 1 − |Γ|² (dimensionless).',
       values: [1, 0.99, 0.9, 0.75, 0.5, 0.25, 0],
       position: (v) => calcs.transmCoeffPToRflCoeffEOrI(v),
     },
@@ -87,10 +92,31 @@ export function radialScales(): RadialScale[] {
       position: (v) => v,
     },
     {
+      id: 'attenuation',
+      unit: 'dB',
+      read: (gamma) => calcs.rflCoeffToAttenuation(gamma),
+      title: 'Attenuation · dB',
+      description:
+        'One-way attenuation of a matched line or attenuator terminated in an open or short circuit. Not insertion loss of an arbitrary load.',
+      values: [Infinity, 10, 7, 5, 3, 1, 0],
+      position: (v) => calcs.attenuationToRflCoeff(v),
+    },
+    {
       id: 'voltage-transmission',
       unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToTransmCoeffEOrI(gamma),
-      title: 'Voltage transmission · |1 + Γ|',
+      title: 'Voltage transmission coefficient',
+      description: 'Voltage transmission magnitude: |1 + Γ| (dimensionless).',
+      values: [0, 0.4, 0.8, 1.2, 1.6, 2],
+      position: (v) => v / 2,
+    },
+    {
+      id: 'current-transmission',
+      unit: 'ratio',
+      read: (gamma) => calcs.rflCoeffToCurrentTransmission(gamma),
+      title: 'Current transmission coefficient',
+      description:
+        'Current transmission magnitude: |1 − Γ|, using the voltage reflection coefficient Γ (dimensionless).',
       values: [0, 0.4, 0.8, 1.2, 1.6, 2],
       position: (v) => v / 2,
     },
