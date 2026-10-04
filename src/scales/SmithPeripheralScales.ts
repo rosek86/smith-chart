@@ -3,6 +3,10 @@ import type { Complex } from '../complex/Complex.js';
 import { SmithGroup } from '../draw/SmithGroup.js';
 import { peripheralScales } from './peripheralScales.js';
 
+let nextScaleId = 0;
+const firstRadius = 250;
+const ringSpacing = 20;
+
 function point(radius: number, degrees: number): [number, number] {
   const angle = (degrees * Math.PI) / 180;
   return [250 + radius * Math.cos(angle), 250 - radius * Math.sin(angle)];
@@ -24,7 +28,8 @@ export class SmithPeripheralScales extends SmithGroup {
     super();
     this.axes.each(function (scale, index) {
       const axis = select(this);
-      const radius = 258 + index * 22;
+      const radius = firstRadius + index * ringSpacing;
+      const captionAngle = scale.unit === 'λ' ? 180 : 0;
       axis.append('title').text(scale.title);
       axis
         .append('circle')
@@ -32,24 +37,26 @@ export class SmithPeripheralScales extends SmithGroup {
         .attr('cy', 250)
         .attr('r', radius)
         .attr('fill', 'none')
-        .attr('stroke', '#94a3b8')
-        .attr('stroke-width', 0.6)
+        .attr('stroke', '#475569')
+        .attr('stroke-width', 0.8)
         .attr('vector-effect', 'non-scaling-stroke');
       for (const value of scale.ticks) {
         const angle = scale.angle(value);
         const [x1, y1] = point(radius, angle);
-        const [x2, y2] = point(radius + (scale.major(value) ? 5 : 3), angle);
+        const major = scale.major(value);
+        const [x2, y2] = point(radius - (major ? 4 : 2), angle);
         axis
           .append('line')
           .attr('x1', x1)
           .attr('y1', y1)
           .attr('x2', x2)
           .attr('y2', y2)
-          .attr('stroke', '#64748b')
-          .attr('stroke-width', 0.6)
+          .attr('stroke', '#475569')
+          .attr('stroke-width', major ? 0.8 : 0.5)
           .attr('vector-effect', 'non-scaling-stroke');
-        if (scale.major(value)) {
-          const [x, y] = point(radius + 12, angle);
+        const captionDistance = Math.abs(((angle - captionAngle + 540) % 360) - 180);
+        if (major && captionDistance > 25) {
+          const [x, y] = point(radius + 8, angle);
           const rotation = angle >= 0 ? 90 - angle : -90 - angle;
           axis
             .append('text')
@@ -59,32 +66,44 @@ export class SmithPeripheralScales extends SmithGroup {
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
             .attr('font-family', 'system-ui, sans-serif')
-            .attr('font-size', 12)
-            .attr('fill', '#475569')
+            .attr('font-size', 10.5)
+            .attr('fill', '#334155')
             .text(scale.unit === 'λ' ? value.toFixed(2) : String(value));
         }
       }
-      // A small caption interrupts each ring at the top, keeping the chart self-describing.
+      // Reserve a label sector for the curved caption without masking the ruler or its ticks.
+      const captionRadius = radius + 5;
+      const start = point(captionRadius, captionAngle + 45);
+      const end = point(captionRadius, captionAngle - 45);
+      const pathId = `smithkit-peripheral-caption-${nextScaleId++}`;
       axis
-        .append('rect')
-        .attr('x', 165)
-        .attr('y', 250 - radius - 19)
-        .attr('width', 170)
-        .attr('height', 18)
-        .attr('fill', 'white');
+        .append('defs')
+        .append('path')
+        .attr('id', pathId)
+        .attr('d', `M${start} A${captionRadius},${captionRadius} 0 0 1 ${end}`);
+      const caption =
+        scale.unit === 'λ'
+          ? scale.id === 'wavelengths-generator'
+            ? 'WAVELENGTHS TOWARD GENERATOR →'
+            : '← WAVELENGTHS TOWARD LOAD'
+          : scale.title.toUpperCase();
       axis
         .append('text')
-        .attr('x', 250)
-        .attr('y', 250 - radius - 7)
+        .attr('class', 'peripheral-caption')
         .attr('text-anchor', 'middle')
         .attr('font-family', 'system-ui, sans-serif')
-        .attr('font-size', 12)
+        .attr('font-size', 10.5)
+        .attr('font-weight', 500)
+        .attr('letter-spacing', 0.3)
         .attr('fill', '#334155')
-        .text(scale.title);
+        .append('textPath')
+        .attr('href', `#${pathId}`)
+        .attr('startOffset', '50%')
+        .text(caption);
       axis
         .append('circle')
         .attr('class', 'peripheral-indicator')
-        .attr('r', 3.5)
+        .attr('r', 3)
         .attr('visibility', 'hidden')
         .attr('fill', '#dc2626')
         .attr('stroke', 'white')
@@ -106,7 +125,7 @@ export class SmithPeripheralScales extends SmithGroup {
         dot.attr('visibility', 'hidden').attr('data-value', null);
         return;
       }
-      const [x, y] = point(258 + index * 22, scale.angle(value));
+      const [x, y] = point(firstRadius + index * ringSpacing, scale.angle(value));
       dot.attr('cx', x).attr('cy', y).attr('data-value', value).attr('visibility', null);
     });
   }

@@ -45,7 +45,7 @@ it('distinguishes transmission magnitudes and one-way attenuation at physical li
 });
 
 it('calibrates peripheral rulers and projects transmission phase from the short-circuit origin', () => {
-  const [transmission, reflection, generator, load] = peripheralScales();
+  const [transmission, reflection, load, generator] = peripheralScales();
   for (const [gamma, degrees, towardGenerator, towardLoad] of [
     [Complex.one(), 0, 0.25, 0.25],
     [Complex.from(0, 0.5), 90, 0.125, 0.375],
