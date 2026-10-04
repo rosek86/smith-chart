@@ -4,6 +4,7 @@ import type { Complex } from '../complex/Complex.js';
 export interface RadialScale {
   id: string;
   title: string;
+  description?: string;
   unit: 'dB' | 'ratio';
   read: (gamma: Complex) => number;
   values: number[];
@@ -87,10 +88,28 @@ export function radialScales(): RadialScale[] {
       position: (v) => v,
     },
     {
+      id: 'attenuation',
+      unit: 'dB',
+      read: (gamma) => calcs.rflCoeffToAttenuation(gamma),
+      title: 'Attenuation · dB',
+      description:
+        'One-way attenuation of a matched line or attenuator terminated in an open or short circuit. Not insertion loss of an arbitrary load.',
+      values: [Infinity, 10, 7, 5, 3, 1, 0],
+      position: (v) => calcs.attenuationToRflCoeff(v),
+    },
+    {
       id: 'voltage-transmission',
       unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToTransmCoeffEOrI(gamma),
       title: 'Voltage transmission · |1 + Γ|',
+      values: [0, 0.4, 0.8, 1.2, 1.6, 2],
+      position: (v) => v / 2,
+    },
+    {
+      id: 'current-transmission',
+      unit: 'ratio',
+      read: (gamma) => calcs.rflCoeffToCurrentTransmission(gamma),
+      title: 'Current transmission · |1 − Γ|',
       values: [0, 0.4, 0.8, 1.2, 1.6, 2],
       position: (v) => v / 2,
     },

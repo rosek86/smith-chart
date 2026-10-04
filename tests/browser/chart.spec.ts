@@ -9,7 +9,7 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   const svg = page.locator('#smith svg');
   await expect(svg).toBeVisible();
   await expect(svg.locator('.radial-scales')).toHaveCount(0);
-  await expect(page.locator('#smith-scales [data-scale]')).toHaveCount(10);
+  await expect(page.locator('#smith-scales [data-scale]')).toHaveCount(12);
   for (const layer of ['resistance', 'reactance']) {
     expect(await svg.locator(`[data-layer=${layer}]`).getAttribute('opacity')).not.toBe('0');
     expect(await svg.locator(`[data-layer=${layer}] text`).count()).toBeGreaterThan(20);

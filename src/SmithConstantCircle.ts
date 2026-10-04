@@ -110,6 +110,15 @@ export class SmithConstantCircle {
     return 10 ** (-rl / 20.0);
   }
 
+  /** One-way attenuation scale, referenced to a fully reflecting termination. */
+  public rflCoeffToAttenuation(rc: Complex): number {
+    return this.rflCoeffToReturnLoss(rc) / 2;
+  }
+
+  public attenuationToRflCoeff(attenuation: number): number {
+    return 10 ** (-attenuation / 10);
+  }
+
   public rflCoeffToMismatchLoss(rc: Complex): number {
     // mismatch loss is reflection loss
     const abs = this.rflCoeffEOrI(rc);
@@ -161,6 +170,11 @@ export class SmithConstantCircle {
     // T = R + 1
     const tc = this.rflCoeffToTransmCoeff(rc);
     return tc.abs();
+  }
+
+  /** Current transmission magnitude using the voltage reflection coefficient. */
+  public rflCoeffToCurrentTransmission(rc: Complex): number {
+    return Math.hypot(1 - rc.re, rc.im);
   }
 
   // s. w. peak (const. p)

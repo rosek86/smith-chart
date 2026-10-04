@@ -70,6 +70,7 @@ function renderReadout(): void {
   pendingReadout = undefined;
   const data = source === 'cursor' ? cursorData : markerData;
   scales.update(data?.reflectionCoefficient ?? null);
+  smith.PeripheralScales.update(data?.reflectionCoefficient ?? null);
   element('parameter-gamma').textContent = data
     ? smith.formatComplex(data.reflectionCoefficient)
     : '—';

@@ -106,6 +106,11 @@ for (const width of [340, 900]) {
         chart.ConstReactance,
         chart.ConstConductance,
         chart.ConstSusceptance,
+        {
+          show: () => chart.PeripheralScales.show(),
+          hide: () => chart.PeripheralScales.hide(),
+          draw: () => chart.PeripheralScales,
+        },
       ]) {
         layer.show();
         const labels = [...layer.draw().Node!.querySelectorAll('text')].map((label) => {

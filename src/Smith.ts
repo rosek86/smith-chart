@@ -27,6 +27,7 @@ import { SmithConstantCircle } from './SmithConstantCircle.js';
 import { SmithArcsDefs } from './SmithArcsDefs.js';
 
 import { Complex } from './complex/Complex.js';
+import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
 
 export interface SmithCursorEvent {
   reflectionCoefficient: Complex;
@@ -95,6 +96,7 @@ export class Smith {
   private constQCircles: ConstQCircles;
 
   private cursor: SmithCursor;
+  private peripheralScales = new SmithPeripheralScales();
   private data: SmithData[] = [];
   private destroyed = false;
   private mouseGesture = new MouseGesture();
@@ -169,6 +171,7 @@ export class Smith {
     this.container.append(this.constReactance.draw().attr('data-layer', 'reactance'));
     this.container.append(this.constQCircles.draw());
     this.container.append(this.constSwrCircles.draw());
+    this.container.append(this.peripheralScales);
     this.container.append(this.cursor.Group);
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
@@ -308,7 +311,7 @@ export class Smith {
 
   public resetView(): void {
     this.assertAlive();
-    const transform = d3.zoomIdentity.translate(50, 50).scale(0.8);
+    const transform = d3.zoomIdentity.translate(75, 75).scale(0.7);
     this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 
@@ -487,6 +490,10 @@ export class Smith {
 
   public get ConstResistance(): ConstResistance {
     return this.constResistance;
+  }
+
+  public get PeripheralScales(): SmithPeripheralScales {
+    return this.peripheralScales;
   }
 
   public get ConstReactance(): ConstReactance {
