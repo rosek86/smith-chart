@@ -99,9 +99,10 @@ chart.setUserActionHandler((event) => {
 
 `update(gamma)` positions the dots for a `Complex` reflection coefficient.
 Nine scales depend on `|Γ|`; voltage transmission uses `|1 + Γ|`, so its dot also
-responds to phase. Values are available in each scale's tooltip and accessible
-label. `update(null)`, non-finite coordinates, and values outside the passive-load
-unit circle hide the dots. Dots start hidden.
+responds to phase. Values appear directly above each axis, as well as in its tooltip and accessible
+label. Loss and standing-wave dB scales use dB; all other scales show dimensionless
+ratios, with VSWR written as `value : 1`. `update(null)`, non-finite coordinates, and values outside the passive-load
+unit circle hide the dots and reset the displayed values to a dash. Dots start hidden.
 
 `draw` accepts a selector or an `HTMLElement` and moves the existing component
 when called again. A missing container throws. Call `destroy()` independently

@@ -41,8 +41,26 @@
           <section class="panel scales-panel" aria-label="Cursor parameter scales">
             <h2>Parameter scales</h2>
             <p class="hint">
-              Red dots follow the cursor. These scales stay fixed while the chart zooms.
+              Move over the chart. Scales show dimensionless ratios unless marked dB.
             </p>
+            <dl id="cursor-readout" class="scale-readout">
+              <div>
+                <dt>Γ · dimensionless</dt>
+                <dd id="cursor-gamma">—</dd>
+              </div>
+              <div>
+                <dt>Z · Ω</dt>
+                <dd id="cursor-impedance">—</dd>
+              </div>
+              <div>
+                <dt>Y · mS</dt>
+                <dd id="cursor-admittance">—</dd>
+              </div>
+              <div>
+                <dt>Q · dimensionless</dt>
+                <dd id="cursor-q">—</dd>
+              </div>
+            </dl>
             <div id="smith-scales"></div>
           </section>
         </div>
@@ -54,11 +72,6 @@
             <p id="file-help" class="hint">One-port RI, MA or DB data, with a 50 Ω reference.</p>
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
-          </section>
-          <section class="panel">
-            <h2>Cursor</h2>
-            <p class="hint">Move over the chart to inspect a point.</p>
-            <div id="cursor-readout" class="readout"></div>
           </section>
           <section class="panel">
             <h2>Marker</h2>

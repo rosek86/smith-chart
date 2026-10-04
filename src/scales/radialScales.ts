@@ -4,6 +4,7 @@ import type { Complex } from '../complex/Complex.js';
 export interface RadialScale {
   id: string;
   title: string;
+  unit: 'dB' | 'ratio';
   read: (gamma: Complex) => number;
   values: number[];
   position: (value: number) => number;
@@ -15,6 +16,7 @@ export function radialScales(): RadialScale[] {
   return [
     {
       id: 'vswr',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToSwr(gamma),
       title: 'VSWR',
       values: [1, 1.5, 2, 3, 5, 10, Infinity],
@@ -22,6 +24,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'vswr-db',
+      unit: 'dB',
       read: (gamma) => calcs.rflCoeffToDBS(gamma),
       title: 'Standing-wave ratio · dB',
       values: [0, 3, 6, 10, 15, 20, Infinity],
@@ -29,6 +32,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'return-loss',
+      unit: 'dB',
       read: (gamma) => calcs.rflCoeffToReturnLoss(gamma),
       title: 'Return loss · dB',
       values: [Infinity, 20, 14, 10, 6, 3, 0],
@@ -36,6 +40,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'mismatch-loss',
+      unit: 'dB',
       read: (gamma) => calcs.rflCoeffToMismatchLoss(gamma),
       title: 'Mismatch loss · dB',
       values: [0, 0.1, 0.5, 1, 2, 4, Infinity],
@@ -43,6 +48,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'reflected-power',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffP(gamma),
       title: 'Reflected power · |Γ|²',
       values: [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1],
@@ -50,6 +56,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'transmitted-power',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToTransmCoeffP(gamma),
       title: 'Transmitted power · 1 − |Γ|²',
       values: [1, 0.99, 0.9, 0.75, 0.5, 0.25, 0],
@@ -57,6 +64,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'standing-wave-loss',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToSwLossCoeff(gamma),
       title: 'Standing-wave loss coefficient',
       values: [1, 1.1, 1.5, 2, 3, 5, Infinity],
@@ -64,6 +72,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'standing-wave-peak',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToSwPeakConstP(gamma),
       title: 'Standing-wave peak · constant power',
       values: [1, 1.2, 1.5, 2, 3, Infinity],
@@ -71,6 +80,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'reflection-coefficient',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffEOrI(gamma),
       title: 'Reflection coefficient · |Γ|',
       values: [0, 0.2, 0.4, 0.6, 0.8, 1],
@@ -78,6 +88,7 @@ export function radialScales(): RadialScale[] {
     },
     {
       id: 'voltage-transmission',
+      unit: 'ratio',
       read: (gamma) => calcs.rflCoeffToTransmCoeffEOrI(gamma),
       title: 'Voltage transmission · |1 + Γ|',
       values: [0, 0.4, 0.8, 1.2, 1.6, 2],

@@ -36,12 +36,22 @@ export class SmithScales {
       .attr('fill', '#334155')
       .text((scale) => scale.title);
     this.axes
+      .append('text')
+      .attr('class', 'scale-value')
+      .attr('x', this.start)
+      .attr('y', 30)
+      .attr('font-family', 'system-ui, sans-serif')
+      .attr('font-size', 11)
+      .attr('font-weight', 600)
+      .attr('fill', '#b42318')
+      .text('—');
+    this.axes
       .append('line')
       .attr('class', 'scale-axis')
       .attr('x1', this.start)
       .attr('x2', this.start + this.length)
-      .attr('y1', 40)
-      .attr('y2', 40)
+      .attr('y1', 44)
+      .attr('y2', 44)
       .attr('stroke', '#64748b')
       .attr('stroke-width', 1);
     const start = this.start;
@@ -51,7 +61,7 @@ export class SmithScales {
         .selectAll('g')
         .data(scale.values)
         .join('g')
-        .attr('transform', (value) => `translate(${start + length * scale.position(value)},40)`);
+        .attr('transform', (value) => `translate(${start + length * scale.position(value)},44)`);
       ticks.append('line').attr('y2', 5).attr('stroke', '#64748b').attr('stroke-width', 1);
       ticks
         .append('text')
@@ -69,7 +79,7 @@ export class SmithScales {
       .attr('class', 'scale-indicator')
       .attr('visibility', 'hidden')
       .attr('cx', this.start)
-      .attr('cy', 40)
+      .attr('cy', 44)
       .attr('r', 4)
       .attr('fill', '#dc2626')
       .attr('stroke', 'white')
@@ -92,6 +102,7 @@ export class SmithScales {
     const magnitude = gamma === null ? NaN : Math.hypot(gamma.re, gamma.im);
     if (!gamma || !Number.isFinite(magnitude) || magnitude > 1) {
       this.axes.select('circle').attr('visibility', 'hidden').attr('data-position', null);
+      this.axes.select('.scale-value').text('—');
       this.axes.attr('aria-label', (scale) => scale.title);
       this.axes.select('title').text((scale) => scale.title);
       return;
@@ -102,7 +113,11 @@ export class SmithScales {
       const value = scale.read(gamma);
       const position = Math.max(0, Math.min(1, scale.position(value)));
       const axis = select(this);
-      const label = `${scale.title}: ${value === Infinity ? '∞' : format('.4~g')(value)}`;
+      const number = value === Infinity ? '∞' : format('.4~g')(value);
+      const suffix = scale.unit === 'dB' ? ' dB' : scale.id === 'vswr' ? ' : 1' : '';
+      const readout = number + suffix;
+      const label = `${scale.title}: ${readout}`;
+      axis.select('.scale-value').text(readout);
       axis.attr('aria-label', label).select('title').text(label);
       axis
         .select('circle')

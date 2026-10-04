@@ -34,14 +34,29 @@ function updateReadout(event: SmithEvent): void {
   const data = event.data;
   if (event.type === SmithEventType.Cursor) {
     scales.update(data?.reflectionCoefficient ?? null);
+    element('cursor-gamma').textContent = data
+      ? smith.formatComplex(data.reflectionCoefficient)
+      : '—';
+    element('cursor-impedance').textContent = data
+      ? data.impedance
+        ? smith.formatComplex(data.impedance)
+        : '∞'
+      : '—';
+    element('cursor-admittance').textContent = data
+      ? data.admittance
+        ? smith.formatComplex(data.admittance)
+        : '∞'
+      : '—';
+    element('cursor-q').textContent = data?.Q?.toFixed(3) ?? '—';
+    return;
   }
   if (!data) {
     return;
   }
   const rows = [
     `Γ: ${smith.formatComplex(data.reflectionCoefficient)}`,
-    `Z: ${data.impedance ? smith.formatComplex(data.impedance, 'Ω') : '∞'}`,
-    `Y: ${data.admittance ? smith.formatComplex(data.admittance, 'mS') : '∞'}`,
+    `Z: ${data.impedance ? smith.formatComplex(data.impedance, 'Ω') : '∞ [Ω]'}`,
+    `Y: ${data.admittance ? smith.formatComplex(data.admittance, 'mS') : '∞ [mS]'}`,
     `VSWR: ${data.swr.toFixed(3)} : 1`,
     `Return loss: ${data.returnLoss.toFixed(2)} dB`,
     `Mismatch loss: ${data.mismatchLoss.toFixed(2)} dB`,
@@ -58,7 +73,7 @@ function updateReadout(event: SmithEvent): void {
       `Reactive component: ${smith.getReactanceComponentValue(marker.reflectionCoefficient, marker.freq)}`,
     );
   }
-  element(isMarker ? 'marker-readout' : 'cursor-readout').replaceChildren(
+  element('marker-readout').replaceChildren(
     ...rows.map((text) => {
       const row = document.createElement('div');
       row.textContent = text;

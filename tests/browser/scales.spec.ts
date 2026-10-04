@@ -29,8 +29,21 @@ test('cursor dots follow all ten scales, including phase-dependent voltage trans
     }
     expect(positions[9]).toBeCloseTo(Math.hypot(1 + re, im) / 2, 2);
   }
+  await expect(page.getByRole('heading', { name: 'Cursor', exact: true })).toHaveCount(0);
+  const readout = page.locator('.scales-panel #cursor-readout');
+  await expect(readout).toContainText('Z · Ω');
+  await expect(readout).toContainText('Y · mS');
+  await expect(readout.locator('#cursor-impedance')).toHaveText('30.000 + 40.000i');
+  await expect(readout.locator('#cursor-admittance')).toHaveText('12.000 - 16.000i');
+  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('3 : 1');
+  await expect(page.locator('[data-scale=return-loss] .scale-value')).toHaveText('6.021 dB');
+  await expect(page.locator('[data-scale=mismatch-loss] .scale-value')).toHaveText('1.249 dB');
   await page.screenshot({ path: 'test-results/cursor-scales.png', fullPage: true });
   await page.mouse.move(5, 5);
+  await expect(page.locator('#cursor-gamma')).toHaveText('—');
+  for (const value of await page.locator('.scale-value').all()) {
+    await expect(value).toHaveText('—');
+  }
   for (const dot of await dots.all()) {
     await expect(dot).toHaveAttribute('visibility', 'hidden');
   }
@@ -157,7 +170,7 @@ test('independent scale components handle boundaries, invalid input, mounting an
     negative: [...Array(9).fill(1), 0],
     positive: Array(10).fill(1),
     geometry: true,
-    endpoints: 'VSWR: ∞',
+    endpoints: 'VSWR: ∞ : 1',
     hidden: [true, true, true, true],
     missing: true,
     disposed: true,
