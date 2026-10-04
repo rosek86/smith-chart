@@ -101,12 +101,75 @@ input:focus-visible {
   border: 1px solid #dce4eb;
   border-radius: 12px;
 }
+.chart-column {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+.scales-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.scales-heading h2 {
+  margin: 0;
+}
+.readout-tabs {
+  display: flex;
+  gap: 4px;
+}
+.readout-tabs button {
+  padding: 6px 10px;
+}
+.readout-tabs [aria-selected='true'] {
+  color: #1b655e;
+  background: #edf5f4;
+  border-color: #287e76;
+}
+.readout-context {
+  min-height: 32px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #617286;
+  overflow-wrap: anywhere;
+}
+#parameter-panel:focus-visible {
+  outline: 2px solid #287e76;
+  outline-offset: 3px;
+}
+.scale-readout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.scale-readout > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding-block: 4px;
+  border-top: 1px solid #edf1f4;
+}
+.scale-readout dt {
+  color: #617286;
+}
+.scale-readout dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .chart-panel {
   padding: 12px;
 }
 #smith {
   width: 100%;
-  aspect-ratio: 500 / 650;
+  aspect-ratio: 1;
   touch-action: none;
 }
 #smith svg {
@@ -147,20 +210,52 @@ input[type='file'] {
 #file-status[data-error='true'] {
   color: #b42318;
 }
-.readout {
-  font-size: 12px;
-  line-height: 1.9;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.readout div {
-  border-top: 1px solid #edf1f4;
-  padding: 3px 0;
-}
 footer {
   color: #7b8997;
   font-size: 11px;
   margin-top: 24px;
+}
+@media (min-width: 1000px) {
+  main {
+    padding: 16px 24px;
+  }
+  header {
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 4px 0;
+  }
+  .toolbar {
+    padding: 10px 16px;
+    margin-bottom: 12px;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .chart-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+  }
+  #smith {
+    width: min(100%, max(300px, calc(100dvh - 260px)));
+    max-width: 620px;
+    margin-inline: auto;
+  }
+  .scales-panel {
+    padding: 16px;
+  }
+  #smith-scales .radial-scales {
+    /* Override the component's inline auto-fit default for the desktop demo. */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    row-gap: 4px !important;
+  }
+  aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
 }
 @media (max-width: 800px) {
   main {

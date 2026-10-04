@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Interactive D3 Smith chart with impedance, admittance and Touchstone S11 measurements."
+      content="Interactive Smith chart with impedance, admittance and Touchstone S11 measurements."
     />
     <title>Smith chart · RF workbench</title>
   </head>
@@ -30,13 +30,68 @@
         <button id="reset-view" type="button">Reset view</button>
       </div>
       <div class="workspace">
-        <section class="chart-panel" aria-label="Interactive Smith chart">
-          <div id="smith"></div>
-          <p class="hint">
-            Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
-            normalized to Z₀.
-          </p>
-        </section>
+        <div class="chart-column">
+          <section class="chart-panel" aria-label="Interactive Smith chart">
+            <div id="smith"></div>
+            <p class="hint">
+              Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
+              normalized to Z₀.
+            </p>
+          </section>
+          <section class="panel scales-panel" aria-label="Parameter scales">
+            <div class="scales-heading">
+              <h2>Parameter scales</h2>
+              <div role="tablist" aria-label="Readout source" class="readout-tabs">
+                <button
+                  type="button"
+                  role="tab"
+                  id="cursor-tab"
+                  aria-controls="parameter-panel"
+                  aria-selected="true"
+                >
+                  Cursor
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="marker-tab"
+                  aria-controls="parameter-panel"
+                  aria-selected="false"
+                  tabindex="-1"
+                >
+                  Marker
+                </button>
+              </div>
+            </div>
+            <div id="parameter-panel" role="tabpanel" aria-labelledby="cursor-tab" tabindex="0">
+              <div class="readout-context">
+                <div id="cursor-help">
+                  Move over the chart. Scales show dimensionless ratios unless marked dB.
+                </div>
+                <div id="marker-readout" hidden>Load a trace to place a marker.</div>
+              </div>
+              <dl id="parameter-readout" class="scale-readout">
+                <div>
+                  <dt>Γ · dimensionless</dt>
+                  <dd id="parameter-gamma">—</dd>
+                </div>
+                <div>
+                  <dt>Z · Ω</dt>
+                  <dd id="parameter-impedance">—</dd>
+                </div>
+                <div>
+                  <dt>Y · mS</dt>
+                  <dd id="parameter-admittance">—</dd>
+                </div>
+                <div>
+                  <dt>Q · dimensionless</dt>
+                  <dd id="parameter-q">—</dd>
+                </div>
+              </dl>
+              <div id="smith-scales"></div>
+            </div>
+          </section>
+        </div>
         <aside>
           <section class="panel">
             <h2>Measurements</h2>
@@ -46,18 +101,9 @@
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
           </section>
-          <section class="panel">
-            <h2>Cursor</h2>
-            <p class="hint">Move over the chart to inspect a point.</p>
-            <div id="cursor-readout" class="readout"></div>
-          </section>
-          <section class="panel">
-            <h2>Marker</h2>
-            <div id="marker-readout" class="readout">Load a trace to place a marker.</div>
-          </section>
         </aside>
       </div>
-      <footer>Smith chart · D3 visualization</footer>
+      <footer>Smithkit</footer>
     </main>
     <script type="module" src="/demo/main.ts"></script>
   </body>

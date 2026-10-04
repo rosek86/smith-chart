@@ -9,6 +9,7 @@ import { SmithGroup } from './draw/SmithGroup.js';
 import { SmithCircle } from './draw/SmithCircle.js';
 
 import { SmithData } from './draw/SmithData.js';
+import type { SmithMarker } from './draw/SmithMarker.js';
 import { SmithCursor } from './draw/SmithCursor.js';
 
 import { ConstResistance } from './draw/ConstResistance.js';
@@ -25,7 +26,6 @@ import { S1P } from './SnP.js';
 import { SmithConstantCircle } from './SmithConstantCircle.js';
 import { SmithArcsDefs } from './SmithArcsDefs.js';
 
-import { RadiallyScaledParams } from './scales/RadiallyScaledParams.js';
 import { Complex } from './complex/Complex.js';
 
 export interface SmithCursorEvent {
@@ -58,6 +58,8 @@ export interface SmithMarkerEvent {
 export enum SmithEventType {
   Cursor,
   Marker,
+  MarkerDragStart,
+  MarkerDragEnd,
 }
 
 export interface SmithEvent {
@@ -81,6 +83,7 @@ export class Smith {
   private svg: SmithSvg;
   private container: SmithGroup;
   private dataContainer: SmithGroup;
+  private markerContainer: SmithGroup;
 
   private reactanceAxis: SmithCircle;
 
@@ -91,13 +94,13 @@ export class Smith {
   private constSwrCircles: ConstSwrCircles;
   private constQCircles: ConstQCircles;
 
-  private radiallyScaledParams: RadiallyScaledParams;
-
   private cursor: SmithCursor;
   private data: SmithData[] = [];
   private destroyed = false;
   private mouseGesture = new MouseGesture();
   private nextDatasetColor = 0;
+  private draggedMarkers = new Set<SmithMarker>();
+  private cursorBeforeMarkerDrag: string | null = null;
 
   private userActionHandler: ((event: SmithEvent) => void) | null = null;
 
@@ -155,10 +158,8 @@ export class Smith {
       fill: 'none',
     });
 
-    this.dataContainer = new SmithGroup();
-
-    this.radiallyScaledParams = new RadiallyScaledParams(this.scalers.default);
-    const rspContainer = this.radiallyScaledParams.draw();
+    this.dataContainer = new SmithGroup().attr('data-layer', 'samples');
+    this.markerContainer = new SmithGroup().attr('data-layer', 'markers');
 
     // build chart
     this.svg.append(this.container);
@@ -172,8 +173,7 @@ export class Smith {
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
-    this.container.append(rspContainer);
-    this.dataContainer.Element.raise();
+    this.container.append(this.markerContainer);
 
     this.initializeZoom();
   }
@@ -192,9 +192,9 @@ export class Smith {
     if (this.destroyed) {
       return;
     }
+    this.userActionHandler = null;
     this.clearS1P();
     this.destroyed = true;
-    this.userActionHandler = null;
     this.cursor.setMoveHandler(null);
     this.mouseGesture.destroy();
     this.zoomBehavior.on('start', null).on('zoom', null);
@@ -230,11 +230,40 @@ export class Smith {
   }
 
   private cursorMove(p: Point): void {
+    if (this.draggedMarkers.size > 0) {
+      return;
+    }
     this.cursor.Position = Complex.from(this.scalers.default.pointInvert(p));
+  }
+
+  private markerDragChanged(marker: SmithMarker, dragging: boolean): void {
+    const wasDragging = this.draggedMarkers.size > 0;
+    if (dragging) {
+      this.draggedMarkers.add(marker);
+    } else {
+      this.draggedMarkers.delete(marker);
+    }
+    const isDragging = this.draggedMarkers.size > 0;
+    if (isDragging === wasDragging) {
+      return;
+    }
+    if (isDragging) {
+      this.cursorBeforeMarkerDrag = this.svg.Node!.style.getPropertyValue('cursor') || null;
+      this.svg.Element.style('cursor', 'grabbing').style('--smithkit-marker-cursor', 'grabbing');
+      this.cursor.hide();
+      this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+    } else {
+      this.svg.Element.style('cursor', () => this.cursorBeforeMarkerDrag).style(
+        '--smithkit-marker-cursor',
+        null,
+      );
+      this.cursorBeforeMarkerDrag = null;
+    }
   }
 
   private initCursor(): SmithCursor {
     const cursor = new SmithCursor(this.scalers.default);
+    cursor.Group.attr('class', 'smith-cursor');
     cursor.setMoveHandler(() => {
       if (this.userActionHandler) {
         this.userActionHandler({
@@ -279,7 +308,7 @@ export class Smith {
 
   public resetView(): void {
     this.assertAlive();
-    const transform = d3.zoomIdentity.translate(50, 12.5).scale(0.8);
+    const transform = d3.zoomIdentity.translate(50, 50).scale(0.8);
     this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 
@@ -299,7 +328,10 @@ export class Smith {
       .on('pointermove.smithkit', (event: PointerEvent) => {
         this.cursorMove(d3.pointer(event));
       })
-      .on('pointerleave.smithkit', () => this.cursor.hide());
+      .on('pointerleave.smithkit', () => {
+        this.cursor.hide();
+        this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+      });
 
     return shape;
   }
@@ -398,6 +430,17 @@ export class Smith {
       this.transform,
       this.dataContainer,
       this.scalers.default,
+      (marker, dragging) => {
+        this.markerDragChanged(marker, dragging);
+        this.userActionHandler?.({
+          type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
+          data: this.getMarkerData(
+            this.data.indexOf(data),
+            data.Markers.findIndex((entry) => entry.marker === marker),
+          ),
+        });
+      },
+      this.markerContainer,
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {

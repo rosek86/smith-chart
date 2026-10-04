@@ -8,18 +8,19 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   await page.goto('./');
   const svg = page.locator('#smith svg');
   await expect(svg).toBeVisible();
-  await expect(svg.locator('.radial-scales [data-scale]')).toHaveCount(10);
+  await expect(svg.locator('.radial-scales')).toHaveCount(0);
+  await expect(page.locator('#smith-scales [data-scale]')).toHaveCount(10);
   for (const layer of ['resistance', 'reactance']) {
     expect(await svg.locator(`[data-layer=${layer}]`).getAttribute('opacity')).not.toBe('0');
     expect(await svg.locator(`[data-layer=${layer}] text`).count()).toBeGreaterThan(20);
   }
   expect(await svg.evaluate((node) => /NaN|Infinity/.test(node.outerHTML))).toBe(false);
   const box = (await svg.boundingBox())!;
-  // SVG viewBox is 500 × 650; chart center after the initial transform is (250, 212.5).
-  const center = { x: box.x + box.width / 2, y: box.y + (box.height * 212.5) / 650 };
+  // The square chart is centered in its own SVG.
+  const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   await page.mouse.move(center.x, center.y);
-  await expect(page.locator('#cursor-readout')).toContainText('VSWR: 1.000');
-  await expect(page.locator('#cursor-readout')).toContainText('Q: 0.000');
+  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
+  await expect(page.locator('#parameter-q')).toHaveText('0.000');
   const chart = svg.locator(':scope > g');
   const original = await chart.getAttribute('transform');
   await page.mouse.wheel(0, -240);
@@ -79,7 +80,7 @@ test('fits the chart and radial labels on a narrow screen', async ({ page }) => 
   await page.goto('./');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
   const labels = page.locator('.radial-scales text');
-  const svg = (await page.locator('#smith svg').boundingBox())!;
+  const svg = (await page.locator('#smith-scales').boundingBox())!;
   for (const label of await labels.all()) {
     const box = (await label.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(svg.x);

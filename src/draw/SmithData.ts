@@ -35,6 +35,8 @@ export class SmithData {
     private transform: Transform,
     private fgContainer: SmithGroup,
     private scaler: SmithScaler,
+    private markerDragHandler?: (marker: SmithMarker, dragging: boolean) => void,
+    private markerContainer: SmithGroup = fgContainer,
   ) {
     this.data = this.copySamples(data);
     this.group = this.drawPoints(this.data);
@@ -86,14 +88,15 @@ export class SmithData {
       throw new Error('This dataset has been removed.');
     }
     const markerIndex = this.markersCount++;
-    const marker = new SmithMarker(markerIndex + 1, this.color);
+    const marker = new SmithMarker(markerIndex + 1, this.color, (dragging) =>
+      this.markerDragHandler?.(marker, dragging),
+    );
 
     const markerDesc: Marker = { marker, selectedPoint: this.data[0] };
     this.markers.push(markerDesc);
 
     marker.Element.attr('data-role', 'marker');
-    this.fgContainer.append(marker);
-    marker.Element.raise();
+    this.markerContainer.append(marker);
 
     marker.setDragHandler((mp) => {
       const dp = this.findClosestPointTo(this.scaler.pointInvert(mp));
@@ -161,7 +164,6 @@ export class SmithData {
     this.markers.forEach((entry, index) => {
       entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.point);
       entry.marker.move(this.scaler.point(entry.selectedPoint.point));
-      entry.marker.Element.raise();
       this.notifyMarker(index);
     });
   }
@@ -175,6 +177,7 @@ export class SmithData {
     this.handler = null;
     this.markers.forEach(({ marker }) => marker.destroy());
     this.markers = [];
+    this.markerDragHandler = undefined;
     this.data = [];
     this.group.Element.remove();
   }

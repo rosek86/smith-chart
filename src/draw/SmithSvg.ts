@@ -11,7 +11,8 @@ export class SmithSvg {
       .attr('xmlns', 'http://www.w3.org/2000/svg')
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('viewBox', `0 0 ${size} ${size * 1.3}`)
+      .attr('viewBox', `0 0 ${size} ${size}`)
+      .style('overflow', 'hidden')
       .attr('preserveAspectRatio', 'xMidYMid meet');
   }
 
