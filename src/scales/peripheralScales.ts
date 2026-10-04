@@ -23,7 +23,7 @@ export function peripheralScales(): PeripheralScale[] {
   return [
     {
       id: 'transmission-phase',
-      title: 'Voltage transmission · °',
+      title: 'Transmission phase · °',
       unit: '°',
       ticks: Array.from({ length: 35 }, (_, i) => -85 + i * 5),
       major: (v) => v % 15 === 0,

@@ -115,6 +115,12 @@ label. Loss and standing-wave dB scales use dB; all other scales show dimensionl
 ratios, with VSWR written as `value : 1`. `update(null)`, non-finite coordinates, and values outside the passive-load
 unit circle hide the dots and reset the displayed values to a dash. Dots start hidden.
 
+Scale labels follow the complete Smith chart terminology: **Reflection loss** (also
+called mismatch loss), **Power reflection coefficient**, **Power transmission coefficient**,
+and separate **Voltage transmission coefficient** and **Current transmission coefficient**
+rulers. Coefficients are dimensionless; their formulas appear in tooltips. Existing
+`mismatchLoss` API fields and scale identifiers remain compatible.
+
 The attenuation ruler reads `−10 log10|Γ|` in dB (half the return loss). Its one-way
 loss interpretation assumes a matched line or attenuator terminated in an open or short
 circuit, so the reflected wave traverses it twice. It does not measure insertion loss
