@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Interactive D3 Smith chart with impedance, admittance and Touchstone S11 measurements."
+    />
+    <title>Smith chart · RF workbench</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="eyebrow">RF WORKBENCH</span>
+        <h1>Smith chart</h1>
+        <p>
+          Explore impedance, admittance and reflection. Reference impedance:
+          <strong>Z₀ = 50 Ω</strong>.
+        </p>
+      </header>
+      <div class="toolbar" aria-label="Chart controls">
+        <fieldset>
+          <legend>Grid layers</legend>
+          <label><input type="checkbox" id="impedance" checked /> Impedance</label>
+          <label><input type="checkbox" id="admittance" /> Admittance</label>
+          <label><input type="checkbox" id="constantQ" /> Constant Q</label>
+          <label><input type="checkbox" id="constantSwr" /> Constant VSWR</label>
+        </fieldset>
+        <button id="reset-view" type="button">Reset view</button>
+      </div>
+      <div class="workspace">
+        <section class="chart-panel" aria-label="Interactive Smith chart">
+          <div id="smith"></div>
+          <p class="hint">
+            Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
+            normalized to Z₀.
+          </p>
+        </section>
+        <aside>
+          <section class="panel">
+            <h2>Measurements</h2>
+            <label class="file-label" for="file">Import Touchstone (.s1p)</label>
+            <input type="file" id="file" accept=".s1p" aria-describedby="file-help file-status" />
+            <p id="file-help" class="hint">One-port RI, MA or DB data, with a 50 Ω reference.</p>
+            <button id="sample" type="button">Load sample trace</button>
+            <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
+          </section>
+          <section class="panel">
+            <h2>Cursor</h2>
+            <p class="hint">Move over the chart to inspect a point.</p>
+            <div id="cursor-readout" class="readout"></div>
+          </section>
+          <section class="panel">
+            <h2>Marker</h2>
+            <div id="marker-readout" class="readout">Load a trace to place a marker.</div>
+          </section>
+        </aside>
+      </div>
+      <footer>Smith chart · D3 visualization</footer>
+    </main>
+    <script type="module" src="/demo/main.ts"></script>
+  </body>
+</html>

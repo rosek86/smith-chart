@@ -1,9 +1,10 @@
-import { SmithGroup } from './SmithGroup';
-import { SmithScaler } from './SmithScaler';
-import { Line } from '../shapes/Line';
-import { Circle } from '../shapes/Circle';
-import { Point } from '../shapes/Point';
-import { SmithConstantCircle } from '../SmithConstantCircle';
+import type * as d3 from 'd3';
+import { SmithGroup } from './SmithGroup.js';
+import { SmithScaler } from './SmithScaler.js';
+import { Line } from '../shapes/Line.js';
+import { Circle } from '../shapes/Circle.js';
+import { Point } from '../shapes/Point.js';
+import { SmithConstantCircle } from '../SmithConstantCircle.js';
 
 export interface ArcData {
   p1: Point;
@@ -76,13 +77,8 @@ export abstract class ConstCircles {
   }
 
   protected build(): SmithGroup {
-    return this.container
-      .append(this.minor)
-      .append(this.major)
-      .append(this.texts)
-      .hide();
+    return this.container.append(this.minor).append(this.major).append(this.texts).hide();
   }
-
 
   public draw(): SmithGroup {
     return this.container;
@@ -91,18 +87,20 @@ export abstract class ConstCircles {
   public setDrawOptions(opts: ConstCirclesDrawOptions): void {
     this.opts = opts;
 
-    this.container.Stroke  = opts.stroke;
+    this.Stroke = opts.stroke;
     this.major.StrokeWidth = opts.majorWidth;
     this.minor.StrokeWidth = opts.minorWidth;
     this.texts
-      .attr('fill',        opts.textColor)
+      .attr('fill', opts.textColor)
       .attr('font-family', opts.textFontFamily)
-      .attr('font-size',   opts.textFontSize);
+      .attr('font-size', opts.textFontSize);
   }
 
   public set Stroke(stroke: string) {
     this.opts.stroke = stroke;
     this.container.Stroke = stroke;
+    this.major.Stroke = stroke;
+    this.minor.Stroke = stroke;
   }
 
   public get Stroke(): string {
@@ -156,53 +154,61 @@ export abstract class ConstCircles {
 
   protected defaultDrawingOptions(): ConstCirclesDrawOptions {
     return {
-      stroke: 'black', majorWidth: '0.2', minorWidth: '0.1',
-      textColor: 'black', textFontFamily: 'Verdana', textFontSize: '1'
+      stroke: 'black',
+      majorWidth: '0.2',
+      minorWidth: '0.1',
+      textColor: 'black',
+      textFontFamily: 'Verdana',
+      textFontSize: '1',
     };
   }
 
   protected scaleArc(scaler: SmithScaler, d: [Point, Point, number, boolean, boolean]): ArcData {
     const { p1, p2, r } = scaler.arc({ p1: d[0], p2: d[1], r: d[2] });
     const largeArc = d[3] ? '1' : '0';
-    const sweep    = d[4] ? '0' : '1';
+    const sweep = d[4] ? '0' : '1';
     return { p1, p2, r, largeArc, sweep };
   }
 
-  protected drawShapes(g: d3.Selection<SVGElement, {}, null, undefined>, color: string, width: string, shapes: Shapes) {
+  protected drawShapes(
+    g: d3.Selection<SVGElement, unknown, null, undefined>,
+    color: string,
+    width: string,
+    shapes: Shapes,
+  ) {
+    // Shapes inherit styling so changing a layer updates all of its geometry.
+    g.attr('stroke', color).attr('stroke-width', width);
+
     g.selectAll('line')
       .data(shapes.lines)
-      .enter().append('line')
-        .attr('x1',             (d) => d.p1[0])
-        .attr('y1',             (d) => d.p1[1])
-        .attr('x2',             (d) => d.p2[0])
-        .attr('y2',             (d) => d.p2[1])
-        .attr('fill',           'none')
-        .attr('stroke',         color)
-        .attr('stroke-width',   width)
-        .attr('vector-effect',  'non-scaling-stroke');
+      .enter()
+      .append('line')
+      .attr('x1', (d) => d.p1[0])
+      .attr('y1', (d) => d.p1[1])
+      .attr('x2', (d) => d.p2[0])
+      .attr('y2', (d) => d.p2[1])
+      .attr('fill', 'none')
+      .attr('vector-effect', 'non-scaling-stroke');
 
     g.selectAll('circle')
       .data(shapes.circles)
-      .enter().append('circle')
-        .attr('cx',             (d) => d.p[0])
-        .attr('cy',             (d) => d.p[1])
-        .attr('r',              (d) => d.r)
-        .attr('fill',           'none')
-        .attr('stroke',         color)
-        .attr('stroke-width',   width)
-        .attr('vector-effect',  'non-scaling-stroke');
+      .enter()
+      .append('circle')
+      .attr('cx', (d) => d.p[0])
+      .attr('cy', (d) => d.p[1])
+      .attr('r', (d) => d.r)
+      .attr('fill', 'none')
+      .attr('vector-effect', 'non-scaling-stroke');
 
     g.selectAll('path')
       .data(shapes.arcs)
-      .enter().append('path')
-        .attr('fill',           'none')
-        .attr('stroke',         color)
-        .attr('stroke-width',   width)
-        .attr('vector-effect',  'non-scaling-stroke')
-        .attr('d', (d) => {
-          const { p1, p2, r, largeArc, sweep } = d;
-          return `M${p1[0]},${p1[1]} A${r},${r} 0 ${largeArc},${sweep} ${p2[0]},${p2[1]}`;
-        });
+      .enter()
+      .append('path')
+      .attr('fill', 'none')
+      .attr('vector-effect', 'non-scaling-stroke')
+      .attr('d', (d) => {
+        const { p1, p2, r, largeArc, sweep } = d;
+        return `M${p1[0]},${p1[1]} A${r},${r} 0 ${largeArc},${sweep} ${p2[0]},${p2[1]}`;
+      });
   }
-
 }

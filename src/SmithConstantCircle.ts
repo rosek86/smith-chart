@@ -1,14 +1,13 @@
-import { Circle } from './shapes/Circle';
-import { Point } from './shapes/Point';
-import { Complex } from './complex/Complex';
+import { Circle } from './shapes/Circle.js';
+import { Point } from './shapes/Point.js';
+import { Complex } from './complex/Complex.js';
 
 export class SmithConstantCircle {
   private epsilon = 1e-10;
 
-  public constructor(public Z0: number = 50) {
-  }
+  public constructor(public Z0: number = 50) {}
 
-  public rflCoeffToImpedance(c: Complex): Complex|undefined {
+  public rflCoeffToImpedance(c: Complex): Complex | undefined {
     const gr = c.real;
     const gi = c.imag;
     const d = (1 - gr) * (1 - gr) + gi * gi;
@@ -20,7 +19,7 @@ export class SmithConstantCircle {
     return Complex.from(zr, zi);
   }
 
-  public impedanceToRflCoeff(c: Complex): Complex|undefined {
+  public impedanceToRflCoeff(c: Complex): Complex | undefined {
     const zr = c.real;
     const zi = c.imag;
     const d = (zr + 1) * (zr + 1) + zi * zi;
@@ -32,7 +31,7 @@ export class SmithConstantCircle {
     return Complex.from(gr, gi);
   }
 
-  public rflCoeffToAdmittance(c: Complex): Complex|undefined {
+  public rflCoeffToAdmittance(c: Complex): Complex | undefined {
     const gr = c.real;
     const gi = c.imag;
     const d = (gr + 1) * (gr + 1) + gi * gi;
@@ -44,7 +43,7 @@ export class SmithConstantCircle {
     return Complex.from(yr, yi);
   }
 
-  public admittanceToRflCoeff(c: Complex): Complex|undefined {
+  public admittanceToRflCoeff(c: Complex): Complex | undefined {
     const yr = c.real;
     const yi = c.imag;
     const d = (yr + 1) * (yr + 1) + yi * yi;
@@ -57,24 +56,24 @@ export class SmithConstantCircle {
   }
 
   public resistanceCircle(n: number): Circle {
-    return { p: [ (n / (n + 1)), 0 ], r: 1 / (n + 1) };
+    return { p: [n / (n + 1), 0], r: 1 / (n + 1) };
   }
 
   public reactanceCircle(n: number): Circle {
-    return { p: [ 1, (1 / n) ], r: Math.abs(1 / n) };
+    return { p: [1, 1 / n], r: Math.abs(1 / n) };
   }
 
   public conductanceCircle(n: number): Circle {
-    return { p: [ -n / (n + 1), 0 ], r: 1 / (n + 1) };
+    return { p: [-n / (n + 1), 0], r: 1 / (n + 1) };
   }
 
   public susceptanceCircle(n: number): Circle {
-    return { p: [ -1, -1 / n ], r: Math.abs(1 / n) };
+    return { p: [-1, -1 / n], r: Math.abs(1 / n) };
   }
 
   public constQCircle(q: number): Circle {
     // Center is (0, +1/Q) or (0, -1/Q).
-    return { p: [ 0, 1 / q ], r: Math.sqrt(1 + 1 / (q * q)) };
+    return { p: [0, 1 / q], r: Math.sqrt(1 + 1 / (q * q)) };
   }
 
   public rflCoeffToSwr(rc: Complex): number {
@@ -133,9 +132,11 @@ export class SmithConstantCircle {
     return Math.sqrt(p);
   }
 
-  public rflCoeffToQ(rc: Complex): number|undefined {
+  public rflCoeffToQ(rc: Complex): number | undefined {
     const impedance = this.rflCoeffToImpedance(rc);
-    if (!impedance) { return; }
+    if (!impedance) {
+      return;
+    }
     return Math.abs(impedance.imag / impedance.real);
   }
 
@@ -193,20 +194,17 @@ export class SmithConstantCircle {
     const cosA = (dl * dl + c1.r * c1.r - c2.r * c2.r) / (2 * dl * c1.r);
     const sinA = Math.sqrt(1 - Math.pow(cosA, 2));
 
-    const vpx = (c2.p[0] - c1.p[0]) * c1.r / dl;
-    const vpy = (c2.p[1] - c1.p[1]) * c1.r / dl;
+    const vpx = ((c2.p[0] - c1.p[0]) * c1.r) / dl;
+    const vpy = ((c2.p[1] - c1.p[1]) * c1.r) / dl;
 
-    return [[
-        vpx * cosA - vpy * sinA + c1.p[0],
-        vpx * sinA + vpy * cosA + c1.p[1],
-    ], [
-        vpx * cosA + vpy * sinA + c1.p[0],
-        vpy * cosA - vpx * sinA + c1.p[1],
-    ]];
+    return [
+      [vpx * cosA - vpy * sinA + c1.p[0], vpx * sinA + vpy * cosA + c1.p[1]],
+      [vpx * cosA + vpy * sinA + c1.p[0], vpy * cosA - vpx * sinA + c1.p[1]],
+    ];
   }
 
   public isPointWithinCircle(p: Point, c: Circle): boolean {
-    return (Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2)) <= (Math.pow(c.r, 2));
+    return Math.pow(p[0] - c.p[0], 2) + Math.pow(p[1] - c.p[1], 2) <= Math.pow(c.r, 2);
   }
 
   public normalize(c: Complex): Complex {
@@ -222,7 +220,7 @@ export class SmithConstantCircle {
   }
 
   public frequencyFromWaveLength(waveLength: number): number {
-    return 299792458 * waveLength;
+    return 299792458 / waveLength;
   }
 
   public magnitude(c: Complex): number {
@@ -233,8 +231,10 @@ export class SmithConstantCircle {
     return 20 * Math.log10(value);
   }
 
-  public reactanceToCapacitance(x: number, f: number): number|null {
-    if (x >= 0) { return null; }
+  public reactanceToCapacitance(x: number, f: number): number | null {
+    if (x >= 0) {
+      return null;
+    }
     return -1 / (2 * Math.PI * f * x);
   }
 
@@ -242,8 +242,10 @@ export class SmithConstantCircle {
     return Complex.from(0, -1 / (2 * Math.PI * f * C));
   }
 
-  public reactanceToInductance(x: number, f: number): number|null {
-    if (x <= 0) { return null; }
+  public reactanceToInductance(x: number, f: number): number | null {
+    if (x <= 0) {
+      return null;
+    }
     return x / (2 * Math.PI * f);
   }
 
@@ -251,7 +253,7 @@ export class SmithConstantCircle {
     return Complex.from(0, 2 * Math.PI * f * L);
   }
 
-  public addImpedance(rc: Complex, imp: Complex): Complex|undefined {
+  public addImpedance(rc: Complex, imp: Complex): Complex | undefined {
     let Z = this.rflCoeffToImpedance(rc);
     if (Z === undefined) {
       return undefined;
@@ -260,7 +262,7 @@ export class SmithConstantCircle {
     return this.impedanceToRflCoeff(Z);
   }
 
-  public addAdmittance(rc: Complex, adm: Complex): Complex|undefined {
+  public addAdmittance(rc: Complex, adm: Complex): Complex | undefined {
     let Y = this.rflCoeffToAdmittance(rc);
     if (Y === undefined) {
       return undefined;
@@ -275,10 +277,10 @@ export class SmithConstantCircle {
   }
 
   public rad2deg(rad: number): number {
-    return rad * 180.0 / Math.PI;
+    return (rad * 180.0) / Math.PI;
   }
 
   public deg2rad(deg: number): number {
-    return deg * Math.PI / 180.0;
+    return (deg * Math.PI) / 180.0;
   }
 }

@@ -1,3 +1,6 @@
-import { Point } from './Point';
+import { Point } from './Point.js';
 
-export interface Circle { p: Point; r: number; }
+export interface Circle {
+  p: Point;
+  r: number;
+}

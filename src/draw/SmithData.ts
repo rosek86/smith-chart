@@ -1,10 +1,10 @@
-import { SmithGroup } from './SmithGroup';
-import { SmithCircle } from './SmithCircle';
-import { SmithMarker } from './SmithMarker';
-import { SmithScaler } from './SmithScaler';
+import { SmithGroup } from './SmithGroup.js';
+import { SmithCircle } from './SmithCircle.js';
+import { SmithMarker } from './SmithMarker.js';
+import { SmithScaler } from './SmithScaler.js';
 
-import { S1P, S1PEntry } from '../SnP';
-import { Point } from '../shapes/Point';
+import { S1P, S1PEntry } from '../SnP.js';
+import { Point } from '../shapes/Point.js';
 
 interface Marker {
   marker: SmithMarker;
@@ -25,21 +25,26 @@ export class SmithData {
   private markersCount = 0;
   private markers: Marker[] = [];
 
-  private handler: ((marker: number, data: S1PEntry) => void)|null = null;
+  private handler: ((marker: number, data: S1PEntry) => void) | null = null;
 
   public constructor(
-      private data: S1P,
-      private color: string,
-      private transform: Transform,
-      private fgContainer: SmithGroup,
-      private scaler: SmithScaler) {
+    private data: S1P,
+    private color: string,
+    private transform: Transform,
+    private fgContainer: SmithGroup,
+    private scaler: SmithScaler,
+  ) {
     this.group = this.drawPoints(data);
+    this.group.attr('pointer-events', 'none');
     this.fgContainer.append(this.group);
+    this.zoomDataPoints();
   }
 
   private drawPoints(data: S1P): SmithGroup {
     const group = new SmithGroup({
-      stroke: 'none', strokeWidth: 'none', fill: this.color
+      stroke: 'none',
+      strokeWidth: 'none',
+      fill: this.color,
     });
     data.forEach((dp) => {
       const p = this.scaler.point(dp.point);
@@ -73,7 +78,7 @@ export class SmithData {
     const markerIndex = this.markersCount++;
     const marker = new SmithMarker(markerIndex + 1, this.color);
 
-    const markerDesc: Marker = { marker, selectedPoint: this.data[0], };
+    const markerDesc: Marker = { marker, selectedPoint: this.data[0] };
     this.markers.push(markerDesc);
 
     this.fgContainer.append(marker);
@@ -82,7 +87,9 @@ export class SmithData {
     marker.setDragHandler((mp) => {
       const dp = this.findClosestPointTo(this.scaler.pointInvert(mp));
 
-      if (markerDesc.selectedPoint === dp) { return; }
+      if (markerDesc.selectedPoint === dp) {
+        return;
+      }
       markerDesc.selectedPoint = dp;
 
       marker.move(this.scaler.point(dp.point));
@@ -95,6 +102,7 @@ export class SmithData {
       }, 0);
     });
 
+    marker.zoom(this.transform.k);
     marker.show();
     marker.move(this.scaler.point(markerDesc.selectedPoint.point));
 
@@ -105,7 +113,7 @@ export class SmithData {
     }, 0);
   }
 
-  public getMarker(index: number): Marker|undefined {
+  public getMarker(index: number): Marker | undefined {
     return this.markers[index];
   }
 
@@ -121,7 +129,7 @@ export class SmithData {
     const dist = (p1: Point, p2: Point) => {
       const xd = p1[0] - p2[0];
       const yd = p1[1] - p2[1];
-      return  Math.sqrt(xd * xd + yd * yd);
+      return Math.sqrt(xd * xd + yd * yd);
     };
 
     return this.data.reduce((prev, curr) => {

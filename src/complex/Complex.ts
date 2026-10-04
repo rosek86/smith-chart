@@ -1,35 +1,45 @@
-// tslint:disable:variable-name
-// tslint:disable:member-ordering
-// tslint:disable:unified-signatures
-
 export class Complex {
-  private _re: number;
-  private _im: number;
-  private _epsilon = Number.EPSILON;
+  private readonly realPart: number;
+  private readonly imaginaryPart: number;
+  private tolerance = Number.EPSILON;
 
   private constructor(re: number, im: number) {
-    this._re = re;
-    this._im = im;
+    this.realPart = re;
+    this.imaginaryPart = im;
   }
 
   public static from(re: number, im?: number): Complex;
-  public static from(rect: { re: number, im: number }): Complex;
-  public static from(polar: { r: number, phi: number }): Complex;
+  public static from(rect: { re: number; im: number }): Complex;
+  public static from(polar: { r: number; phi: number }): Complex;
   public static from(arr: [number, number]): Complex;
 
-  public static from(): Complex {
-    if (arguments.length === 1) {
-      const arg = arguments[0];
+  public static from(...args: unknown[]): Complex {
+    if (args.length === 1) {
+      const arg = args[0];
 
       if (typeof arg === 'number') {
         return new Complex(arg, 0);
       }
 
-      if (typeof arg.re === 'number' && typeof arg.im === 'number') {
+      if (
+        typeof arg === 'object' &&
+        arg !== null &&
+        're' in arg &&
+        'im' in arg &&
+        typeof arg.re === 'number' &&
+        typeof arg.im === 'number'
+      ) {
         return new Complex(arg.re, arg.im);
       }
 
-      if (typeof arg.r === 'number' && typeof arg.phi === 'number') {
+      if (
+        typeof arg === 'object' &&
+        arg !== null &&
+        'r' in arg &&
+        'phi' in arg &&
+        typeof arg.r === 'number' &&
+        typeof arg.phi === 'number'
+      ) {
         return Complex.fromPolar(arg.r, arg.phi);
       }
 
@@ -38,9 +48,9 @@ export class Complex {
       }
     }
 
-    if (arguments.length === 2) {
-      const arg0 = arguments[0];
-      const arg1 = arguments[1];
+    if (args.length === 2) {
+      const arg0 = args[0];
+      const arg1 = args[1];
 
       if (typeof arg0 === 'number' && typeof arg1 === 'number') {
         return new Complex(arg0, arg1);
@@ -75,19 +85,19 @@ export class Complex {
   }
 
   public get re(): number {
-    return this._re;
+    return this.realPart;
   }
 
   public get im(): number {
-    return this._im;
+    return this.imaginaryPart;
   }
 
   public get epsilon(): number {
-    return this._epsilon;
+    return this.tolerance;
   }
 
   public set epsilon(e: number) {
-    this._epsilon = e;
+    this.tolerance = e;
   }
 
   public abs(): number {
@@ -114,19 +124,19 @@ export class Complex {
     return Complex.inv(this);
   }
 
-  public add(v: number|Complex): Complex {
+  public add(v: number | Complex): Complex {
     return Complex.add(this, v);
   }
 
-  public sub(v: number|Complex): Complex {
+  public sub(v: number | Complex): Complex {
     return Complex.sub(this, v);
   }
 
-  public mul(v: number|Complex): Complex {
+  public mul(v: number | Complex): Complex {
     return Complex.mul(this, v);
   }
 
-  public div(v: number|Complex): Complex {
+  public div(v: number | Complex): Complex {
     return Complex.div(this, v);
   }
 
@@ -154,35 +164,83 @@ export class Complex {
     return Complex.sqrt(this);
   }
 
-  public sin()   { return Complex.sin(this);   }
-  public asin()  { return Complex.asin(this);  }
-  public sinh()  { return Complex.sinh(this);  }
-  public asinh() { return Complex.asinh(this); }
+  public sin() {
+    return Complex.sin(this);
+  }
+  public asin() {
+    return Complex.asin(this);
+  }
+  public sinh() {
+    return Complex.sinh(this);
+  }
+  public asinh() {
+    return Complex.asinh(this);
+  }
 
-  public cos()   { return Complex.cos(this);   }
-  public acos()  { return Complex.acos(this);  }
-  public cosh()  { return Complex.cosh(this);  }
-  public acosh() { return Complex.acosh(this); }
+  public cos() {
+    return Complex.cos(this);
+  }
+  public acos() {
+    return Complex.acos(this);
+  }
+  public cosh() {
+    return Complex.cosh(this);
+  }
+  public acosh() {
+    return Complex.acosh(this);
+  }
 
-  public tan()   { return Complex.tan(this);   }
-  public atan()  { return Complex.atan(this);  }
-  public tanh()  { return Complex.tanh(this);  }
-  public atanh() { return Complex.atanh(this); }
+  public tan() {
+    return Complex.tan(this);
+  }
+  public atan() {
+    return Complex.atan(this);
+  }
+  public tanh() {
+    return Complex.tanh(this);
+  }
+  public atanh() {
+    return Complex.atanh(this);
+  }
 
-  public cot()   { return Complex.cot(this);   }
-  public acot()  { return Complex.acot(this);  }
-  public coth()  { return Complex.coth(this);  }
-  public acoth() { return Complex.acoth(this); }
+  public cot() {
+    return Complex.cot(this);
+  }
+  public acot() {
+    return Complex.acot(this);
+  }
+  public coth() {
+    return Complex.coth(this);
+  }
+  public acoth() {
+    return Complex.acoth(this);
+  }
 
-  public sec()   { return Complex.sec(this);   }
-  public asec()  { return Complex.asec(this);  }
-  public sech()  { return Complex.sech(this);  }
-  public asech() { return Complex.asech(this); }
+  public sec() {
+    return Complex.sec(this);
+  }
+  public asec() {
+    return Complex.asec(this);
+  }
+  public sech() {
+    return Complex.sech(this);
+  }
+  public asech() {
+    return Complex.asech(this);
+  }
 
-  public csc()   { return Complex.csc(this);   }
-  public acsc()  { return Complex.acsc(this);  }
-  public csch()  { return Complex.csch(this);  }
-  public acsch() { return Complex.acsch(this); }
+  public csc() {
+    return Complex.csc(this);
+  }
+  public acsc() {
+    return Complex.acsc(this);
+  }
+  public csch() {
+    return Complex.csch(this);
+  }
+  public acsch() {
+    return Complex.acsch(this);
+  }
 
   public equals(z: Complex): boolean {
     return Complex.equals(this, z, this.epsilon);
@@ -228,11 +286,11 @@ export class Complex {
     const [r, phi] = z.toPolar();
     return Complex.from({
       r: 1 / r,
-      phi: -phi
+      phi: -phi,
     });
   }
 
-  public static add(z: Complex, v: number|Complex): Complex {
+  public static add(z: Complex, v: number | Complex): Complex {
     if (typeof v === 'number') {
       return Complex.from(z.re + v, z.im);
     } else {
@@ -240,7 +298,7 @@ export class Complex {
     }
   }
 
-  public static sub(z: Complex, v: number|Complex): Complex {
+  public static sub(z: Complex, v: number | Complex): Complex {
     if (typeof v === 'number') {
       return Complex.from(z.re - v, z.im);
     } else {
@@ -248,27 +306,21 @@ export class Complex {
     }
   }
 
-  public static mul(z: Complex, v: number|Complex): Complex {
+  public static mul(z: Complex, v: number | Complex): Complex {
     if (typeof v === 'number') {
       return Complex.from(z.re * v, z.im * v);
     } else {
       // (a + bi)(c + di) = (ac - bd) + (ad + bc)i
-      return Complex.from(
-        z.re * v.re - z.im * v.im,
-        z.re * v.im + z.im * v.re
-      );
+      return Complex.from(z.re * v.re - z.im * v.im, z.re * v.im + z.im * v.re);
     }
   }
 
-  public static div(z: Complex, v: number|Complex): Complex {
+  public static div(z: Complex, v: number | Complex): Complex {
     if (typeof v === 'number') {
       return Complex.from(z.re / v, z.im / v);
     } else {
       const d = v.re ** 2 + v.im ** 2;
-      return Complex.from(
-        (z.re * v.re + z.im * v.im) / d,
-        (z.im * v.re - z.re * v.im) / d
-      );
+      return Complex.from((z.re * v.re + z.im * v.im) / d, (z.im * v.re - z.re * v.im) / d);
     }
   }
 
@@ -309,7 +361,7 @@ export class Complex {
     const [r, phi] = z.toPolar();
     return Complex.from({
       r: Math.pow(r, exponent),
-      phi: phi * exponent
+      phi: phi * exponent,
     });
   }
 
@@ -320,10 +372,7 @@ export class Complex {
   public static sin(z: Complex): Complex {
     // sin(a+bi) = sin(a)cosh(b) + icos(a)sinh(b)
     // https://proofwiki.org/wiki/Sine_of_Complex_Number
-    return Complex.from(
-      Math.sin(z.re) * Math.cosh(z.im),
-      Math.cos(z.re) * Math.sinh(z.im)
-    );
+    return Complex.from(Math.sin(z.re) * Math.cosh(z.im), Math.cos(z.re) * Math.sinh(z.im));
   }
 
   public static asin(z: Complex): Complex {
@@ -332,32 +381,21 @@ export class Complex {
     const C = Complex;
     const i = C.i;
 
-    return i.neg().mul(
-      C.log(
-        z.mul(i).add(
-          C.sqrt(
-            C.one().sub(z.pow(2))
-          )
-        )
-      )
-    );
+    return i.neg().mul(C.log(z.mul(i).add(C.sqrt(C.one().sub(z.pow(2))))));
   }
 
   public static sinh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.sinh is not implemented.');
   }
 
   public static asinh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.asinh is not implemented.');
   }
 
   public static cos(z: Complex): Complex {
     // cos(a+bi) = cos(a)cosh(b) + isin(a)sinh(b)
     // https://proofwiki.org/wiki/Cosine_of_Complex_Number
-    return Complex.from(
-       Math.cos(z.re) * Math.cosh(z.im),
-      -Math.sin(z.re) * Math.sinh(z.im)
-    );
+    return Complex.from(Math.cos(z.re) * Math.cosh(z.im), -Math.sin(z.re) * Math.sinh(z.im));
   }
 
   public static acos(z: Complex): Complex {
@@ -370,11 +408,11 @@ export class Complex {
   }
 
   public static cosh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.cosh is not implemented.');
   }
 
   public static acosh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.acosh is not implemented.');
   }
 
   public static tan(z: Complex): Complex {
@@ -393,11 +431,11 @@ export class Complex {
   }
 
   public static tanh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.tanh is not implemented.');
   }
 
   public static atanh(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.atanh is not implemented.');
   }
 
   public static cot(z: Complex): Complex {
@@ -416,15 +454,15 @@ export class Complex {
   }
 
   public static coth(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.coth is not implemented.');
   }
 
   public static acoth(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.acoth is not implemented.');
   }
 
   public static sec(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.sec is not implemented.');
   }
 
   public static asec(z: Complex): Complex {
@@ -433,27 +471,19 @@ export class Complex {
     const C = Complex;
     const i = C.i;
 
-    return i.neg().mul(
-      C.log(
-        C.sqrt(
-          C.one().div(z.pow(2)).sub(1)
-        ).add(
-          z.inv()
-        )
-      )
-    );
+    return i.neg().mul(C.log(C.sqrt(C.one().div(z.pow(2)).sub(1)).add(z.inv())));
   }
 
   public static sech(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.sech is not implemented.');
   }
 
   public static asech(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.asech is not implemented.');
   }
 
   public static csc(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.csc is not implemented.');
   }
 
   public static acsc(z: Complex): Complex {
@@ -462,38 +492,27 @@ export class Complex {
     const C = Complex;
     const i = C.i;
 
-    return i.neg().mul(
-      C.log(
-        C.sqrt(
-          C.one().sub(
-            C.one().div(z.pow(2))
-          )
-        ).add(
-          i.div(z)
-        )
-      )
-    );
+    return i.neg().mul(C.log(C.sqrt(C.one().sub(C.one().div(z.pow(2)))).add(i.div(z))));
   }
 
   public static csch(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.csch is not implemented.');
   }
 
   public static acsch(z: Complex): Complex {
-    return Complex.from(0, 0); // TODO
+    throw new Error('Complex.acsch is not implemented.');
   }
 
   public static equals(z1: Complex, z2: Complex, epsilon = Number.EPSILON): boolean {
-    return Math.abs(z1.re - z2.re) < epsilon &&
-           Math.abs(z1.im - z2.im) < epsilon;
+    return Math.abs(z1.re - z2.re) < epsilon && Math.abs(z1.im - z2.im) < epsilon;
   }
 
   public static toPolar(z: Complex): [number, number] {
-    return [ z.abs(), z.arg() ];
+    return [z.abs(), z.arg()];
   }
 
   public static toVector(z: Complex): [number, number] {
-    return [ z.re, z.im ];
+    return [z.re, z.im];
   }
 
   // TODO: format

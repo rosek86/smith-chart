@@ -1,14 +1,16 @@
 import * as d3 from 'd3';
 
-import { Circle } from '../shapes/Circle';
-import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { Circle } from '../shapes/Circle.js';
+import { SmithShape } from './SmithShape.js';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithCircle extends SmithShape {
   public constructor(c: Circle, options?: SmithDrawOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    ));
+    super(
+      d3.select<SVGElement, unknown>(
+        document.createElementNS('http://www.w3.org/2000/svg', 'circle'),
+      ),
+    );
     if (options) {
       this.setDrawOptions(options);
     }
@@ -29,6 +31,6 @@ export class SmithCircle extends SmithShape {
   }
 
   public nonScalingStroke(): void {
-    this.Element.attr('vector-effect',  'non-scaling-stroke');
+    this.Element.attr('vector-effect', 'non-scaling-stroke');
   }
 }

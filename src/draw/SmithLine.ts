@@ -1,14 +1,16 @@
 import * as d3 from 'd3';
 
-import { Point } from '../shapes/Point';
-import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { Point } from '../shapes/Point.js';
+import { SmithShape } from './SmithShape.js';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithLine extends SmithShape {
   public constructor(p1: Point, p2: Point, options?: SmithDrawOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'line')
-    ));
+    super(
+      d3.select<SVGElement, unknown>(
+        document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+      ),
+    );
     if (options) {
       this.setDrawOptions(options);
     }
@@ -16,9 +18,7 @@ export class SmithLine extends SmithShape {
   }
 
   public move(p1: Point, p2: Point): SmithLine {
-    this.element
-      .attr('x1', p1[0]).attr('y1', p1[1])
-      .attr('x2', p2[0]).attr('y2', p2[1]);
+    this.element.attr('x1', p1[0]).attr('y1', p1[1]).attr('x2', p2[0]).attr('y2', p2[1]);
     return this;
   }
 
@@ -31,7 +31,7 @@ export class SmithLine extends SmithShape {
   }
 
   public nonScalingStroke(): void {
-    this.Element.attr('vector-effect',  'non-scaling-stroke');
+    this.Element.attr('vector-effect', 'non-scaling-stroke');
   }
 
   public setStrokeLinecap(linecap: string): void {

@@ -1,40 +1,40 @@
 import * as d3 from 'd3';
 import { ZoomTransform } from 'd3';
 
-import { Point } from './shapes/Point';
+import { Point } from './shapes/Point.js';
 
-import { SmithSvg } from './draw/SmithSvg';
-import { SmithGroup } from './draw/SmithGroup';
-import { SmithCircle } from './draw/SmithCircle';
+import { SmithSvg } from './draw/SmithSvg.js';
+import { SmithGroup } from './draw/SmithGroup.js';
+import { SmithCircle } from './draw/SmithCircle.js';
 
-import { SmithData } from './draw/SmithData';
-import { SmithCursor } from './draw/SmithCursor';
+import { SmithData } from './draw/SmithData.js';
+import { SmithCursor } from './draw/SmithCursor.js';
 
-import { ConstResistance } from './draw/ConstResistance';
-import { ConstReactance } from './draw/ConstReactance';
-import { ConstConductance } from './draw/ConstConductance';
-import { ConstSusceptance } from './draw/ConstSusceptance';
-import { ConstQCircles } from './draw/ConstQCircles';
-import { ConstSwrCircles } from './draw/ConstSwrCircles';
+import { ConstResistance } from './draw/ConstResistance.js';
+import { ConstReactance } from './draw/ConstReactance.js';
+import { ConstConductance } from './draw/ConstConductance.js';
+import { ConstSusceptance } from './draw/ConstSusceptance.js';
+import { ConstQCircles } from './draw/ConstQCircles.js';
+import { ConstSwrCircles } from './draw/ConstSwrCircles.js';
 
-import { SmithDrawOptions } from './draw/SmithDrawOptions';
-import { SmithScaler } from './draw/SmithScaler';
+import { SmithDrawOptions } from './draw/SmithDrawOptions.js';
+import { SmithScaler } from './draw/SmithScaler.js';
 
-import { S1P } from './SnP';
-import { SmithConstantCircle } from './SmithConstantCircle';
-import { SmithArcsDefs } from './SmithArcsDefs';
+import { S1P } from './SnP.js';
+import { SmithConstantCircle } from './SmithConstantCircle.js';
+import { SmithArcsDefs } from './SmithArcsDefs.js';
 
-import { RadiallyScaledParams } from './radially_scaled_params/RadiallyScaledParams';
-import { Complex } from './complex/Complex';
+import { RadiallyScaledParams } from './scales/RadiallyScaledParams.js';
+import { Complex } from './complex/Complex.js';
 
 export interface SmithCursorEvent {
   reflectionCoefficient: Complex;
-  impedance: Complex|undefined;
-  admittance: Complex|undefined;
+  impedance: Complex | undefined;
+  admittance: Complex | undefined;
   swr: number;
   returnLoss: number;
   mismatchLoss: number; // reflection loss
-  Q: number|undefined;
+  Q: number | undefined;
   dBS: number;
   rflCoeffP: number;
   rflCoeffEOrI: number;
@@ -45,22 +45,23 @@ export interface SmithMarkerEvent {
   datasetNo: number;
   markerNo: number;
   reflectionCoefficient: Complex;
-  impedance: Complex|undefined;
-  admittance: Complex|undefined;
+  impedance: Complex | undefined;
+  admittance: Complex | undefined;
   swr: number;
   returnLoss: number;
   mismatchLoss: number;
-  Q: number|undefined;
+  Q: number | undefined;
   freq: number;
 }
 
 export enum SmithEventType {
-  Cursor, Marker
+  Cursor,
+  Marker,
 }
 
 export interface SmithEvent {
   type: SmithEventType;
-  data: SmithCursorEvent|SmithMarkerEvent|undefined;
+  data: SmithCursorEvent | SmithMarkerEvent | undefined;
 }
 
 interface Scalers {
@@ -74,6 +75,7 @@ export class Smith {
   private scalers: Scalers;
 
   private transform = d3.zoomIdentity;
+  private zoomBehavior = d3.zoom<SVGElement, unknown>();
 
   private svg: SmithSvg;
   private container: SmithGroup;
@@ -93,7 +95,7 @@ export class Smith {
   private cursor: SmithCursor;
   private data: SmithData[] = [];
 
-  private userActionHandler: ((event: SmithEvent) => void)|null = null;
+  private userActionHandler: ((event: SmithEvent) => void) | null = null;
 
   constructor(private Z0: number = 50) {
     const viewBoxSize = 500;
@@ -114,7 +116,7 @@ export class Smith {
       scaler: this.scalers.default,
       showMinor: true,
     });
-    this.constReactance.hide();
+    this.constReactance.show();
 
     this.constConductance = new ConstConductance({
       data: SmithArcsDefs.getData(),
@@ -140,7 +142,9 @@ export class Smith {
     const cursorContainer = this.cursorContainer();
 
     this.reactanceAxis = this.drawReactanceAxis({
-      stroke: 'blue', strokeWidth: '1', fill: 'none'
+      stroke: 'blue',
+      strokeWidth: '1',
+      fill: 'none',
     });
 
     this.dataContainer = new SmithGroup();
@@ -150,10 +154,10 @@ export class Smith {
 
     // build chart
     this.svg.append(this.container);
-    this.container.append(this.constConductance.draw());
-    this.container.append(this.constSusceptance.draw());
-    this.container.append(this.constResistance.draw());
-    this.container.append(this.constReactance.draw());
+    this.container.append(this.constConductance.draw().attr('data-layer', 'conductance'));
+    this.container.append(this.constSusceptance.draw().attr('data-layer', 'susceptance'));
+    this.container.append(this.constResistance.draw().attr('data-layer', 'resistance'));
+    this.container.append(this.constReactance.draw().attr('data-layer', 'reactance'));
     this.container.append(this.constQCircles.draw());
     this.container.append(this.constSwrCircles.draw());
     this.container.append(this.cursor.Group);
@@ -172,23 +176,26 @@ export class Smith {
 
   private createScalers(size: number): Scalers {
     const impedance = new SmithScaler(
-      d3.scaleLinear().domain([ -1,  1 ]).range([ 0, size     ]),
-      d3.scaleLinear().domain([  1, -1 ]).range([ 0, size     ]),
-      d3.scaleLinear().domain([  0,  1 ]).range([ 0, size / 2 ]),
+      d3.scaleLinear().domain([-1, 1]).range([0, size]),
+      d3.scaleLinear().domain([1, -1]).range([0, size]),
+      d3
+        .scaleLinear()
+        .domain([0, 1])
+        .range([0, size / 2]),
     );
     const admittance = new SmithScaler(
-      d3.scaleLinear().domain([  1, -1 ]).range([ 0, size     ]),
-      d3.scaleLinear().domain([ -1,  1 ]).range([ 0, size     ]),
-      d3.scaleLinear().domain([  0,  1 ]).range([ 0, size / 2 ]),
+      d3.scaleLinear().domain([1, -1]).range([0, size]),
+      d3.scaleLinear().domain([-1, 1]).range([0, size]),
+      d3
+        .scaleLinear()
+        .domain([0, 1])
+        .range([0, size / 2]),
     );
     return { default: impedance, impedance, admittance };
   }
 
-
   private cursorMove(p: Point): void {
-    this.cursor.Position = Complex.fromArray(
-      this.scalers.default.pointInvert(p)
-    );
+    this.cursor.Position = Complex.from(this.scalers.default.pointInvert(p));
   }
 
   private initCursor(): SmithCursor {
@@ -196,7 +203,8 @@ export class Smith {
     cursor.setMoveHandler(() => {
       if (this.userActionHandler) {
         this.userActionHandler({
-          type: SmithEventType.Cursor, data: this.CursorData,
+          type: SmithEventType.Cursor,
+          data: this.CursorData,
         });
       }
     });
@@ -207,35 +215,31 @@ export class Smith {
     const rc = this.cursor.Position;
     return {
       reflectionCoefficient: rc,
-      impedance:    this.calcImpedance(rc),
-      admittance:   this.calcAdmittance(rc),
-      swr:          this.calcs.rflCoeffToSwr(rc),
-      returnLoss:   this.calcs.rflCoeffToReturnLoss(rc),
+      impedance: this.calcImpedance(rc),
+      admittance: this.calcAdmittance(rc),
+      swr: this.calcs.rflCoeffToSwr(rc),
+      returnLoss: this.calcs.rflCoeffToReturnLoss(rc),
       mismatchLoss: this.calcs.rflCoeffToMismatchLoss(rc),
-      Q:            this.calcs.rflCoeffToQ(rc),
-      dBS:          this.calcs.rflCoeffToDBS(rc),
-      rflCoeffP:    this.calcs.rflCoeffP(rc),
+      Q: this.calcs.rflCoeffToQ(rc),
+      dBS: this.calcs.rflCoeffToDBS(rc),
+      rflCoeffP: this.calcs.rflCoeffP(rc),
       rflCoeffEOrI: this.calcs.rflCoeffEOrI(rc),
       transmCoeffP: this.calcs.rflCoeffToTransmCoeffP(rc),
     };
   }
 
   private initializeZoom(): void {
-    const zoom = d3.zoom<SVGElement, {}>()
-      .scaleExtent([ 0.6, 1000 ])
-      .on('zoom', () => this.onZoom(d3.event.transform));
-
-    const halfsize = 500 / 2;
-    const initScale = 0.8;
-    const xTranslate = (1 - initScale) * halfsize;
-    const yTranslate = (1 - initScale - 0.15) * halfsize;
+    const zoom = this.zoomBehavior
+      .scaleExtent([0.6, 1000])
+      .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => this.onZoom(event.transform));
 
     this.svg.Element.call(zoom);
+    this.resetView();
+  }
 
-    const transform = d3.zoomIdentity
-      .translate(xTranslate, yTranslate)
-      .scale(initScale);
-    this.svg.Element.transition().call(zoom.transform, transform);
+  public resetView(): void {
+    const transform = d3.zoomIdentity.translate(50, 12.5).scale(0.8);
+    this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 
   private onZoom(transform: ZoomTransform): void {
@@ -245,14 +249,13 @@ export class Smith {
   }
 
   private cursorContainer(): SmithCircle {
-    const that = this;
     const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
 
     shape.Element.style('pointer-events', 'all')
-      .on('mousemove', function() {
-        that.cursorMove(d3.mouse(this as any));
+      .on('pointermove', (event: PointerEvent) => {
+        this.cursorMove(d3.pointer(event));
       })
-      .on('mouseleave', () => this.cursor.hide());
+      .on('pointerleave', () => this.cursor.hide());
 
     return shape;
   }
@@ -261,7 +264,7 @@ export class Smith {
     const c = this.calcs.resistanceCircle(0);
     c.p[0] = this.scalers.default.x(c.p[0]);
     c.p[1] = this.scalers.default.y(c.p[1]);
-    c.r    = this.scalers.default.r(c.r);
+    c.r = this.scalers.default.r(c.r);
     return new SmithCircle(c, opts);
   }
 
@@ -283,7 +286,9 @@ export class Smith {
   }
 
   public formatComplex(c: Complex, unit: string = '', dp: number = 3): string {
-    if (unit !== '') { unit = `[${unit}]`; }
+    if (unit !== '') {
+      unit = `[${unit}]`;
+    }
     return `${c.toString(dp)} ${unit}`;
   }
 
@@ -294,40 +299,34 @@ export class Smith {
   }
 
   public formatNumber(val: number): string {
-    if (val > 1e24 ) { return (val / 1e24 ).toFixed(3) + ' Y'; }
-    if (val > 1e21 ) { return (val / 1e21 ).toFixed(3) + ' Z'; }
-    if (val > 1e18 ) { return (val / 1e18 ).toFixed(3) + ' E'; }
-    if (val > 1e15 ) { return (val / 1e15 ).toFixed(3) + ' P'; }
-    if (val > 1e12 ) { return (val / 1e12 ).toFixed(3) + ' T'; }
-    if (val > 1e9  ) { return (val / 1e9  ).toFixed(3) + ' G'; }
-    if (val > 1e6  ) { return (val / 1e6  ).toFixed(3) + ' M'; }
-    if (val > 1e3  ) { return (val / 1e3  ).toFixed(3) + ' k'; }
-    if (val > 1    ) { return (val        ).toFixed(3) + ' ';  }
-    if (val > 1e-3 ) { return (val / 1e-3 ).toFixed(3) + ' m'; }
-    if (val > 1e-6 ) { return (val / 1e-6 ).toFixed(3) + ' μ'; }
-    if (val > 1e-9 ) { return (val / 1e-9 ).toFixed(3) + ' n'; }
-    if (val > 1e-12) { return (val / 1e-12).toFixed(3) + ' p'; }
-    if (val > 1e-15) { return (val / 1e-15).toFixed(3) + ' f'; }
-    if (val > 1e-18) { return (val / 1e-18).toFixed(3) + ' a'; }
-    if (val > 1e-21) { return (val / 1e-21).toFixed(3) + ' z'; }
-    return (val / 1e-24).toFixed(3) + ' y';
+    const formatted = d3.format('.3~s')(val);
+    return Number.isFinite(val) && /[a-zA-Zµ]$/.test(formatted)
+      ? formatted.replace(/([a-zA-Zµ])$/, ' $1')
+      : formatted + ' ';
   }
 
   public addS1P(values: S1P): void {
-    if (values.length === 0) { return; }
+    if (values.length === 0) {
+      return;
+    }
     const data = this.createSmithData(values, this.data.length);
     this.data.push(data);
   }
 
   private createSmithData(values: S1P, dataset: number): SmithData {
-    const color = d3.schemeCategory10[1 + dataset];
-    const data = new SmithData(values, color,
-      this.transform, this.dataContainer, this.scalers.default
+    const color = d3.schemeCategory10[(1 + dataset) % d3.schemeCategory10.length];
+    const data = new SmithData(
+      values,
+      color,
+      this.transform,
+      this.dataContainer,
+      this.scalers.default,
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {
         this.userActionHandler({
-          type: SmithEventType.Marker, data: this.getMarkerData(dataset, marker)
+          type: SmithEventType.Marker,
+          data: this.getMarkerData(dataset, marker),
         });
       }
     });
@@ -335,24 +334,30 @@ export class Smith {
     return data;
   }
 
-  public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent|undefined {
-    if (!this.data[datasetNo]) { return; }
+  public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent | undefined {
+    if (!this.data[datasetNo]) {
+      return;
+    }
 
     const m = this.data[datasetNo].getMarker(markerNo);
-    if (!m) { return; }
+    if (!m) {
+      return;
+    }
 
     const rc = Complex.from(...m.selectedPoint.point);
     const freq = m.selectedPoint.freq;
 
     return {
-      datasetNo, markerNo, freq,
-      reflectionCoefficient:  rc,
-      impedance:              this.calcImpedance(rc),
-      admittance:             this.calcAdmittance(rc),
-      swr:                    this.calcs.rflCoeffToSwr(rc),
-      returnLoss:             this.calcs.rflCoeffToReturnLoss(rc),
-      mismatchLoss:           this.calcs.rflCoeffToMismatchLoss(rc),
-      Q:                      this.calcs.rflCoeffToQ(rc),
+      datasetNo,
+      markerNo,
+      freq,
+      reflectionCoefficient: rc,
+      impedance: this.calcImpedance(rc),
+      admittance: this.calcAdmittance(rc),
+      swr: this.calcs.rflCoeffToSwr(rc),
+      returnLoss: this.calcs.rflCoeffToReturnLoss(rc),
+      mismatchLoss: this.calcs.rflCoeffToMismatchLoss(rc),
+      Q: this.calcs.rflCoeffToQ(rc),
     };
   }
 
@@ -388,17 +393,17 @@ export class Smith {
     this.userActionHandler = handler;
   }
 
-  public calcImpedance(rc: Complex): Complex|undefined {
+  public calcImpedance(rc: Complex): Complex | undefined {
     const impedance = this.calcs.rflCoeffToImpedance(rc);
     if (impedance) {
       return impedance.mul(this.Z0);
     }
     return impedance;
   }
-  public calcAdmittance(rc: Complex): Complex|undefined {
+  public calcAdmittance(rc: Complex): Complex | undefined {
     const admittance = this.calcs.rflCoeffToAdmittance(rc);
     if (admittance) {
-      return admittance.mul(1 / this.Z0 * 1000.0); // mS
+      return admittance.mul((1 / this.Z0) * 1000.0); // mS
     }
     return admittance;
   }

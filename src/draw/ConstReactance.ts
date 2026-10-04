@@ -1,15 +1,15 @@
-import { ConstCircles, ArcData, Shapes } from './ConstCircles';
+import { ConstCircles, ArcData, Shapes } from './ConstCircles.js';
 
-import { SmithGroup } from './SmithGroup';
-import { SmithText } from './SmithText';
-import { SmithScaler } from './SmithScaler';
+import { SmithGroup } from './SmithGroup.js';
+import { SmithText } from './SmithText.js';
+import { SmithScaler } from './SmithScaler.js';
 
-import { SmithArcDef, SmithArcEntry, SmithArcsDefs } from '../SmithArcsDefs';
-import { SmithTicksData, SmithTicksShapes } from '../SmithArcsDefs';
+import { SmithArcDef, SmithArcEntry, SmithArcsDefs } from '../SmithArcsDefs.js';
+import { SmithTicksData, SmithTicksShapes } from '../SmithArcsDefs.js';
 
-import { Point } from '../shapes/Point';
-import { TickDefRequired } from '../arcs/Tick';
-import { Complex } from '../complex/Complex';
+import { Point } from '../shapes/Point.js';
+import { TickDefRequired } from '../arcs/Tick.js';
+import { Complex } from '../complex/Complex.js';
 
 export class ConstReactance extends ConstCircles {
   private data: SmithTicksData;
@@ -18,11 +18,7 @@ export class ConstReactance extends ConstCircles {
   protected minor: SmithGroup;
   protected texts: SmithGroup;
 
-  public constructor(params: {
-      scaler: SmithScaler,
-      showMinor: boolean,
-      data: SmithTicksData,
-    }) {
+  public constructor(params: { scaler: SmithScaler; showMinor: boolean; data: SmithTicksData }) {
     super(params.scaler);
 
     this.data = params.data;
@@ -67,20 +63,19 @@ export class ConstReactance extends ConstCircles {
 
   private reactanceArc(def: SmithArcDef): [Point, Point, number, boolean, boolean] {
     const cc = def[SmithArcEntry.clipCircles];
-    const c  = this.calcs.reactanceCircle(def[SmithArcEntry.circle]);
+    const c = this.calcs.reactanceCircle(def[SmithArcEntry.circle]);
     const i1 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[0][0]));
     const i2 = this.calcs.circleCircleIntersection(c, this.calcs.resistanceCircle(cc[1][0]));
     const p1 = i1[cc[0][1]];
     const p2 = i2[cc[1][1]];
     const arcOpts = def[SmithArcEntry.arcOptions];
-    return [ p1, p2, c.r, arcOpts[0], arcOpts[1] ];
+    return [p1, p2, c.r, arcOpts[0], arcOpts[1]];
   }
-
 
   private drawLabels(): SmithGroup {
     const group = new SmithGroup()
-      .attr('stroke',      'none')
-      .attr('font-size',   '7')
+      .attr('stroke', 'none')
+      .attr('font-size', '7')
       .attr('font-family', 'Verdana');
     for (const e of SmithArcsDefs.reactanceLabels()) {
       const d = e.definition;
@@ -90,22 +85,22 @@ export class ConstReactance extends ConstCircles {
   }
 
   private drawTickLabel(d: TickDefRequired): SmithText {
-    const rc = this.calcs.impedanceToRflCoeff(
-      Complex.from(d.point.r, d.point.i)
-    );
+    const rc = this.calcs.impedanceToRflCoeff(Complex.from(d.point.r, d.point.i));
 
     if (rc === undefined) {
       throw new Error('Invalid text tick coordinates');
     }
 
-    const value  = Math.abs(d.point.i).toFixed(d.dp);
-    const dx     = this.scaler.r(d.transform.dx).toString();
-    const dy     = this.scaler.r(d.transform.dy).toString();
-    const rotate = this.calcRotationAngle(d, rc.toArray());
+    const value = d.point.i.toFixed(d.dp);
+    const dx = this.scaler.r(d.transform.dx).toString();
+    const dy = this.scaler.r(d.transform.dy).toString();
+    const rotate = this.calcRotationAngle(d, rc.toVector());
 
-    const text = new SmithText(this.scaler.point(rc.toArray()), value, {
-      rotate, dx, dy,
-      textAnchor: d.textAnchor
+    const text = new SmithText(this.scaler.point(rc.toVector()), value, {
+      rotate,
+      dx,
+      dy,
+      textAnchor: d.textAnchor,
     });
 
     return text;

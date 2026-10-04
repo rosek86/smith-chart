@@ -1,4 +1,7 @@
-node_modules
-package-lock.json
-build
-dist
+node_modules/
+build/
+dist/
+playwright-report/
+test-results/
+.DS_Store
+*.tgz

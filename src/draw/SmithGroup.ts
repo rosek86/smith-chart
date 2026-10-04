@@ -1,22 +1,25 @@
 import * as d3 from 'd3';
-import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { SmithShape } from './SmithShape.js';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithGroup extends SmithShape {
   public constructor(options?: SmithDrawOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    ));
+    super(
+      d3.select<SVGElement, unknown>(document.createElementNS('http://www.w3.org/2000/svg', 'g')),
+    );
     if (options) {
       this.setDrawOptions(options);
     }
   }
 
-  public get Element(): d3.Selection<SVGElement, {}, null, undefined> {
+  public get Element(): d3.Selection<SVGElement, unknown, null, undefined> {
     return this.element;
   }
 
-  public attr(name: string, value: any): SmithGroup {
+  public attr(
+    name: string,
+    value: Parameters<d3.Selection<SVGElement, unknown, null, undefined>['attr']>[1],
+  ): SmithGroup {
     this.element.attr(name, value);
     return this;
   }
@@ -31,7 +34,7 @@ export class SmithGroup extends SmithShape {
     return this;
   }
 
-  public append(el: SmithShape|null): SmithGroup {
+  public append(el: SmithShape | null): SmithGroup {
     if (el !== null) {
       this.element.append(() => el.Node);
     }

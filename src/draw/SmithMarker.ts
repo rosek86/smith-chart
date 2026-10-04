@@ -1,36 +1,39 @@
 import * as d3 from 'd3';
 
-import { SmithShape } from './SmithShape';
-import { Point } from '../shapes/Point';
+import { SmithShape } from './SmithShape.js';
+import { Point } from '../shapes/Point.js';
 
 export class SmithMarker extends SmithShape {
   private readonly size = 18;
 
-  private triangle: d3.Selection<SVGPolygonElement, {}, null, undefined>;
-  private inner: d3.Selection<SVGPolygonElement, {}, null, undefined>;
-  private text: d3.Selection<SVGTextElement, {}, null, undefined>;
+  private triangle: d3.Selection<SVGPolygonElement, unknown, null, undefined>;
+  private inner: d3.Selection<SVGPolygonElement, unknown, null, undefined>;
+  private text: d3.Selection<SVGTextElement, unknown, null, undefined>;
 
-  private rc: Point = [ 0, 0 ];
-  private dragHandler: ((p: Point) => void)|null = null;
+  private rc: Point = [0, 0];
+  private dragHandler: ((p: Point) => void) | null = null;
 
   public constructor(marker: number, color: string) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    ));
+    super(
+      d3.select<SVGElement, unknown>(document.createElementNS('http://www.w3.org/2000/svg', 'g')),
+    );
 
     const g = this.Element;
 
-    this.triangle = g.append<SVGPolygonElement>('polygon')
+    this.triangle = g
+      .append<SVGPolygonElement>('polygon')
       .attr('stroke', 'none')
       .attr('fill', 'gray')
       .attr('transform', 'translate(0,0)');
 
-    this.inner = g.append<SVGPolygonElement>('polygon')
+    this.inner = g
+      .append<SVGPolygonElement>('polygon')
       .attr('stroke', 'none')
       .attr('fill', color)
       .attr('transform', 'translate(0,0)');
 
-    this.text = g.append<SVGTextElement>('text')
+    this.text = g
+      .append<SVGTextElement>('text')
       .attr('pointer-events', 'none')
       .attr('transform', 'translate(0,0)')
       .attr('font-family', 'Verdana')
@@ -44,20 +47,26 @@ export class SmithMarker extends SmithShape {
 
     this.zoom(1);
 
-    this.triangle.call(d3.drag<SVGPolygonElement, {}>()
-      .on('start', () => { })
-      .on('drag', () => this.onDrag())
-      .on('end', () => { }));
+    this.triangle.call(
+      d3
+        .drag<SVGPolygonElement, unknown>()
+        .on('drag', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
+          this.onDrag(event),
+        ),
+    );
 
-    this.inner.call(d3.drag<SVGPolygonElement, {}>()
-      .on('start', () => { })
-      .on('drag', () => this.onDrag())
-      .on('end', () => { }));
+    this.inner.call(
+      d3
+        .drag<SVGPolygonElement, unknown>()
+        .on('drag', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
+          this.onDrag(event),
+        ),
+    );
   }
 
-  private onDrag() {
+  private onDrag(event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) {
     if (this.dragHandler) {
-      this.dragHandler([ d3.event.x, d3.event.y ]);
+      this.dragHandler([event.x, event.y]);
     }
   }
 

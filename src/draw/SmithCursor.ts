@@ -1,26 +1,25 @@
-import { SmithGroup } from './SmithGroup';
-import { SmithCircle } from './SmithCircle';
-import { SmithLine } from './SmithLine';
-import { SmithArc } from './SmithArc';
-import { SmithScaler } from './SmithScaler';
+import { SmithGroup } from './SmithGroup.js';
+import { SmithCircle } from './SmithCircle.js';
+import { SmithLine } from './SmithLine.js';
+import { SmithArc } from './SmithArc.js';
+import { SmithScaler } from './SmithScaler.js';
 
-import { SmithConstantCircle } from '../SmithConstantCircle';
-import { Point } from '../shapes/Point';
-import { Complex } from '../complex/Complex';
+import { SmithConstantCircle } from '../SmithConstantCircle.js';
+import { Complex } from '../complex/Complex.js';
 
 interface DrawOptions {
-  point: { radius: number; color: string; };
-  impedance: { width: number;  color: string; };
-  admittance: { width: number;  color: string; };
+  point: { radius: number; color: string };
+  impedance: { width: number; color: string };
+  admittance: { width: number; color: string };
 }
 
 export class SmithCursor {
   private epsilon = 1.5e-4;
 
   private drawingOpts: DrawOptions = {
-    point:      { radius: 5, color: 'red',  },
-    impedance:  { width:  1, color: 'red'   },
-    admittance: { width:  1, color: 'green' },
+    point: { radius: 5, color: 'red' },
+    impedance: { width: 1, color: 'red' },
+    admittance: { width: 1, color: 'green' },
   };
 
   private calcs = new SmithConstantCircle();
@@ -33,33 +32,33 @@ export class SmithCursor {
   private point: SmithLine;
 
   private impedance: {
-    group: SmithGroup,
-    resistance: { circle: SmithCircle; };
-    reactance: { arc: SmithArc; line: SmithLine; };
+    group: SmithGroup;
+    resistance: { circle: SmithCircle };
+    reactance: { arc: SmithArc; line: SmithLine };
   };
 
   private admittance: {
-    group: SmithGroup,
-    conductance: { circle: SmithCircle; };
-    susceptance: { arc: SmithArc; line: SmithLine; };
+    group: SmithGroup;
+    conductance: { circle: SmithCircle };
+    susceptance: { arc: SmithArc; line: SmithLine };
   };
 
-  private moveHandler: ((rc: Complex) => void)|null = null;
+  private moveHandler: ((rc: Complex) => void) | null = null;
 
   public constructor(private scaler: SmithScaler) {
-    this.group = new SmithGroup();
+    this.group = new SmithGroup().attr('pointer-events', 'none');
 
     this.impedance = {
       group: new SmithGroup({
         stroke: this.drawingOpts.impedance.color,
         strokeWidth: this.drawingOpts.impedance.width.toString(),
-        fill: 'none'
+        fill: 'none',
       }),
-      resistance: { circle: new SmithCircle({p: [0, 0], r: 1}), },
+      resistance: { circle: new SmithCircle({ p: [0, 0], r: 1 }) },
       reactance: {
-        arc: new SmithArc([ 1, 0 ], [ 0, 1 ], 5, false, false),
-        line: new SmithLine([ -1, 0 ], [ 1, 0 ]),
-      }
+        arc: new SmithArc([1, 0], [0, 1], 5, false, false),
+        line: new SmithLine([-1, 0], [1, 0]),
+      },
     };
     this.impedance.resistance.circle.nonScalingStroke();
     this.impedance.reactance.arc.nonScalingStroke();
@@ -71,10 +70,10 @@ export class SmithCursor {
         strokeWidth: this.drawingOpts.admittance.width.toString(),
         fill: 'none',
       }),
-      conductance: { circle: new SmithCircle({p: [0, 0], r: 1}), },
+      conductance: { circle: new SmithCircle({ p: [0, 0], r: 1 }) },
       susceptance: {
         arc: new SmithArc([1, 0], [0, 1], 5, false, false),
-        line: new SmithLine([-1, 0], [1, 0])
+        line: new SmithLine([-1, 0], [1, 0]),
       },
     };
     this.admittance.conductance.circle.nonScalingStroke();
@@ -84,7 +83,7 @@ export class SmithCursor {
     this.point = new SmithLine([0, 0], [0, 0], {
       stroke: this.drawingOpts.point.color,
       strokeWidth: this.drawingOpts.point.radius.toString(),
-      fill: 'none'
+      fill: 'none',
     });
     this.point.nonScalingStroke();
     this.point.setStrokeLinecap('round');
@@ -104,10 +103,7 @@ export class SmithCursor {
       .append(this.admittance.susceptance.arc)
       .append(this.admittance.susceptance.line);
 
-    this.group
-      .append(this.admittance.group)
-      .append(this.impedance.group)
-      .append(this.point);
+    this.group.append(this.admittance.group).append(this.impedance.group).append(this.point);
   }
 
   public get Group(): SmithGroup {
@@ -144,15 +140,15 @@ export class SmithCursor {
   }
 
   private isWithinPlot(p: Complex): boolean {
-    return this.calcs.isPointWithinCircle([ p.real, p.imag ], this.zClipCircle);
+    return this.calcs.isPointWithinCircle([p.real, p.imag], this.zClipCircle);
   }
 
   private movePoint(rc: Complex): void {
-    const p = rc.toArray();
+    const p = rc.toVector();
     this.point.move(this.scaler.point(p), this.scaler.point(p));
   }
 
-  private moveResistance(z: Complex|undefined): void {
+  private moveResistance(z: Complex | undefined): void {
     if (z === undefined) {
       this.impedance.resistance.circle.hide();
       return;
@@ -163,11 +159,9 @@ export class SmithCursor {
     this.impedance.resistance.circle.move(c);
   }
 
-  private moveReactance(z: Complex|undefined): void {
+  private moveReactance(z: Complex | undefined): void {
     if (z === undefined || Math.abs(z.imag) < this.epsilon) {
-      this.impedance.reactance.line.move(
-        this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
-      );
+      this.impedance.reactance.line.move(this.scaler.point([-1, 0]), this.scaler.point([1, 0]));
       this.impedance.reactance.line.show();
       this.impedance.reactance.arc.hide();
       return;
@@ -185,7 +179,7 @@ export class SmithCursor {
     this.impedance.reactance.arc.move(p[0], p[1], c.r, false, true);
   }
 
-  private moveConductance(y: Complex|undefined): void {
+  private moveConductance(y: Complex | undefined): void {
     if (y === undefined) {
       this.admittance.conductance.circle.hide();
       return;
@@ -196,11 +190,9 @@ export class SmithCursor {
     this.admittance.conductance.circle.move(c);
   }
 
-  private moveSusceptance(y: Complex|undefined) {
+  private moveSusceptance(y: Complex | undefined) {
     if (y === undefined || Math.abs(y.imag) < this.epsilon) {
-      this.admittance.susceptance.line.move(
-        this.scaler.point([ -1, 0 ]), this.scaler.point([ 1, 0 ])
-      );
+      this.admittance.susceptance.line.move(this.scaler.point([-1, 0]), this.scaler.point([1, 0]));
       this.admittance.susceptance.line.show();
       this.admittance.susceptance.arc.hide();
       return;

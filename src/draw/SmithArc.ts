@@ -1,14 +1,23 @@
 import * as d3 from 'd3';
 
-import { Point } from '../shapes/Point';
-import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { Point } from '../shapes/Point.js';
+import { SmithShape } from './SmithShape.js';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithArc extends SmithShape {
-  public constructor(p1: Point, p2: Point, r: number, largeArc: boolean, sweep: boolean, options?: SmithDrawOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    ));
+  public constructor(
+    p1: Point,
+    p2: Point,
+    r: number,
+    largeArc: boolean,
+    sweep: boolean,
+    options?: SmithDrawOptions,
+  ) {
+    super(
+      d3.select<SVGElement, unknown>(
+        document.createElementNS('http://www.w3.org/2000/svg', 'path'),
+      ),
+    );
     if (options) {
       this.setDrawOptions(options);
     }
@@ -18,9 +27,7 @@ export class SmithArc extends SmithShape {
   public move(p1: Point, p2: Point, r: number, largeArc: boolean, sweep: boolean): SmithArc {
     const la = largeArc ? '1' : '0';
     const s = sweep ? '1' : '0';
-    this.element.attr('d',
-      `M${p1[0]},${p1[1]} A${r},${r} 0 ${la},${s} ${p2[0]},${p2[1]}`
-    );
+    this.element.attr('d', `M${p1[0]},${p1[1]} A${r},${r} 0 ${la},${s} ${p2[0]},${p2[1]}`);
     return this;
   }
 
@@ -33,6 +40,6 @@ export class SmithArc extends SmithShape {
   }
 
   public nonScalingStroke(): void {
-    this.Element.attr('vector-effect',  'non-scaling-stroke');
+    this.Element.attr('vector-effect', 'non-scaling-stroke');
   }
 }

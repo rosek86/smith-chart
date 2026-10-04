@@ -1,13 +1,15 @@
 import * as d3 from 'd3';
 
-import { SmithShape } from './SmithShape';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { SmithShape } from './SmithShape.js';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithPath extends SmithShape {
   public constructor(options?: SmithDrawOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    ));
+    super(
+      d3.select<SVGElement, unknown>(
+        document.createElementNS('http://www.w3.org/2000/svg', 'path'),
+      ),
+    );
     if (options) {
       this.setDrawOptions(options);
     }

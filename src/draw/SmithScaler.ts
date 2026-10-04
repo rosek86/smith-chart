@@ -1,23 +1,23 @@
 import * as d3 from 'd3';
 
-import { Circle } from '../shapes/Circle';
-import { Point } from '../shapes/Point';
-import { Line } from '../shapes/Line';
-import { Arc } from '../shapes/Arc';
+import { Circle } from '../shapes/Circle.js';
+import { Point } from '../shapes/Point.js';
+import { Line } from '../shapes/Line.js';
+import { Arc } from '../shapes/Arc.js';
 
 export class SmithScaler {
   public constructor(
     public readonly x: d3.ScaleLinear<number, number>,
     public readonly y: d3.ScaleLinear<number, number>,
-    public readonly r: d3.ScaleLinear<number, number>) {
-  }
+    public readonly r: d3.ScaleLinear<number, number>,
+  ) {}
 
   public point(p: Point): Point {
-    return [ this.x(p[0]), this.y(p[1]) ];
+    return [this.x(p[0]), this.y(p[1])];
   }
 
   public pointInvert(p: Point): Point {
-    return [ this.x.invert(p[0]), this.y.invert(p[1]) ];
+    return [this.x.invert(p[0]), this.y.invert(p[1])];
   }
 
   public line(l: Line): Line {

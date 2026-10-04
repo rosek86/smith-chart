@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 
-import { Point } from '../shapes/Point';
-import { SmithShape } from './SmithShape';
+import { Point } from '../shapes/Point.js';
+import { SmithShape } from './SmithShape.js';
 
 interface TextOptions {
   dx?: string;
@@ -16,13 +16,17 @@ interface TextOptions {
 }
 
 export class SmithText extends SmithShape {
-  public constructor(private p: Point, text: string, opts?: TextOptions) {
-    super(d3.select<SVGElement, {}>(
-      document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    ));
-    this.element
-      .attr('pointer-events', 'none')
-      .text(text);
+  public constructor(
+    private p: Point,
+    text: string,
+    opts?: TextOptions,
+  ) {
+    super(
+      d3.select<SVGElement, unknown>(
+        document.createElementNS('http://www.w3.org/2000/svg', 'text'),
+      ),
+    );
+    this.element.attr('pointer-events', 'none').text(text);
     if (opts) {
       this.setTextOptions(opts);
     }
@@ -41,20 +45,33 @@ export class SmithText extends SmithShape {
   }
 
   public setTextOptions(opts: TextOptions): SmithText {
-    if (opts.dx              ) { this.element.attr('dx',                opts.dx              ); }
-    if (opts.dy              ) { this.element.attr('dy',                opts.dy              ); }
-    if (opts.stroke          ) { this.element.attr('stroke',            opts.stroke          ); }
-    if (opts.fill            ) { this.element.attr('fill',              opts.fill            ); }
-    if (opts.fontFamily      ) { this.element.attr('font-family',       opts.fontFamily      ); }
-    if (opts.fontSize        ) { this.element.attr('font-size',         opts.fontSize        ); }
-    if (opts.textAnchor      ) { this.element.attr('text-anchor',       opts.textAnchor      ); }
-    if (opts.dominantBaseline) { this.element.attr('dominant-baseline', opts.dominantBaseline); }
+    if (opts.dx) {
+      this.element.attr('dx', opts.dx);
+    }
+    if (opts.dy) {
+      this.element.attr('dy', opts.dy);
+    }
+    if (opts.stroke) {
+      this.element.attr('stroke', opts.stroke);
+    }
+    if (opts.fill) {
+      this.element.attr('fill', opts.fill);
+    }
+    if (opts.fontFamily) {
+      this.element.attr('font-family', opts.fontFamily);
+    }
+    if (opts.fontSize) {
+      this.element.attr('font-size', opts.fontSize);
+    }
+    if (opts.textAnchor) {
+      this.element.attr('text-anchor', opts.textAnchor);
+    }
+    if (opts.dominantBaseline) {
+      this.element.attr('dominant-baseline', opts.dominantBaseline);
+    }
 
     if (opts.rotate !== undefined) {
-      this.element.attr(
-        'transform',
-        `rotate(${opts.rotate}, ${this.p[0]}, ${this.p[1]})`
-      );
+      this.element.attr('transform', `rotate(${opts.rotate}, ${this.p[0]}, ${this.p[1]})`);
     }
     return this;
   }

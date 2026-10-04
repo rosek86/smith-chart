@@ -1,14 +1,19 @@
 import * as d3 from 'd3';
-import { SmithDrawOptions } from './SmithDrawOptions';
+import { SmithDrawOptions } from './SmithDrawOptions.js';
 
 export class SmithShape {
-  constructor(protected element: d3.Selection<SVGElement, {}, null, undefined>) {
-  }
+  constructor(protected element: d3.Selection<SVGElement, unknown, null, undefined>) {}
 
   public setDrawOptions(opts: SmithDrawOptions): SmithShape {
-    if (opts.stroke     ) { this.Stroke      = opts.stroke;      }
-    if (opts.strokeWidth) { this.StrokeWidth = opts.strokeWidth; }
-    if (opts.fill       ) { this.Fill        = opts.fill;        }
+    if (opts.stroke) {
+      this.Stroke = opts.stroke;
+    }
+    if (opts.strokeWidth) {
+      this.StrokeWidth = opts.strokeWidth;
+    }
+    if (opts.fill) {
+      this.Fill = opts.fill;
+    }
     return this;
   }
 
@@ -36,11 +41,11 @@ export class SmithShape {
     return this.element.attr('fill');
   }
 
-  public get Node(): SVGElement|null {
+  public get Node(): SVGElement | null {
     return this.element.node();
   }
 
-  public get Element(): d3.Selection<SVGElement, {}, null, undefined> {
+  public get Element(): d3.Selection<SVGElement, unknown, null, undefined> {
     return this.element;
   }
 }

@@ -1,35 +1,66 @@
 {
-  "name": "d3_smith",
+  "name": "smithkit",
   "version": "1.0.0",
-  "description": "",
-  "main": "smith.js",
+  "description": "Framework-independent, interactive Smith chart library for JavaScript and TypeScript, powered by D3",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && node scripts/build-library.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run build:demo",
+    "build:demo": "npm run typecheck && vite build",
+    "prepack": "npm run build",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
   "dependencies": {
-    "d3": "^4.13.0",
-    "jquery": "^3.3.1",
-    "sprintf-js": "^1.1.1"
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0"
   },
   "devDependencies": {
-    "@types/d3": "^5.0.0",
-    "@types/jquery": "^3.3.1",
-    "@types/node": "^12.0.0",
-    "@types/sprintf-js": "^1.1.0",
-    "@types/webpack": "^4.1.0",
-    "ts-loader": "^6.0.0",
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.5",
-    "webpack": "^4.1.1",
-    "webpack-cli": "^3.3.2"
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.0.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "3.9.9",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepack": "bash ./scripts/pack-copy.sh",
-    "pack": "webpack --mode production",
-    "prepack-watch": "bash ./scripts/pack-copy.sh",
-    "pack-watch": "webpack --mode production --watch",
-    "preapp": "bash ./scripts/pack-copy.sh",
-    "app": "webpack --mode production",
-    "postapp": "bash ./scripts/app-copy.sh"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosek86/smith-chart.git"
   },
-  "author": "",
-  "license": "ISC"
+  "keywords": [
+    "smith-chart",
+    "d3",
+    "rf",
+    "impedance",
+    "touchstone"
+  ],
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js"
+    }
+  },
+  "files": [
+    "dist/lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false
 }

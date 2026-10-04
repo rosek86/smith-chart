@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-      "sourceMap":  true,
-      "strict": true,
-      "module": "commonjs",
-      "target": "es5",
-      "lib": ["es5", "es6", "dom"],
-      "outDir": "./build"
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": ["vite/client", "node"]
   },
-  "include": [
-    "./src/smith.ts"
-  ]
+  "include": ["src/**/*.ts", "demo/**/*.ts", "tests/**/*.ts", "*.config.ts"]
 }

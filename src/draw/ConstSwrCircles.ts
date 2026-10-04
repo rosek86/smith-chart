@@ -1,8 +1,7 @@
-
-import { SmithGroup } from './SmithGroup';
-import { SmithCircle } from './SmithCircle';
-import { SmithConstantCircle } from '../SmithConstantCircle';
-import { SmithScaler } from './SmithScaler';
+import { SmithGroup } from './SmithGroup.js';
+import { SmithCircle } from './SmithCircle.js';
+import { SmithConstantCircle } from '../SmithConstantCircle.js';
+import { SmithScaler } from './SmithScaler.js';
 
 interface ConstSwrDrawOptions {
   stroke: string;
@@ -11,14 +10,12 @@ interface ConstSwrDrawOptions {
 
 export class ConstSwrCircles {
   private calcs = new SmithConstantCircle();
-  private circles = [ 1.2, 1.5, 2, 3, 5, 10 ];
+  private circles = [1.2, 1.5, 2, 3, 5, 10];
   private opts: ConstSwrDrawOptions;
   private container: SmithGroup;
 
   public constructor(private scaler: SmithScaler) {
-    this.container = new SmithGroup()
-      .attr('fill', 'none')
-      .hide();
+    this.container = new SmithGroup().attr('fill', 'none').hide();
 
     this.drawConstSwrCircles(this.circles);
 
@@ -32,8 +29,8 @@ export class ConstSwrCircles {
 
   private drawConstSwrCircle(swr: number): void {
     const c = this.scaler.circle({
-      p: [ 0, 0 ],
-      r: this.calcs.swrToRflCoeffEOrI(swr)
+      p: [0, 0],
+      r: this.calcs.swrToRflCoeffEOrI(swr),
     });
     this.container.append(new SmithCircle(c));
   }
@@ -88,7 +85,9 @@ export class ConstSwrCircles {
 
   public append(swr: number): void {
     const index = this.circles.indexOf(swr);
-    if (index !== -1) { return; }
+    if (index !== -1) {
+      return;
+    }
 
     this.circles.push(swr);
     this.drawConstSwrCircle(swr);
@@ -96,7 +95,9 @@ export class ConstSwrCircles {
 
   public remove(swr: number): void {
     const index = this.circles.indexOf(swr);
-    if (index === -1) { return; }
+    if (index === -1) {
+      return;
+    }
 
     this.circles.splice(index, 1);
     this.container.Element.selectAll('*').remove();

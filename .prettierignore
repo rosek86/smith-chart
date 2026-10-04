@@ -1,0 +1,7 @@
+node_modules/
+dist/
+build/
+test-results/
+playwright-report/
+package-lock.json
+*.tgz
