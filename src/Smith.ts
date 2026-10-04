@@ -9,6 +9,7 @@ import { SmithGroup } from './draw/SmithGroup.js';
 import { SmithCircle } from './draw/SmithCircle.js';
 
 import { SmithData } from './draw/SmithData.js';
+import type { SmithMarker } from './draw/SmithMarker.js';
 import { SmithCursor } from './draw/SmithCursor.js';
 
 import { ConstResistance } from './draw/ConstResistance.js';
@@ -95,6 +96,8 @@ export class Smith {
   private destroyed = false;
   private mouseGesture = new MouseGesture();
   private nextDatasetColor = 0;
+  private draggedMarkers = new Set<SmithMarker>();
+  private cursorBeforeMarkerDrag: string | null = null;
 
   private userActionHandler: ((event: SmithEvent) => void) | null = null;
 
@@ -223,11 +226,40 @@ export class Smith {
   }
 
   private cursorMove(p: Point): void {
+    if (this.draggedMarkers.size > 0) {
+      return;
+    }
     this.cursor.Position = Complex.from(this.scalers.default.pointInvert(p));
+  }
+
+  private markerDragChanged(marker: SmithMarker, dragging: boolean): void {
+    const wasDragging = this.draggedMarkers.size > 0;
+    if (dragging) {
+      this.draggedMarkers.add(marker);
+    } else {
+      this.draggedMarkers.delete(marker);
+    }
+    const isDragging = this.draggedMarkers.size > 0;
+    if (isDragging === wasDragging) {
+      return;
+    }
+    if (isDragging) {
+      this.cursorBeforeMarkerDrag = this.svg.Node!.style.getPropertyValue('cursor') || null;
+      this.svg.Element.style('cursor', 'grabbing').style('--smithkit-marker-cursor', 'grabbing');
+      this.cursor.hide();
+      this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+    } else {
+      this.svg.Element.style('cursor', () => this.cursorBeforeMarkerDrag).style(
+        '--smithkit-marker-cursor',
+        null,
+      );
+      this.cursorBeforeMarkerDrag = null;
+    }
   }
 
   private initCursor(): SmithCursor {
     const cursor = new SmithCursor(this.scalers.default);
+    cursor.Group.attr('class', 'smith-cursor');
     cursor.setMoveHandler(() => {
       if (this.userActionHandler) {
         this.userActionHandler({
@@ -394,6 +426,7 @@ export class Smith {
       this.transform,
       this.dataContainer,
       this.scalers.default,
+      (marker, dragging) => this.markerDragChanged(marker, dragging),
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {

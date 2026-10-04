@@ -62,7 +62,11 @@ chart.addS1P([
 
 Each `point` is the complex reflection coefficient Γ as `[real, imaginary]`,
 not impedance. Frequencies are in Hz. A marker is added to each nonempty dataset;
-drag it along the trace to select a sample. Scroll to zoom, drag the chart to pan,
+drag it along the trace to select a sample. Markers show a grab cursor, changing
+to grabbing during a drag. Chart cursor guides and cursor events with position data
+are suspended while dragging a marker; they resume on the next pointer move after
+release. Connected parameter scales clear their cursor indicators during the drag.
+Scroll to zoom, drag the chart to pan,
 and call `chart.resetView()` to restore the initial view.
 
 The constructor creates SVG elements, so instantiate `Smith` only in a browser
@@ -205,7 +209,8 @@ Both event payloads include `reflectionCoefficient`, `impedance`, `admittance`,
 admittance, or Q can be `undefined` at singular points; some other quantities
 can be infinite. Loss and VSWR readouts assume passive loads (`|Γ| ≤ 1`).
 
-Leaving the chart emits a `Cursor` event with `data: undefined`, allowing consumers
+Leaving the chart or starting a marker drag emits a `Cursor` event with
+`data: undefined`, allowing consumers
 to hide cursor indicators. `chart.CursorData` retains the last position.
 
 Cursor payloads also include `dBS`, `rflCoeffP`, `rflCoeffEOrI`, and `transmCoeffP`.
