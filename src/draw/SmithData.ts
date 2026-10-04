@@ -58,7 +58,9 @@ export class SmithData {
   }
 
   public zoom(transform: Transform): void {
-    if (this.destroyed) return;
+    if (this.destroyed) {
+      return;
+    }
     this.transform = transform;
     this.zoomDataPoints();
     this.zoomAllMarkers();
@@ -80,7 +82,9 @@ export class SmithData {
   }
 
   public addMarker(): void {
-    if (this.destroyed) throw new Error('This dataset has been removed.');
+    if (this.destroyed) {
+      throw new Error('This dataset has been removed.');
+    }
     const markerIndex = this.markersCount++;
     const marker = new SmithMarker(markerIndex + 1, this.color);
 
@@ -130,7 +134,9 @@ export class SmithData {
   private notifyMarker(index: number): void {
     const timer = setTimeout(() => {
       this.pendingEvents.delete(timer);
-      if (!this.destroyed) this.handler?.(index, this.markers[index].selectedPoint);
+      if (!this.destroyed) {
+        this.handler?.(index, this.markers[index].selectedPoint);
+      }
     }, 0);
     this.pendingEvents.add(timer);
   }
@@ -141,7 +147,9 @@ export class SmithData {
   }
 
   public update(values: S1P): void {
-    if (this.destroyed) throw new Error('This dataset has been removed.');
+    if (this.destroyed) {
+      throw new Error('This dataset has been removed.');
+    }
     const samples = this.copySamples(values);
     this.cancelEvents();
     this.data = samples;
@@ -159,7 +167,9 @@ export class SmithData {
   }
 
   public destroy(): void {
-    if (this.destroyed) return;
+    if (this.destroyed) {
+      return;
+    }
     this.destroyed = true;
     this.cancelEvents();
     this.handler = null;

@@ -21,9 +21,13 @@ export async function loadLibrary(page: Page): Promise<void> {
     },
   }).then((result) => {
     const output = Array.isArray(result) ? result[0] : result;
-    if (!('output' in output)) throw new Error('Expected a library bundle.');
+    if (!('output' in output)) {
+      throw new Error('Expected a library bundle.');
+    }
     const chunk = output.output.find((item) => item.type === 'chunk');
-    if (!chunk) throw new Error('The library bundle contains no JavaScript.');
+    if (!chunk) {
+      throw new Error('The library bundle contains no JavaScript.');
+    }
     return chunk.code;
   });
   await page.addScriptTag({ content: await bundle });

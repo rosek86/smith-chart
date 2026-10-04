@@ -11,10 +11,10 @@ chart, parser, and RF operations are documented in the README. Existing PascalCa
 getters remain available. Dataset numbers are array indices, so removing an entry
 shifts subsequent indices; marker events always report the current index.
 
-The legacy unimplemented `Complex` methods remain callable for source compatibility,
-are marked `@deprecated`, and throw explicit errors. They are not part of the
-supported calculation surface for 0.1.x. Implementing branch-sensitive complex
-functions requires separate numerical validation; do not replace errors with zeros.
+The hyperbolic and reciprocal `Complex` operations are implemented with principal
+inverse branches and signed-zero handling. The README documents their finite-input
+contract and pole behavior. Independent reference values and branch-boundary tests
+must pass before publishing numerical changes.
 
 During 0.x development, document breaking changes in a minor release and fixes in
 a patch release. Update the manifest, lockfile, changelog, and README archive example

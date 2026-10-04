@@ -48,10 +48,9 @@ export default defineConfig([
     files: ['*.config.{ts,mjs}', 'scripts/**/*.mjs', 'tests/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
-  {
-    // Preserve the signatures of documented, unfinished complex-number operations.
-    files: ['src/complex/Complex.ts'],
-    rules: { '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }] },
-  },
   prettier,
+  {
+    files: ['**/*.{js,mjs,ts}'],
+    rules: { curly: ['error', 'all'] },
+  },
 ]);

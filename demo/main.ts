@@ -5,7 +5,9 @@ import { parseTouchstone } from '../src/io/touchstone';
 
 function element<T extends HTMLElement>(id: string): T {
   const node = document.getElementById(id);
-  if (!node) throw new Error(`Missing element: ${id}`);
+  if (!node) {
+    throw new Error(`Missing element: ${id}`);
+  }
   return node as T;
 }
 
@@ -28,7 +30,9 @@ element('reset-view').addEventListener('click', () => smith.resetView());
 
 function updateReadout(event: SmithEvent): void {
   const data = event.data;
-  if (!data) return;
+  if (!data) {
+    return;
+  }
   const rows = [
     `Γ: ${smith.formatComplex(data.reflectionCoefficient)}`,
     `Z: ${data.impedance ? smith.formatComplex(data.impedance, 'Ω') : '∞'}`,
@@ -67,13 +71,16 @@ function status(message: string, error = false): void {
 element<HTMLInputElement>('file').addEventListener('change', async (event) => {
   const input = event.currentTarget as HTMLInputElement;
   const file = input.files?.[0];
-  if (!file) return;
+  if (!file) {
+    return;
+  }
   try {
     const parsed = parseTouchstone(await file.text());
-    if (parsed.referenceImpedance !== 50)
+    if (parsed.referenceImpedance !== 50) {
       throw new Error(
         `This chart uses 50 Ω; the file uses ${parsed.referenceImpedance} Ω. Renormalize the data before importing.`,
       );
+    }
     smith.addS1P(parsed.values);
     status(`${file.name}: ${parsed.values.length} samples loaded.`);
   } catch (error) {

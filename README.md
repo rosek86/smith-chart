@@ -233,6 +233,40 @@ if (gamma) {
 Normalized impedance is `Z / Z₀`; normalized admittance is `Y × Z₀` with Y in
 siemens. Conversion methods return `undefined` where their result is singular.
 
+## Complex hyperbolic and reciprocal functions
+
+The static and instance APIs support `sinh`, `cosh`, `tanh`, `coth`, `sech`, `csch`,
+`sec`, `csc`, and the principal inverses `asinh`, `acosh`, `atanh`, `acoth`, `asech`,
+`acsch`. Each returns a new `Complex` value; arguments are in radians.
+
+```ts
+const z = Complex.from(0.5, 0.25);
+const hyperbolicSine = z.sinh(); // Also: Complex.sinh(z).
+const restored = hyperbolicSine.asinh();
+const reciprocalCosine = z.sec();
+```
+
+The inverse functions use the [principal branches](https://dlmf.nist.gov/4.37):
+`asinh` has imaginary part in [−π/2, π/2]; `acosh` has non-negative real part
+and imaginary part in [−π, π]; `atanh` has imaginary part in [−π/2, π/2].
+`acoth(z)`, `asech(z)`, and `acsch(z)` are the corresponding principal inverses
+at `1/z`. Signed zeros select the side of a branch cut, including when taking
+the reciprocal. For example, `Complex.from(2, +0).atanh()` has imaginary part
++π/2, while `Complex.from(2, -0).atanh()` has imaginary part −π/2.
+
+For these fourteen functions:
+
+- Finite inputs use scaled formulas to limit overflow and cancellation. Results
+  beyond JavaScript's floating-point range may still overflow or underflow.
+- An input with a `NaN` or infinite component returns `Complex.from(NaN, NaN)`.
+- At zero, `coth`, `csch`, `csc`, `asech`, and `acsch` return two `NaN` components;
+  there is no finite value to return. `atanh(±1 ± 0i)` returns a signed infinite
+  real component and preserves the imaginary zero.
+- `acoth(0 + 0i)` takes the upper-side boundary value −iπ/2;
+  `acoth(0 - 0i)` takes +iπ/2.
+- No tolerance is used to snap arguments to a pole. A floating-point approximation
+  of a trigonometric pole can therefore produce a large finite value.
+
 ## TypeScript exports
 
 The package exports `Smith`, `SmithEventType`, `Complex`, `SmithConstantCircle`,
@@ -252,11 +286,6 @@ import type {
 ## Current limitations
 
 - The package is ESM-only; it does not provide a CommonJS or UMD build.
-- The following legacy `Complex` methods are deprecated and unsupported in 0.1.x.
-  They throw an `Error` naming the operation:
-  `sinh`, `asinh`, `cosh`, `acosh`, `tanh`, `atanh`, `coth`, `acoth`, `sec`,
-  `sech`, `asech`, `csc`, `csch`, and `acsch`. Both static and instance calls throw;
-  these operations are not available for calculations yet.
 - Dense labels may require zooming on small screens.
 
 ## Development and license

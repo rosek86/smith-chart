@@ -102,8 +102,9 @@ export class Smith {
   private userActionHandler: ((event: SmithEvent) => void) | null = null;
 
   constructor(private Z0: number = 50) {
-    if (!Number.isFinite(Z0) || Z0 <= 0)
+    if (!Number.isFinite(Z0) || Z0 <= 0) {
       throw new Error('Reference impedance must be positive and finite.');
+    }
     const viewBoxSize = 500;
     const gridData = SmithArcsDefs.getData();
     this.scalers = this.createScalers(viewBoxSize);
@@ -180,13 +181,17 @@ export class Smith {
   public draw(target: string | HTMLElement): void {
     this.assertAlive();
     const host = typeof target === 'string' ? document.querySelector(target) : target;
-    if (!host) throw new Error('Chart container was not found.');
+    if (!host) {
+      throw new Error('Chart container was not found.');
+    }
     host.appendChild(this.svg.Node!);
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */
   public destroy(): void {
-    if (this.destroyed) return;
+    if (this.destroyed) {
+      return;
+    }
     this.clearS1P();
     this.destroyed = true;
     this.userActionHandler = null;
@@ -199,8 +204,9 @@ export class Smith {
   }
 
   private assertAlive(): void {
-    if (this.destroyed)
+    if (this.destroyed) {
       throw new Error('This Smith chart has been destroyed. Create a new instance.');
+    }
   }
 
   private createScalers(size: number): Scalers {
@@ -261,7 +267,9 @@ export class Smith {
     const zoom = this.zoomBehavior
       .scaleExtent([0.6, 1000])
       .on('start', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
-        if (event.sourceEvent) this.mouseGesture.capture(event.sourceEvent, 'zoom');
+        if (event.sourceEvent) {
+          this.mouseGesture.capture(event.sourceEvent, 'zoom');
+        }
       })
       .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => this.onZoom(event.transform));
 
@@ -276,7 +284,9 @@ export class Smith {
   }
 
   private onZoom(transform: ZoomTransform): void {
-    if (this.destroyed) return;
+    if (this.destroyed) {
+      return;
+    }
     this.transform = transform;
     this.container.Element.attr('transform', transform.toString());
     this.data.forEach((d) => d.zoom(transform));
@@ -342,7 +352,9 @@ export class Smith {
   /** Add samples and return their current dataset index; empty input is ignored. */
   public addS1P(values: S1P): number | undefined {
     this.assertAlive();
-    if (values.length === 0) return;
+    if (values.length === 0) {
+      return;
+    }
     const data = this.createSmithData(values, this.nextDatasetColor);
     this.nextDatasetColor++;
     return this.data.push(data) - 1;
@@ -351,8 +363,12 @@ export class Smith {
   /** Replace samples, retaining color and markers. Empty input removes the dataset. */
   public updateS1P(datasetNo: number, values: S1P): boolean {
     this.assertAlive();
-    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) return false;
-    if (values.length === 0) return this.removeS1P(datasetNo);
+    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) {
+      return false;
+    }
+    if (values.length === 0) {
+      return this.removeS1P(datasetNo);
+    }
     this.data[datasetNo].update(values);
     return true;
   }
@@ -360,7 +376,9 @@ export class Smith {
   /** Remove a dataset. Later dataset indices shift down by one. */
   public removeS1P(datasetNo: number): boolean {
     this.assertAlive();
-    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) return false;
+    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) {
+      return false;
+    }
     this.data[datasetNo].destroy();
     this.data.splice(datasetNo, 1);
     return true;

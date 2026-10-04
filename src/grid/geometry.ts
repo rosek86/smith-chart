@@ -44,11 +44,15 @@ export function gridLabel(kind: GridKind, definition: TickDefRequired) {
   const rc = admittance
     ? calcs.admittanceToRflCoeff(Complex.from(point.r, point.i))
     : calcs.impedanceToRflCoeff(Complex.from(point.r, point.i));
-  if (!rc) throw new Error('Invalid grid label coordinates.');
+  if (!rc) {
+    throw new Error('Invalid grid label coordinates.');
+  }
   const value = real ? point.r : point.i;
   const circle = circles[kind](value);
   let rotate = -calcs.tangentToCircleAngle(circle, rc.toVector()) + transform.rotate;
-  if (admittance && rotate !== 90) rotate += 180;
+  if (admittance && rotate !== 90) {
+    rotate += 180;
+  }
   return {
     point: rc.toVector(),
     text: value.toFixed(dp),

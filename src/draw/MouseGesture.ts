@@ -5,7 +5,9 @@ export class MouseGesture {
   private release: (() => void) | undefined;
 
   public capture(event: MouseEvent, namespace: 'zoom' | 'drag'): void {
-    if (event.type !== 'mousedown' || !event.view) return;
+    if (event.type !== 'mousedown' || !event.view) {
+      return;
+    }
     const view = event.view;
     const selection = select(view);
     const move = `mousemove.${namespace}`;

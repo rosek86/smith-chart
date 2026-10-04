@@ -44,7 +44,9 @@ test('updates samples and markers, keeps colors, and resolves indices after remo
     chart.draw('#first');
     const events: import('../../src/index').SmithMarkerEvent[] = [];
     chart.setUserActionHandler((event) => {
-      if (event.data && 'datasetNo' in event.data) events.push(event.data);
+      if (event.data && 'datasetNo' in event.data) {
+        events.push(event.data);
+      }
     });
     const sample: import('../../src/index').S1P = [{ freq: 1e9, point: [0.5, 0] }];
     const first = chart.addS1P(sample);
@@ -133,13 +135,19 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
       chart.destroy();
       chart.destroy();
       const events = nodes.some((node) => (node as Element & { __on?: unknown[] }).__on?.length);
-      if (events) throw new Error('Retained nodes still have listeners.');
-      if (dataset.Markers.length) throw new Error('Removed dataset retained its markers.');
+      if (events) {
+        throw new Error('Retained nodes still have listeners.');
+      }
+      if (dataset.Markers.length) {
+        throw new Error('Removed dataset retained its markers.');
+      }
       try {
         chart.draw('#first');
         throw new Error('Expected destroyed chart to reject mounting.');
       } catch (error) {
-        if (!(error instanceof Error) || !error.message.includes('destroyed')) throw error;
+        if (!(error instanceof Error) || !error.message.includes('destroyed')) {
+          throw error;
+        }
       }
     }
     other.addS1P([{ freq: 2, point: [0, 0] }]);
