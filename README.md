@@ -61,7 +61,8 @@ chart.addS1P([
 ```
 
 Each `point` is the complex reflection coefficient Γ as `[real, imaginary]`,
-not impedance. Frequencies are in Hz. A marker is added to each nonempty dataset;
+not impedance. Frequencies are in Hz. Markers render above every dataset’s points,
+including after adding or updating datasets. A marker is added to each nonempty dataset;
 drag it along the trace to select a sample. Markers show a grab cursor, changing
 to grabbing during a drag. Chart cursor guides and cursor events with position data
 are suspended while dragging a marker; they resume on the next pointer move after

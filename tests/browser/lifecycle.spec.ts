@@ -192,3 +192,46 @@ for (const gesture of ['zoom', 'drag'] as const) {
     expect(state).toEqual({ active: true, remaining: 0 });
   });
 }
+
+test('all markers stay above all sample points after adding and updating datasets', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#first');
+    const snapshots: boolean[] = [];
+    const recordOrder = () => {
+      const markers = [...document.querySelectorAll('#first [data-role=marker]')];
+      const samples = [...document.querySelectorAll('#first [data-role=samples]')];
+      snapshots.push(
+        markers.length > 0 &&
+          samples.length > 0 &&
+          samples.every((sample) =>
+            markers.every((marker) =>
+              Boolean(sample.compareDocumentPosition(marker) & Node.DOCUMENT_POSITION_FOLLOWING),
+            ),
+          ),
+      );
+    };
+    chart.addS1P([{ freq: 1, point: [0, 0] }]);
+    chart.addS1P([{ freq: 2, point: [0, 0.05] }]);
+    recordOrder();
+    chart.updateS1P(0, [{ freq: 3, point: [0, 0] }]);
+    recordOrder();
+    chart.updateS1P(1, [{ freq: 4, point: [0, 0.05] }]);
+    recordOrder();
+    chart.Datasets[0].addMarker();
+    chart.addS1P([{ freq: 5, point: [0, 0.05] }]);
+    chart.resetView();
+    recordOrder();
+    chart.removeS1P(1);
+    recordOrder();
+    chart.clearS1P();
+    const remaining = document.querySelectorAll(
+      '#first [data-role=marker], #first [data-role=samples]',
+    ).length;
+    chart.destroy();
+    return { snapshots, remaining };
+  });
+  expect(result).toEqual({ snapshots: [true, true, true, true, true], remaining: 0 });
+});

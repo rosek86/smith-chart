@@ -83,6 +83,7 @@ export class Smith {
   private svg: SmithSvg;
   private container: SmithGroup;
   private dataContainer: SmithGroup;
+  private markerContainer: SmithGroup;
 
   private reactanceAxis: SmithCircle;
 
@@ -157,7 +158,8 @@ export class Smith {
       fill: 'none',
     });
 
-    this.dataContainer = new SmithGroup();
+    this.dataContainer = new SmithGroup().attr('data-layer', 'samples');
+    this.markerContainer = new SmithGroup().attr('data-layer', 'markers');
 
     // build chart
     this.svg.append(this.container);
@@ -171,7 +173,7 @@ export class Smith {
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
-    this.dataContainer.Element.raise();
+    this.container.append(this.markerContainer);
 
     this.initializeZoom();
   }
@@ -438,6 +440,7 @@ export class Smith {
           ),
         });
       },
+      this.markerContainer,
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {
