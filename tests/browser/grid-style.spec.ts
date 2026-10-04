@@ -63,7 +63,7 @@ test('grid setters and drawing options update the rendered geometry of all four 
   const tags = new Set<string>();
   for (const layer of layers) {
     for (const [snapshot, stroke, majorWidth, minorWidth] of [
-      [layer.initial, 'rgb(0, 0, 0)', '0.2px', '0.1px'],
+      [layer.initial, 'rgb(100, 116, 139)', '1px', '0.6px'],
       [layer.updated, 'rgb(18, 52, 86)', '2px', '0.5px'],
       [layer.options, 'rgb(101, 67, 33)', '3px', '0.75px'],
       [layer.updatedAgain, 'rgb(18, 52, 86)', '2px', '0.5px'],

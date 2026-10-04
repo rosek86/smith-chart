@@ -41,7 +41,7 @@ export class ConstQCircles {
   }
 
   private getDefaultDrawOptions(): ConstQDrawOptions {
-    return { stroke: 'blue', strokeWidth: '0.2' };
+    return { stroke: 'blue', strokeWidth: '1' };
   }
 
   public setDrawOptions(opts: ConstQDrawOptions): void {

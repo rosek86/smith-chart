@@ -32,11 +32,13 @@ export class ConstSwrCircles {
       p: [0, 0],
       r: this.calcs.swrToRflCoeffEOrI(swr),
     });
-    this.container.append(new SmithCircle(c));
+    const circle = new SmithCircle(c);
+    circle.nonScalingStroke();
+    this.container.append(circle);
   }
 
   private getDefaultDrawOptions(): ConstSwrDrawOptions {
-    return { stroke: 'orange', strokeWidth: '0.2' };
+    return { stroke: 'orange', strokeWidth: '1' };
   }
 
   public setDrawOptions(opts: ConstSwrDrawOptions): void {

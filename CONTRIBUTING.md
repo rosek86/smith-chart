@@ -156,6 +156,11 @@ publishing; account setup and the first publication are described in
 
 ## Known technical debt
 
+- The WebKit browser suite has three failures also reproduced on `main`: two exact
+  cursor-value assertions differ because simulated mouse coordinates are rounded,
+  and a scale label extends about 1 px outside its container at a 390 px viewport.
+  Grid styling and geometry tests pass in WebKit; the standard CI browser is Chromium.
+
 - Dense grid labels can overlap at small sizes. Grid bands and label rules live in
   `src/grid/`; SVG rendering is shared by `SmithGridLayer`. Changes need visual checks,
   especially near chart edges and on narrow screens.
