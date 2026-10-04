@@ -33,13 +33,18 @@ try {
   writeFileSync(
     join(temp, 'consumer.ts'),
     `
-import { Smith, Complex, SmithConstantCircle, parseTouchstone, SmithEventType } from 'smithkit';
+import { Smith, SmithScales, Complex, SmithConstantCircle, parseTouchstone, SmithEventType } from 'smithkit';
 import type { S1P, S1PEntry, TouchstoneData, SmithEvent, SmithCursorEvent, SmithMarkerEvent } from 'smithkit';
 const entry: S1PEntry = { freq: 1e9, point: [0, 0] };
 const samples: S1P = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
 const chart = new Smith(parsed.referenceImpedance);
 chart.draw(document.createElement('div'));
+const scales = new SmithScales();
+scales.draw(document.createElement('div'));
+scales.update(Complex.zero());
+scales.update(null);
+scales.destroy();
 const index: number | undefined = chart.addS1P(samples);
 if (index !== undefined) {
   const updated: boolean = chart.updateS1P(index, samples);
@@ -75,7 +80,8 @@ void [Complex, SmithConstantCircle, SmithEventType, events];
     '-e',
     `
 import assert from 'node:assert/strict';
-import { Smith, Complex, SmithConstantCircle, parseTouchstone } from 'smithkit';
+import { Smith, SmithScales, Complex, SmithConstantCircle, parseTouchstone } from 'smithkit';
+assert.equal(typeof SmithScales.prototype.update, 'function');
 assert.equal(typeof Smith.prototype.destroy, 'function');
 assert.equal(typeof Smith.prototype.updateS1P, 'function');
 assert.equal(Complex.from(3, 4).abs(), 5);

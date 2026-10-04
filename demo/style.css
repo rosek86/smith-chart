@@ -101,12 +101,20 @@ input:focus-visible {
   border: 1px solid #dce4eb;
   border-radius: 12px;
 }
+.chart-column {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+.scales-panel .hint {
+  margin-top: -6px;
+}
 .chart-panel {
   padding: 12px;
 }
 #smith {
   width: 100%;
-  aspect-ratio: 500 / 650;
+  aspect-ratio: 1;
   touch-action: none;
 }
 #smith svg {

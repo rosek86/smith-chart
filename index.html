@@ -30,13 +30,22 @@
         <button id="reset-view" type="button">Reset view</button>
       </div>
       <div class="workspace">
-        <section class="chart-panel" aria-label="Interactive Smith chart">
-          <div id="smith"></div>
-          <p class="hint">
-            Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
-            normalized to Z₀.
-          </p>
-        </section>
+        <div class="chart-column">
+          <section class="chart-panel" aria-label="Interactive Smith chart">
+            <div id="smith"></div>
+            <p class="hint">
+              Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
+              normalized to Z₀.
+            </p>
+          </section>
+          <section class="panel scales-panel" aria-label="Cursor parameter scales">
+            <h2>Parameter scales</h2>
+            <p class="hint">
+              Red dots follow the cursor. These scales stay fixed while the chart zooms.
+            </p>
+            <div id="smith-scales"></div>
+          </section>
+        </div>
         <aside>
           <section class="panel">
             <h2>Measurements</h2>

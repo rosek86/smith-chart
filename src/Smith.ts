@@ -25,7 +25,6 @@ import { S1P } from './SnP.js';
 import { SmithConstantCircle } from './SmithConstantCircle.js';
 import { SmithArcsDefs } from './SmithArcsDefs.js';
 
-import { RadiallyScaledParams } from './scales/RadiallyScaledParams.js';
 import { Complex } from './complex/Complex.js';
 
 export interface SmithCursorEvent {
@@ -91,8 +90,6 @@ export class Smith {
   private constSwrCircles: ConstSwrCircles;
   private constQCircles: ConstQCircles;
 
-  private radiallyScaledParams: RadiallyScaledParams;
-
   private cursor: SmithCursor;
   private data: SmithData[] = [];
   private destroyed = false;
@@ -157,9 +154,6 @@ export class Smith {
 
     this.dataContainer = new SmithGroup();
 
-    this.radiallyScaledParams = new RadiallyScaledParams(this.scalers.default);
-    const rspContainer = this.radiallyScaledParams.draw();
-
     // build chart
     this.svg.append(this.container);
     this.container.append(this.constConductance.draw().attr('data-layer', 'conductance'));
@@ -172,7 +166,6 @@ export class Smith {
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
-    this.container.append(rspContainer);
     this.dataContainer.Element.raise();
 
     this.initializeZoom();
@@ -279,7 +272,7 @@ export class Smith {
 
   public resetView(): void {
     this.assertAlive();
-    const transform = d3.zoomIdentity.translate(50, 12.5).scale(0.8);
+    const transform = d3.zoomIdentity.translate(50, 50).scale(0.8);
     this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 
@@ -299,7 +292,10 @@ export class Smith {
       .on('pointermove.smithkit', (event: PointerEvent) => {
         this.cursorMove(d3.pointer(event));
       })
-      .on('pointerleave.smithkit', () => this.cursor.hide());
+      .on('pointerleave.smithkit', () => {
+        this.cursor.hide();
+        this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+      });
 
     return shape;
   }

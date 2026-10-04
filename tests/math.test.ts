@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Complex } from '../src/complex/Complex';
 import { SmithConstantCircle } from '../src/SmithConstantCircle';
-import { radialScales } from '../src/scales/RadiallyScaledParams';
+import { radialScales } from '../src/scales/radialScales';
 import { SmithScaler } from '../src/draw/SmithScaler';
 import { scaleLinear } from 'd3';
 

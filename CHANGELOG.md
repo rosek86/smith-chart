@@ -4,6 +4,8 @@
 
 - Introduce Smithkit as an ESM library with TypeScript declarations and a separate D3 demo.
 - Add Touchstone 1.x single-port import and labeled radial scales.
+- Separate parameter scales into `SmithScales`, with cursor dots and independent mounting; chart zoom and pan affect only the square chart SVG.
+- Emit an empty cursor event on pointer leave and cancel pending cursor notifications.
 - Add chart destruction, element-based mounting, and dataset update/removal/clearing.
 - Validate and copy dataset input; preserve markers and color when replacing samples.
 - Separate grid definitions and normalized geometry from shared SVG rendering.

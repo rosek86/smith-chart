@@ -50,7 +50,7 @@ src/
   shapes/                  geometry types
   arcs/                    tick definitions
   draw/                    SVG elements and D3 layers
-  scales/                  labeled radial parameter scales
+  scales/                  independent parameter-scale renderer and definitions
   io/                      Touchstone parser, independent of the UI
 demo/                      application UI, CSS, and file handling
 tests/                     unit, deployment, and browser tests
@@ -60,6 +60,10 @@ scripts/                   library build and demo deployment tools
 `src/index.ts` exposes the library API without starting the demo. `index.html`
 and `demo/main.ts` are the demo entry points. Keep file selection and other
 application controls in the demo; parsers and calculations belong in the library.
+
+`Smith` owns the square chart SVG and its zoom transform. `SmithScales` mounts
+its own responsive container; the demo connects it to cursor events. Keep scale
+rendering outside the chart transform and RF scale mappings in `radialScales.ts`.
 
 The library build uses TypeScript to emit ESM JavaScript and declarations with
 matching paths. Relative source imports use `.js` extensions so consumers can

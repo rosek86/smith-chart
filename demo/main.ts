@@ -1,5 +1,5 @@
 import './style.css';
-import { Smith, SmithEventType } from '../src';
+import { Smith, SmithScales, SmithEventType } from '../src';
 import type { SmithEvent, SmithMarkerEvent, S1P } from '../src';
 import { parseTouchstone } from '../src/io/touchstone';
 
@@ -13,6 +13,8 @@ function element<T extends HTMLElement>(id: string): T {
 
 const smith = new Smith(50);
 smith.draw('#smith');
+const scales = new SmithScales();
+scales.draw('#smith-scales');
 
 const layers = [
   ['impedance', [smith.ConstResistance, smith.ConstReactance]],
@@ -30,6 +32,9 @@ element('reset-view').addEventListener('click', () => smith.resetView());
 
 function updateReadout(event: SmithEvent): void {
   const data = event.data;
+  if (event.type === SmithEventType.Cursor) {
+    scales.update(data?.reflectionCoefficient ?? null);
+  }
   if (!data) {
     return;
   }

@@ -174,7 +174,9 @@ for (const gesture of ['zoom', 'drag'] as const) {
         ? page.locator('[data-role=marker] polygon').last()
         : page.locator('#first svg');
     const box = (await target.boundingBox())!;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // Start chart panning away from the marker at Γ = 0.
+    const offset = gesture === 'zoom' ? 0.3 : 0.5;
+    await page.mouse.move(box.x + box.width * offset, box.y + box.height / 2);
     await page.mouse.down();
     const state = await page.evaluate((namespace) => {
       const listeners = () =>

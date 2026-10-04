@@ -11,7 +11,7 @@ S11 measurement plotting, draggable markers, and Touchstone import.
 - Zoom, pan, view reset, and cursor readouts.
 - Multiple S11 datasets with markers that snap to measurement samples.
 - Impedance, admittance, VSWR, return loss, mismatch loss, and Q calculations.
-- Ten labeled radial parameter scales below the chart.
+- Ten independently mounted parameter scales with cursor indicators.
 - One-port Touchstone 1.x parsing: RI, MA, and DB representations.
 - ESM modules and TypeScript declarations; no framework or global D3 object required.
 
@@ -42,7 +42,7 @@ D3 and its type declarations are installed as package dependencies.
 Give the chart container an explicit size. No library stylesheet is required.
 
 ```html
-<div id="smith" style="width: 100%; max-width: 700px; aspect-ratio: 500 / 650;"></div>
+<div id="smith" style="width: 100%; max-width: 700px; aspect-ratio: 1;"></div>
 ```
 
 Run this code after the container is mounted:
@@ -68,6 +68,45 @@ and call `chart.resetView()` to restore the initial view.
 The constructor creates SVG elements, so instantiate `Smith` only in a browser
 (for example, inside your framework's client-side mount hook). Importing the
 package and using its calculation or parsing helpers does not require a DOM.
+
+## Parameter scales
+
+`Smith` renders only the chart. Mount `SmithScales` in a separate container to
+show VSWR, losses, power, and reflection/transmission scales independently of
+chart zoom and pan. No library stylesheet is required; scales adapt to the
+container width, using one column on narrow screens.
+
+```html
+<div id="smith-scales"></div>
+```
+
+```ts
+import { SmithScales, SmithEventType } from 'smithkit';
+
+const scales = new SmithScales();
+scales.draw('#smith-scales');
+
+chart.setUserActionHandler((event) => {
+  if (event.type === SmithEventType.Cursor) {
+    scales.update(event.data?.reflectionCoefficient ?? null);
+  }
+});
+
+// In your component's unmount hook:
+// scales.destroy();
+// chart.destroy();
+```
+
+`update(gamma)` positions the dots for a `Complex` reflection coefficient.
+Nine scales depend on `|Γ|`; voltage transmission uses `|1 + Γ|`, so its dot also
+responds to phase. Values are available in each scale's tooltip and accessible
+label. `update(null)`, non-finite coordinates, and values outside the passive-load
+unit circle hide the dots. Dots start hidden.
+
+`draw` accepts a selector or an `HTMLElement` and moves the existing component
+when called again. A missing container throws. Call `destroy()` independently
+of the chart to remove the scales; repeated destruction is safe. Instantiate
+`SmithScales` only in a browser, after the host is mounted.
 
 ## Lifecycle and datasets
 
@@ -143,7 +182,9 @@ import { SmithEventType } from 'smithkit';
 
 chart.setUserActionHandler((event) => {
   const data = event.data;
-  if (!data) return;
+  if (!data) {
+    return;
+  }
 
   if (event.type === SmithEventType.Cursor) {
     console.log('Cursor Γ:', data.reflectionCoefficient.toVector());
@@ -162,6 +203,9 @@ Both event payloads include `reflectionCoefficient`, `impedance`, `admittance`,
 `swr`, `returnLoss`, `mismatchLoss`, and `Q`. Loss values are in dB. Impedance,
 admittance, or Q can be `undefined` at singular points; some other quantities
 can be infinite. Loss and VSWR readouts assume passive loads (`|Γ| ≤ 1`).
+
+Leaving the chart emits a `Cursor` event with `data: undefined`, allowing consumers
+to hide cursor indicators. `chart.CursorData` retains the last position.
 
 Cursor payloads also include `dBS`, `rflCoeffP`, `rflCoeffEOrI`, and `transmCoeffP`.
 Marker payloads add `freq`, `datasetNo`, and `markerNo`. Dataset and marker indices
@@ -269,7 +313,7 @@ For these fourteen functions:
 
 ## TypeScript exports
 
-The package exports `Smith`, `SmithEventType`, `Complex`, `SmithConstantCircle`,
+The package exports `Smith`, `SmithScales`, `SmithEventType`, `Complex`, `SmithConstantCircle`,
 and `parseTouchstone`, together with these types:
 
 ```ts

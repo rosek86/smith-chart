@@ -15,6 +15,7 @@ interface DrawOptions {
 
 export class SmithCursor {
   private epsilon = 1.5e-4;
+  private pendingMove: ReturnType<typeof setTimeout> | undefined;
 
   private drawingOpts: DrawOptions = {
     point: { radius: 5, color: 'red' },
@@ -132,7 +133,9 @@ export class SmithCursor {
     this.moveSusceptance(y);
     this.show();
 
-    setTimeout(() => {
+    this.cancelPendingMove();
+    this.pendingMove = setTimeout(() => {
+      this.pendingMove = undefined;
       if (this.moveHandler) {
         this.moveHandler(rc);
       }
@@ -215,11 +218,22 @@ export class SmithCursor {
   }
 
   public hide(): void {
+    this.cancelPendingMove();
     this.group.hide();
+  }
+
+  private cancelPendingMove(): void {
+    if (this.pendingMove !== undefined) {
+      clearTimeout(this.pendingMove);
+      this.pendingMove = undefined;
+    }
   }
 
   public setMoveHandler(handler: ((rc: Complex) => void) | null): void {
     this.moveHandler = handler;
+    if (handler === null) {
+      this.cancelPendingMove();
+    }
   }
 
   public setDrawOptions(opts: DrawOptions): void {
