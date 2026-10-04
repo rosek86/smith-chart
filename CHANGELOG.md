@@ -9,4 +9,6 @@
 - Separate grid definitions and normalized geometry from shared SVG rendering.
 - Add formatting, linting, calculation and browser tests, and package consumer checks.
 - Prepare GitHub Pages demo deployment and npm release automation.
-- Correct frequency/wavelength conversion and make unsupported complex functions fail explicitly.
+- Correct frequency/wavelength conversion.
+- Implement all fourteen previously missing complex hyperbolic, reciprocal, and inverse functions, with documented principal branches and numerical tests.
+- Adopt feature branches and pull requests targeting `main`.

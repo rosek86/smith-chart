@@ -1,5 +1,6 @@
 # Repository guidance
 
+- Work on a feature branch and open a pull request targeting `main`. Do not commit or push directly to `main`, and do not merge without an explicit request.
 - Treat this repository as a reusable library. Keep the demo as a consumer of its public API.
 - Keep documentation, comments, UI labels, descriptions, and error messages in English.
 - Use descriptive private field names without a leading underscore; ESLint enforces this.

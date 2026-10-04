@@ -78,27 +78,3 @@ describe('Frequency and wavelength conversion', () => {
     expect(restored / frequency).toBeCloseTo(1, 12);
   });
 });
-
-describe('Unimplemented complex operations', () => {
-  it.each([
-    'sinh',
-    'asinh',
-    'cosh',
-    'acosh',
-    'tanh',
-    'atanh',
-    'coth',
-    'acoth',
-    'sec',
-    'sech',
-    'asech',
-    'csc',
-    'csch',
-    'acsch',
-  ] as const)('%s throws for both static and instance calls', (operation) => {
-    const value = Complex.from(1, 2);
-    const message = `Complex.${operation} is not implemented.`;
-    expect(() => Complex[operation](value)).toThrow(message);
-    expect(() => value[operation]()).toThrow(message);
-  });
-});

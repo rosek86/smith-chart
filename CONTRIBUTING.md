@@ -95,13 +95,40 @@ for builds and type checking. The `typescript` alias points to
 Keep both aliases until ESLint's TypeScript tooling supports the new compiler API;
 do not replace the compatibility package with TypeScript 7 directly.
 
-Unused parameters are allowed only in `Complex.ts` to preserve the signatures of
-its documented placeholder operations. Other recommended checks remain enabled.
-
 For documentation-only changes, review links and examples and run
 `git diff --check`. For code changes, run `npm run check` and relevant browser
 tests. For package changes, pack the library and install the archive in a separate
 consumer project to verify runtime imports and TypeScript declarations.
+
+## Pull request workflow
+
+Create a feature branch from `main`, commit and push to that branch, and open a
+pull request targeting `main`. Do not push changes directly to `main` or merge a
+pull request without an explicit request. Include the behavior change and relevant
+validation in the PR description. CI runs checks for PRs; demo deployment follows
+only after changes reach the default branch.
+
+## Complex-number validation
+
+`tests/complex.test.ts` covers the newly implemented hyperbolic and reciprocal
+operations, their principal branches, signed zeros, poles, and large/small finite
+arguments. Independent expected values are stored in
+`tests/fixtures/complex-reference.json` and generated with Python's standard
+[`cmath`](https://docs.python.org/3/library/cmath.html) module. Python is not needed
+for the normal test suite. To regenerate the fixtures:
+
+```sh
+python3 scripts/generate-complex-reference.py
+npx prettier tests/fixtures/complex-reference.json --write
+npm test -- tests/complex.test.ts
+```
+
+The generator explicitly preserves signed zeros when forming `1/z` for inverse
+reciprocal functions, because Python's complex division can discard them. Reference
+comparisons use relative error for nonzero components, so tiny values are tested
+rather than hidden by a blanket absolute tolerance. Existing unrelated complex
+operations retain their legacy implementations; extending their numerical coverage
+is a separate task.
 
 ## Packaging and releases
 
@@ -118,8 +145,6 @@ publishing; account setup and the first publication are described in
 
 ## Known technical debt
 
-- Several legacy `Complex` functions are unimplemented and throw explicit errors;
-  the README lists these unsupported operations.
 - Dense grid labels can overlap at small sizes. Grid bands and label rules live in
   `src/grid/`; SVG rendering is shared by `SmithGridLayer`. Changes need visual checks,
   especially near chart edges and on narrow screens.
