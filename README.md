@@ -29,7 +29,7 @@ npm pack
 Then install that archive in your application:
 
 ```sh
-npm install /path/to/smith-chart/smithkit-1.0.0.tgz
+npm install /path/to/smith-chart/smithkit-0.1.0.tgz
 ```
 
 These steps install a local build and do not depend on an npm registry release.
@@ -68,6 +68,40 @@ and call `chart.resetView()` to restore the initial view.
 The constructor creates SVG elements, so instantiate `Smith` only in a browser
 (for example, inside your framework's client-side mount hook). Importing the
 package and using its calculation or parsing helpers does not require a DOM.
+
+## Lifecycle and datasets
+
+Mount a chart with a selector or an `HTMLElement`. Calling `draw` again moves the
+existing SVG without creating a duplicate. A missing container throws an error.
+Call `destroy()` in your framework's unmount hook; it removes the SVG, cancels
+pending marker notifications, and releases event handlers. Destruction is idempotent;
+create a new `Smith` instance to mount again afterward.
+
+```ts
+const chart = new Smith(50);
+chart.draw(document.getElementById('smith')!);
+const datasetNo = chart.addS1P([{ freq: 1e9, point: [0.5, 0] }]);
+
+if (datasetNo !== undefined) {
+  chart.updateS1P(datasetNo, [{ freq: 2e9, point: [0.25, -0.1] }]);
+  chart.removeS1P(datasetNo);
+}
+chart.clearS1P();
+chart.setUserActionHandler(null); // Unsubscribe from application callbacks.
+chart.destroy();
+```
+
+- `addS1P(values)` returns the dataset index, or `undefined` for empty input.
+- `updateS1P(index, values)` retains the dataset's color and markers. Markers snap
+  to the nearest new reflection coefficient; ties select the earlier sample.
+  Empty input removes the dataset.
+- `removeS1P(index)` and `updateS1P(index, values)` return `false` for missing indices.
+- Dataset numbers are **current array indices**, not permanent IDs. Removing one
+  shifts subsequent indices; marker events report the updated index.
+- Input is copied and validated before changing the chart. Frequencies must be
+  finite and non-negative; reflection coordinates must be finite pairs.
+- `Datasets` returns an array copy. Its entries still expose the legacy marker API.
+- Reference impedance must be positive and finite. Physical readouts use that value.
 
 ## Grid layers
 
@@ -218,8 +252,8 @@ import type {
 ## Current limitations
 
 - The package is ESM-only; it does not provide a CommonJS or UMD build.
-- Chart destruction, dataset removal, and data replacement APIs are not available yet.
-- `Complex` still contains unimplemented methods that throw an `Error` naming the operation:
+- The following legacy `Complex` methods are deprecated and unsupported in 0.1.x.
+  They throw an `Error` naming the operation:
   `sinh`, `asinh`, `cosh`, `acosh`, `tanh`, `atanh`, `coth`, `acoth`, `sec`,
   `sech`, `asech`, `csc`, `csch`, and `acsch`. Both static and instance calls throw;
   these operations are not available for calculations yet.

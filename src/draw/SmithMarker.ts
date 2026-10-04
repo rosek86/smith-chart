@@ -1,10 +1,12 @@
 import * as d3 from 'd3';
 
+import { MouseGesture } from './MouseGesture.js';
 import { SmithShape } from './SmithShape.js';
 import { Point } from '../shapes/Point.js';
 
 export class SmithMarker extends SmithShape {
   private readonly size = 18;
+  private mouseGesture = new MouseGesture();
 
   private triangle: d3.Selection<SVGPolygonElement, unknown, null, undefined>;
   private inner: d3.Selection<SVGPolygonElement, unknown, null, undefined>;
@@ -50,6 +52,9 @@ export class SmithMarker extends SmithShape {
     this.triangle.call(
       d3
         .drag<SVGPolygonElement, unknown>()
+        .on('start', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
+          this.mouseGesture.capture(event.sourceEvent, 'drag'),
+        )
         .on('drag', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
           this.onDrag(event),
         ),
@@ -58,10 +63,20 @@ export class SmithMarker extends SmithShape {
     this.inner.call(
       d3
         .drag<SVGPolygonElement, unknown>()
+        .on('start', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
+          this.mouseGesture.capture(event.sourceEvent, 'drag'),
+        )
         .on('drag', (event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) =>
           this.onDrag(event),
         ),
     );
+  }
+
+  public destroy(): void {
+    this.dragHandler = null;
+    this.mouseGesture.destroy();
+    this.Element.selectAll('*').on('.drag', null).interrupt();
+    this.Element.remove();
   }
 
   private onDrag(event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) {

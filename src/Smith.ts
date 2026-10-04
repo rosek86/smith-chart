@@ -3,6 +3,7 @@ import { ZoomTransform } from 'd3';
 
 import { Point } from './shapes/Point.js';
 
+import { MouseGesture } from './draw/MouseGesture.js';
 import { SmithSvg } from './draw/SmithSvg.js';
 import { SmithGroup } from './draw/SmithGroup.js';
 import { SmithCircle } from './draw/SmithCircle.js';
@@ -94,39 +95,45 @@ export class Smith {
 
   private cursor: SmithCursor;
   private data: SmithData[] = [];
+  private destroyed = false;
+  private mouseGesture = new MouseGesture();
+  private nextDatasetColor = 0;
 
   private userActionHandler: ((event: SmithEvent) => void) | null = null;
 
   constructor(private Z0: number = 50) {
+    if (!Number.isFinite(Z0) || Z0 <= 0)
+      throw new Error('Reference impedance must be positive and finite.');
     const viewBoxSize = 500;
+    const gridData = SmithArcsDefs.getData();
     this.scalers = this.createScalers(viewBoxSize);
 
     this.svg = new SmithSvg(viewBoxSize);
     this.container = new SmithGroup();
 
     this.constResistance = new ConstResistance({
-      data: SmithArcsDefs.getData(),
+      data: gridData,
       scaler: this.scalers.default,
       showMinor: true,
     });
     this.constResistance.show();
 
     this.constReactance = new ConstReactance({
-      data: SmithArcsDefs.getData(),
+      data: gridData,
       scaler: this.scalers.default,
       showMinor: true,
     });
     this.constReactance.show();
 
     this.constConductance = new ConstConductance({
-      data: SmithArcsDefs.getData(),
+      data: gridData,
       scaler: this.scalers.default,
       showMinor: true,
     });
     this.constConductance.hide();
 
     this.constSusceptance = new ConstSusceptance({
-      data: SmithArcsDefs.getData(),
+      data: gridData,
       scaler: this.scalers.default,
       showMinor: true,
     });
@@ -170,8 +177,30 @@ export class Smith {
     this.initializeZoom();
   }
 
-  public draw(selector: string): void {
-    d3.select(selector).append(() => this.svg.Node);
+  public draw(target: string | HTMLElement): void {
+    this.assertAlive();
+    const host = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!host) throw new Error('Chart container was not found.');
+    host.appendChild(this.svg.Node!);
+  }
+
+  /** Remove this chart and release its event handlers. Safe to call more than once. */
+  public destroy(): void {
+    if (this.destroyed) return;
+    this.clearS1P();
+    this.destroyed = true;
+    this.userActionHandler = null;
+    this.cursor.setMoveHandler(null);
+    this.mouseGesture.destroy();
+    this.zoomBehavior.on('start', null).on('zoom', null);
+    this.svg.Element.interrupt().on('.zoom', null);
+    this.svg.Element.selectAll('*').interrupt().on('.smithkit', null).on('.drag', null);
+    this.svg.Element.remove();
+  }
+
+  private assertAlive(): void {
+    if (this.destroyed)
+      throw new Error('This Smith chart has been destroyed. Create a new instance.');
   }
 
   private createScalers(size: number): Scalers {
@@ -231,6 +260,9 @@ export class Smith {
   private initializeZoom(): void {
     const zoom = this.zoomBehavior
       .scaleExtent([0.6, 1000])
+      .on('start', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
+        if (event.sourceEvent) this.mouseGesture.capture(event.sourceEvent, 'zoom');
+      })
       .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => this.onZoom(event.transform));
 
     this.svg.Element.call(zoom);
@@ -238,11 +270,13 @@ export class Smith {
   }
 
   public resetView(): void {
+    this.assertAlive();
     const transform = d3.zoomIdentity.translate(50, 12.5).scale(0.8);
     this.svg.Element.call(this.zoomBehavior.transform, transform);
   }
 
   private onZoom(transform: ZoomTransform): void {
+    if (this.destroyed) return;
     this.transform = transform;
     this.container.Element.attr('transform', transform.toString());
     this.data.forEach((d) => d.zoom(transform));
@@ -252,10 +286,10 @@ export class Smith {
     const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
 
     shape.Element.style('pointer-events', 'all')
-      .on('pointermove', (event: PointerEvent) => {
+      .on('pointermove.smithkit', (event: PointerEvent) => {
         this.cursorMove(d3.pointer(event));
       })
-      .on('pointerleave', () => this.cursor.hide());
+      .on('pointerleave.smithkit', () => this.cursor.hide());
 
     return shape;
   }
@@ -305,12 +339,37 @@ export class Smith {
       : formatted + ' ';
   }
 
-  public addS1P(values: S1P): void {
-    if (values.length === 0) {
-      return;
-    }
-    const data = this.createSmithData(values, this.data.length);
-    this.data.push(data);
+  /** Add samples and return their current dataset index; empty input is ignored. */
+  public addS1P(values: S1P): number | undefined {
+    this.assertAlive();
+    if (values.length === 0) return;
+    const data = this.createSmithData(values, this.nextDatasetColor);
+    this.nextDatasetColor++;
+    return this.data.push(data) - 1;
+  }
+
+  /** Replace samples, retaining color and markers. Empty input removes the dataset. */
+  public updateS1P(datasetNo: number, values: S1P): boolean {
+    this.assertAlive();
+    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) return false;
+    if (values.length === 0) return this.removeS1P(datasetNo);
+    this.data[datasetNo].update(values);
+    return true;
+  }
+
+  /** Remove a dataset. Later dataset indices shift down by one. */
+  public removeS1P(datasetNo: number): boolean {
+    this.assertAlive();
+    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) return false;
+    this.data[datasetNo].destroy();
+    this.data.splice(datasetNo, 1);
+    return true;
+  }
+
+  public clearS1P(): void {
+    this.assertAlive();
+    this.data.forEach((dataset) => dataset.destroy());
+    this.data = [];
   }
 
   private createSmithData(values: S1P, dataset: number): SmithData {
@@ -326,7 +385,7 @@ export class Smith {
       if (this.userActionHandler) {
         this.userActionHandler({
           type: SmithEventType.Marker,
-          data: this.getMarkerData(dataset, marker),
+          data: this.getMarkerData(this.data.indexOf(data), marker),
         });
       }
     });
@@ -362,7 +421,7 @@ export class Smith {
   }
 
   public get Datasets(): SmithData[] {
-    return this.data;
+    return this.data.slice();
   }
 
   public get ConstResistance(): ConstResistance {
@@ -389,7 +448,8 @@ export class Smith {
     return this.constSwrCircles;
   }
 
-  public setUserActionHandler(handler: (event: SmithEvent) => void): void {
+  public setUserActionHandler(handler: ((event: SmithEvent) => void) | null): void {
+    this.assertAlive();
     this.userActionHandler = handler;
   }
 

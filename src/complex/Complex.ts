@@ -170,9 +170,11 @@ export class Complex {
   public asin() {
     return Complex.asin(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public sinh() {
     return Complex.sinh(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public asinh() {
     return Complex.asinh(this);
   }
@@ -183,9 +185,11 @@ export class Complex {
   public acos() {
     return Complex.acos(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public cosh() {
     return Complex.cosh(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public acosh() {
     return Complex.acosh(this);
   }
@@ -196,9 +200,11 @@ export class Complex {
   public atan() {
     return Complex.atan(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public tanh() {
     return Complex.tanh(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public atanh() {
     return Complex.atanh(this);
   }
@@ -209,35 +215,43 @@ export class Complex {
   public acot() {
     return Complex.acot(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public coth() {
     return Complex.coth(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public acoth() {
     return Complex.acoth(this);
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public sec() {
     return Complex.sec(this);
   }
   public asec() {
     return Complex.asec(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public sech() {
     return Complex.sech(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public asech() {
     return Complex.asech(this);
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public csc() {
     return Complex.csc(this);
   }
   public acsc() {
     return Complex.acsc(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public csch() {
     return Complex.csch(this);
   }
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public acsch() {
     return Complex.acsch(this);
   }
@@ -384,10 +398,12 @@ export class Complex {
     return i.neg().mul(C.log(z.mul(i).add(C.sqrt(C.one().sub(z.pow(2))))));
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static sinh(z: Complex): Complex {
     throw new Error('Complex.sinh is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static asinh(z: Complex): Complex {
     throw new Error('Complex.asinh is not implemented.');
   }
@@ -407,10 +423,12 @@ export class Complex {
     return Complex.from(Math.PI / 2).sub(z.asin());
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static cosh(z: Complex): Complex {
     throw new Error('Complex.cosh is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static acosh(z: Complex): Complex {
     throw new Error('Complex.acosh is not implemented.');
   }
@@ -430,10 +448,12 @@ export class Complex {
     return i.div(2).mul(z1.sub(z2));
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static tanh(z: Complex): Complex {
     throw new Error('Complex.tanh is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static atanh(z: Complex): Complex {
     throw new Error('Complex.atanh is not implemented.');
   }
@@ -453,14 +473,17 @@ export class Complex {
     return i.div(2).mul(z1.sub(z2));
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static coth(z: Complex): Complex {
     throw new Error('Complex.coth is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static acoth(z: Complex): Complex {
     throw new Error('Complex.acoth is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static sec(z: Complex): Complex {
     throw new Error('Complex.sec is not implemented.');
   }
@@ -474,14 +497,17 @@ export class Complex {
     return i.neg().mul(C.log(C.sqrt(C.one().div(z.pow(2)).sub(1)).add(z.inv())));
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static sech(z: Complex): Complex {
     throw new Error('Complex.sech is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static asech(z: Complex): Complex {
     throw new Error('Complex.asech is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static csc(z: Complex): Complex {
     throw new Error('Complex.csc is not implemented.');
   }
@@ -495,10 +521,12 @@ export class Complex {
     return i.neg().mul(C.log(C.sqrt(C.one().sub(C.one().div(z.pow(2)))).add(i.div(z))));
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static csch(z: Complex): Complex {
     throw new Error('Complex.csch is not implemented.');
   }
 
+  /** @deprecated Unsupported in 0.1.x; always throws an Error. */
   public static acsch(z: Complex): Complex {
     throw new Error('Complex.acsch is not implemented.');
   }

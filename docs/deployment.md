@@ -33,6 +33,16 @@ on the default branch. The workflow also supports renaming the branch to `main`.
    branch **gh-pages**, and folder **/(root)**. Once the Pages workflow finishes,
    the demo will be available at the target URL.
 
+If a legacy Pages site still serves the old application after switching branches,
+request its first rebuild once:
+
+```sh
+gh api repos/rosek86/smith-app/pages/builds --method POST
+```
+
+Confirm the published commit with `gh api repos/rosek86/smith-app/pages/builds/latest`.
+Subsequent pushes to `gh-pages` trigger Pages builds automatically.
+
 The key is needed because the standard `GITHUB_TOKEN` cannot write to another
 repository. The workflow downloads the exact artifact that passed the tests,
 preserves `gh-pages` history, removes obsolete hashed assets, and adds `.nojekyll`.

@@ -1,32 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { resolve } from 'node:path';
-import { build } from 'vite';
-
-// Exercise the library API in a real SVG DOM without exposing test hooks in the demo.
-let libraryBundle: string;
-
-test.beforeAll(async () => {
-  const result = await build({
-    configFile: false,
-    logLevel: 'silent',
-    build: {
-      lib: { entry: resolve('src/index.ts'), name: 'SmithTest', formats: ['iife'] },
-      write: false,
-      minify: false,
-    },
-  });
-  const bundle = Array.isArray(result) ? result[0] : result;
-  if (!('output' in bundle)) throw new Error('Expected a library bundle.');
-  const chunk = bundle.output.find((output) => output.type === 'chunk');
-  if (!chunk) throw new Error('The library bundle contains no JavaScript.');
-  libraryBundle = chunk.code;
-});
+import { loadLibrary } from './library';
 
 test('grid setters and drawing options update the rendered geometry of all four layers', async ({
   page,
 }) => {
   await page.setContent('<div id="chart" style="width: 500px; height: 650px"></div>');
-  await page.addScriptTag({ content: libraryBundle });
+  await loadLibrary(page);
   const layers = await page.evaluate(() => {
     const { Smith } = (window as typeof window & { SmithTest: typeof import('../../src/index') })
       .SmithTest;
@@ -111,3 +90,48 @@ test('grid setters and drawing options update the rendered geometry of all four 
   }
   expect([...tags].sort()).toEqual(['circle', 'line', 'path']);
 });
+
+for (const width of [340, 900]) {
+  test(`all four grid layers keep finite labels inside the SVG at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width: width + 40, height: 1300 });
+    await page.setContent(`<div id="chart" style="width:${width}px;aspect-ratio:500/650"></div>`);
+    await loadLibrary(page);
+    const layers = await page.evaluate(() => {
+      const chart = new window.SmithTest.Smith();
+      chart.draw('#chart');
+      const box = document.querySelector('svg')!.getBoundingClientRect();
+      const bounds = [];
+      for (const layer of [
+        chart.ConstResistance,
+        chart.ConstReactance,
+        chart.ConstConductance,
+        chart.ConstSusceptance,
+      ]) {
+        layer.show();
+        const labels = [...layer.draw().Node!.querySelectorAll('text')].map((label) => {
+          const rect = label.getBoundingClientRect();
+          return {
+            x: rect.x - box.x,
+            y: rect.y - box.y,
+            right: rect.right - box.x,
+            bottom: rect.bottom - box.y,
+          };
+        });
+        bounds.push({ width: box.width, height: box.height, labels });
+        layer.hide();
+      }
+      chart.ConstConductance.show();
+      chart.ConstSusceptance.show();
+      return bounds;
+    });
+    for (const layer of layers)
+      for (const label of layer.labels) {
+        expect(Object.values(label).every(Number.isFinite)).toBe(true);
+        expect(label.x).toBeGreaterThanOrEqual(0);
+        expect(label.y).toBeGreaterThanOrEqual(0);
+        expect(label.right).toBeLessThanOrEqual(layer.width);
+        expect(label.bottom).toBeLessThanOrEqual(layer.height);
+      }
+    await page.screenshot({ path: `test-results/admittance-${width}.png`, fullPage: true });
+  });
+}

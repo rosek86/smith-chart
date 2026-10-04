@@ -1,0 +1,62 @@
+name: Publish smithkit to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'rosek86/smith-chart'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; import assert from 'node:assert/strict'; const p = JSON.parse(fs.readFileSync('package.json')); assert.equal(process.env.RELEASE_TAG, 'v' + p.version); assert.match(p.version, /^\d+\.\d+\.\d+$/);"
+      - run: npm ci
+      - run: npm run check
+      - run: npm run check:package
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm pack --pack-destination "$RUNNER_TEMP"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/smithkit-*.tgz
+          if-no-files-found: error
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+          path: package
+      - name: Publish the verified archive with npm trusted publishing
+        run: npm publish package/smithkit-*.tgz --access public --provenance --ignore-scripts

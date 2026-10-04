@@ -1,6 +1,6 @@
 {
   "name": "smithkit",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Framework-independent, interactive Smith chart library for JavaScript and TypeScript, powered by D3",
   "type": "module",
   "scripts": {
@@ -17,7 +17,8 @@
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "check:package": "node scripts/check-package.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",
@@ -62,5 +63,13 @@
     "README.md",
     "LICENSE"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "homepage": "https://github.com/rosek86/smith-chart#readme",
+  "bugs": {
+    "url": "https://github.com/rosek86/smith-chart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

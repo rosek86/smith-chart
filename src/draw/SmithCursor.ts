@@ -218,7 +218,7 @@ export class SmithCursor {
     this.group.hide();
   }
 
-  public setMoveHandler(handler: (rc: Complex) => void): void {
+  public setMoveHandler(handler: ((rc: Complex) => void) | null): void {
     this.moveHandler = handler;
   }
 
