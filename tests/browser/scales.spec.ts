@@ -43,7 +43,7 @@ test('peripheral scales hide undefined angles and invalid input', async ({ page 
     const { Smith, Complex } = window.SmithTest;
     const chart = new Smith();
     chart.draw('#chart');
-    const scales = chart.PeripheralScales;
+    const scales = chart.peripheralScales;
     const visible = () =>
       [...document.querySelectorAll('.peripheral-indicator')]
         .filter((dot) => dot.getAttribute('visibility') !== 'hidden')
@@ -58,10 +58,12 @@ test('peripheral scales hide undefined angles and invalid input', async ({ page 
         return visible();
       },
     );
-    scales.hide();
-    const hidden = scales.Node!.getAttribute('opacity');
-    scales.show();
-    const shown = scales.Node!.getAttribute('opacity');
+    scales.setVisible(false);
+    const hidden = document
+      .querySelector('[data-layer=peripheral-scales]')!
+      .getAttribute('opacity');
+    scales.setVisible(true);
+    const shown = document.querySelector('[data-layer=peripheral-scales]')!.getAttribute('opacity');
     chart.destroy();
     return {
       center,
@@ -285,7 +287,7 @@ test('leaving the chart cancels queued cursor updates before they can restore do
     chart.draw('#chart');
     scales.draw('#scales');
     const events: boolean[] = [];
-    chart.setUserActionHandler((event) => {
+    chart.onEvent((event) => {
       if (event.type === SmithEventType.Cursor) {
         events.push(Boolean(event.data));
         scales.update(event.data?.reflectionCoefficient ?? null);

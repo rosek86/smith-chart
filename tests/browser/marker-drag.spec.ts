@@ -19,24 +19,27 @@ test('the marker selector preserves selection across imports and follows marker 
     buffer: Buffer.from('# GHz S RI R 50\n1 0 0'),
   });
   await expect(selector).toBeEnabled();
-  await expect(selector).toHaveValue('0:0');
+  await expect(selector).toHaveValue('marker-1');
   await input.setInputFiles({
     name: 'mismatched.s1p',
     mimeType: 'text/plain',
     buffer: Buffer.from('# GHz S RI R 50\n2 0.5 0'),
   });
-  await expect(selector.locator('option')).toHaveText(['Trace 1 · marker 1', 'Trace 2 · marker 1']);
-  await expect(selector).toHaveValue('0:0');
+  await expect(selector.locator('option')).toHaveText([
+    'matched.s1p · marker 1',
+    'mismatched.s1p · marker 1',
+  ]);
+  await expect(selector).toHaveValue('marker-1');
   await expect(page.locator('#parameter-gamma')).toHaveText('0.000 + 0.000i');
   await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
 
-  await selector.selectOption('1:0');
+  await selector.selectOption('marker-2');
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 2 GHz');
   await expect(page.locator('#parameter-gamma')).toHaveText('0.500 + 0.000i');
   await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('3 : 1');
   await page.getByRole('button', { name: 'Load sample trace' }).click();
   await expect(selector.locator('option')).toHaveCount(3);
-  await expect(selector).toHaveValue('1:0');
+  await expect(selector).toHaveValue('marker-2');
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 2 GHz');
 
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -45,10 +48,10 @@ test('the marker selector preserves selection across imports and follows marker 
 
   await page.locator('#smith [data-role=marker]').first().locator('polygon').last().hover();
   await page.mouse.down();
-  await expect(selector).toHaveValue('0:0');
+  await expect(selector).toHaveValue('marker-1');
   await expect(page.locator('#parameter-gamma')).toHaveText('0.000 + 0.000i');
   await page.mouse.up();
-  await expect(selector).toHaveValue('0:0');
+  await expect(selector).toHaveValue('marker-1');
   await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
   await page.getByRole('tab', { name: 'Cursor', exact: true }).click();
   await expect(selector).toBeHidden();
@@ -115,17 +118,17 @@ test('removing a dragged dataset restores the cursor without affecting another c
     const second = new Smith();
     first.draw('#first');
     second.draw('#second');
-    first.addS1P([{ freq: 1e9, point: [0, 0] }]);
-    second.addS1P([{ freq: 1e9, point: [0, 0] }]);
+    first.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
+    second.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
     const dragEvents: [string, number | undefined][] = [];
-    first.setUserActionHandler((event) => {
+    first.onEvent((event) => {
       if (
         event.type === SmithEventType.MarkerDragStart ||
         event.type === SmithEventType.MarkerDragEnd
       ) {
         dragEvents.push([
           event.type === SmithEventType.MarkerDragStart ? 'start' : 'end',
-          event.data && 'freq' in event.data ? event.data.freq : undefined,
+          event.data.frequencyHz,
         ]);
         document.body.dataset.dragEvents = JSON.stringify(dragEvents);
       }
@@ -134,7 +137,7 @@ test('removing a dragged dataset restores the cursor without affecting another c
       }
     });
     (window as typeof window & { removeDataset: () => void }).removeDataset = () => {
-      first.removeS1P(0);
+      first.removeTrace(first.getTraces()[0].id);
       document.body.dataset.cursorUpdated = 'false';
     };
     document.querySelector<SVGElement>('#first svg')!.style.cursor = 'crosshair';

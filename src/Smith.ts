@@ -22,51 +22,32 @@ import { ConstSwrCircles } from './draw/ConstSwrCircles.js';
 import { SmithDrawOptions } from './draw/SmithDrawOptions.js';
 import { SmithScaler } from './draw/SmithScaler.js';
 
-import { S1P } from './SnP.js';
+import { TraceSamples } from './samples.js';
 import { SmithConstantCircle } from './SmithConstantCircle.js';
 import { SmithArcsDefs } from './SmithArcsDefs.js';
 
 import { Complex } from './complex/Complex.js';
 import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
-
-export interface SmithCursorEvent {
-  reflectionCoefficient: Complex;
-  impedance: Complex | undefined;
-  admittance: Complex | undefined;
-  swr: number;
-  returnLoss: number;
-  mismatchLoss: number; // reflection loss
-  Q: number | undefined;
-  dBS: number;
-  rflCoeffP: number;
-  rflCoeffEOrI: number;
-  transmCoeffP: number;
-}
-
-export interface SmithMarkerEvent {
-  datasetNo: number;
-  markerNo: number;
-  reflectionCoefficient: Complex;
-  impedance: Complex | undefined;
-  admittance: Complex | undefined;
-  swr: number;
-  returnLoss: number;
-  mismatchLoss: number;
-  Q: number | undefined;
-  freq: number;
-}
+import { gridLayer, circleLayer } from './layers.js';
+import type { ChartLayers, PeripheralScales } from './layers.js';
+import { readReflection } from './rf.js';
+import type { SmithReading } from './rf.js';
+import { compareMarkerReadings } from './measurements.js';
+import type { TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from './measurements.js';
 
 export enum SmithEventType {
-  Cursor,
-  Marker,
-  MarkerDragStart,
-  MarkerDragEnd,
+  Cursor = 'cursor',
+  Marker = 'marker',
+  MarkerDragStart = 'marker-drag-start',
+  MarkerDragEnd = 'marker-drag-end',
 }
 
-export interface SmithEvent {
-  type: SmithEventType;
-  data: SmithCursorEvent | SmithMarkerEvent | undefined;
-}
+export type SmithEvent =
+  | { type: SmithEventType.Cursor; data: SmithReading | undefined }
+  | {
+      type: SmithEventType.Marker | SmithEventType.MarkerDragStart | SmithEventType.MarkerDragEnd;
+      data: MarkerSnapshot;
+    };
 
 interface Scalers {
   default: SmithScaler;
@@ -96,18 +77,25 @@ export class Smith {
   private constQCircles: ConstQCircles;
 
   private cursor: SmithCursor;
-  private peripheralScales = new SmithPeripheralScales();
+  private peripheralScaleRenderer = new SmithPeripheralScales();
   private data: SmithData[] = [];
   private destroyed = false;
   private mouseGesture = new MouseGesture();
   private nextDatasetColor = 0;
+  private nextTraceId = 1;
+  private nextMarkerId = 1;
+  private traceMetadata = new WeakMap<SmithData, { id: string; name: string }>();
+  private markerIds = new WeakMap<SmithMarker, string>();
   private draggedMarkers = new Set<SmithMarker>();
   private cursorBeforeMarkerDrag: string | null = null;
 
-  private userActionHandler: ((event: SmithEvent) => void) | null = null;
+  private listeners = new Set<(event: SmithEvent) => void>();
 
-  constructor(private Z0: number = 50) {
-    if (!Number.isFinite(Z0) || Z0 <= 0) {
+  public readonly layers: ChartLayers;
+  public readonly peripheralScales: PeripheralScales;
+
+  constructor(public readonly referenceImpedanceOhms: number = 50) {
+    if (!Number.isFinite(referenceImpedanceOhms) || referenceImpedanceOhms <= 0) {
       throw new Error('Reference impedance must be positive and finite.');
     }
     const viewBoxSize = 500;
@@ -171,13 +159,36 @@ export class Smith {
     this.container.append(this.constReactance.draw().attr('data-layer', 'reactance'));
     this.container.append(this.constQCircles.draw());
     this.container.append(this.constSwrCircles.draw());
-    this.container.append(this.peripheralScales);
+    this.container.append(this.peripheralScaleRenderer);
     this.container.append(this.cursor.Group);
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
     this.container.append(this.markerContainer);
 
+    const assertAlive = () => this.assertAlive();
+    this.layers = {
+      resistance: gridLayer(this.constResistance, assertAlive),
+      reactance: gridLayer(this.constReactance, assertAlive),
+      conductance: gridLayer(this.constConductance, assertAlive),
+      susceptance: gridLayer(this.constSusceptance, assertAlive),
+      q: circleLayer(this.constQCircles, 0, assertAlive),
+      vswr: circleLayer(this.constSwrCircles, 1, assertAlive),
+    };
+    this.peripheralScales = {
+      setVisible: (visible) => {
+        assertAlive();
+        if (visible) {
+          this.peripheralScaleRenderer.show();
+        } else {
+          this.peripheralScaleRenderer.hide();
+        }
+      },
+      update: (gamma) => {
+        assertAlive();
+        this.peripheralScaleRenderer.update(gamma);
+      },
+    };
     this.initializeZoom();
   }
 
@@ -195,8 +206,8 @@ export class Smith {
     if (this.destroyed) {
       return;
     }
-    this.userActionHandler = null;
-    this.clearS1P();
+    this.listeners.clear();
+    this.clearTraces();
     this.destroyed = true;
     this.cursor.setMoveHandler(null);
     this.mouseGesture.destroy();
@@ -254,7 +265,7 @@ export class Smith {
       this.cursorBeforeMarkerDrag = this.svg.Node!.style.getPropertyValue('cursor') || null;
       this.svg.Element.style('cursor', 'grabbing').style('--smithkit-marker-cursor', 'grabbing');
       this.cursor.hide();
-      this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+      this.emit({ type: SmithEventType.Cursor, data: undefined });
     } else {
       this.svg.Element.style('cursor', () => this.cursorBeforeMarkerDrag).style(
         '--smithkit-marker-cursor',
@@ -268,31 +279,14 @@ export class Smith {
     const cursor = new SmithCursor(this.scalers.default);
     cursor.Group.attr('class', 'smith-cursor');
     cursor.setMoveHandler(() => {
-      if (this.userActionHandler) {
-        this.userActionHandler({
-          type: SmithEventType.Cursor,
-          data: this.CursorData,
-        });
-      }
+      this.emit({ type: SmithEventType.Cursor, data: this.cursorReading });
     });
     return cursor;
   }
 
-  public get CursorData(): SmithCursorEvent {
-    const rc = this.cursor.Position;
-    return {
-      reflectionCoefficient: rc,
-      impedance: this.calcImpedance(rc),
-      admittance: this.calcAdmittance(rc),
-      swr: this.calcs.rflCoeffToSwr(rc),
-      returnLoss: this.calcs.rflCoeffToReturnLoss(rc),
-      mismatchLoss: this.calcs.rflCoeffToMismatchLoss(rc),
-      Q: this.calcs.rflCoeffToQ(rc),
-      dBS: this.calcs.rflCoeffToDBS(rc),
-      rflCoeffP: this.calcs.rflCoeffP(rc),
-      rflCoeffEOrI: this.calcs.rflCoeffEOrI(rc),
-      transmCoeffP: this.calcs.rflCoeffToTransmCoeffP(rc),
-    };
+  /** Last cursor position. Use cursor events to detect pointer leave. */
+  public get cursorReading(): SmithReading {
+    return readReflection(this.cursor.Position, this.referenceImpedanceOhms);
   }
 
   private initializeZoom(): void {
@@ -333,7 +327,7 @@ export class Smith {
       })
       .on('pointerleave.smithkit', () => {
         this.cursor.hide();
-        this.userActionHandler?.({ type: SmithEventType.Cursor, data: undefined });
+        this.emit({ type: SmithEventType.Cursor, data: undefined });
       });
 
     return shape;
@@ -353,7 +347,7 @@ export class Smith {
       return 'Undefined';
     }
 
-    const x = z.imag * this.Z0;
+    const x = z.imag * this.referenceImpedanceOhms;
 
     if (x < 0) {
       const cap = 1 / (2 * Math.PI * f * -x);
@@ -384,48 +378,173 @@ export class Smith {
       : formatted + ' ';
   }
 
-  /** Add samples and return their current dataset index; empty input is ignored. */
-  public addS1P(values: S1P): number | undefined {
+  /** Add a named trace with one initial marker. Returns a chart-local, stable ID. */
+  public addTrace(values: TraceSamples, options: TraceOptions = {}): string {
     this.assertAlive();
-    if (values.length === 0) {
-      return;
+    this.validateTraceOptions(options);
+    if (!values.length) {
+      throw new RangeError('A trace requires at least one sample.');
     }
     const data = this.createSmithData(values, this.nextDatasetColor);
     this.nextDatasetColor++;
-    return this.data.push(data) - 1;
+    this.data.push(data);
+    const id = this.traceMetadata.get(data)!.id;
+    this.setTraceOptions(id, options);
+    return id;
   }
 
-  /** Replace samples, retaining color and markers. Empty input removes the dataset. */
-  public updateS1P(datasetNo: number, values: S1P): boolean {
+  /** Detached metadata snapshots; IDs and marker display numbers survive removals. */
+  public getTraces(): TraceInfo[] {
+    return this.data.map((data) => ({
+      ...this.traceMetadata.get(data)!,
+      color: data.Color,
+      visible: data.Visible,
+      sampleCount: data.SampleCount,
+      markers: data.Markers.map((entry, index) => ({
+        id: this.markerId(entry.marker),
+        number: entry.number,
+        sampleIndex: data.markerSampleIndex(index),
+      })),
+    }));
+  }
+
+  private traceIndex(id: string): number {
+    return this.data.findIndex((data) => this.traceMetadata.get(data)!.id === id);
+  }
+
+  private markerId(marker: SmithMarker): string {
+    let id = this.markerIds.get(marker);
+    if (!id) {
+      id = `marker-${this.nextMarkerId++}`;
+      this.markerIds.set(marker, id);
+    }
+    return id;
+  }
+
+  private findMarker(id: string): { datasetNo: number; markerNo: number } | undefined {
+    for (const [datasetNo, data] of this.data.entries()) {
+      const markerNo = data.Markers.findIndex((entry) => this.markerId(entry.marker) === id);
+      if (markerNo >= 0) {
+        return { datasetNo, markerNo };
+      }
+    }
+    return;
+  }
+
+  private validateTraceOptions(options: TraceOptions): void {
+    if (options.name !== undefined && (typeof options.name !== 'string' || !options.name.trim())) {
+      throw new TypeError('Trace name must not be empty.');
+    }
+    if (
+      options.color !== undefined &&
+      (typeof options.color !== 'string' || !d3.color(options.color))
+    ) {
+      throw new TypeError('Trace color must be a solid CSS color.');
+    }
+    if (options.visible !== undefined && typeof options.visible !== 'boolean') {
+      throw new TypeError('Trace visibility must be a boolean.');
+    }
+  }
+
+  public setTraceOptions(id: string, options: TraceOptions): boolean {
     this.assertAlive();
-    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) {
+    const data = this.data[this.traceIndex(id)];
+    if (!data) {
       return false;
     }
-    if (values.length === 0) {
-      return this.removeS1P(datasetNo);
+    this.validateTraceOptions(options);
+    if (options.name !== undefined) {
+      this.traceMetadata.get(data)!.name = options.name.trim();
     }
-    this.data[datasetNo].update(values);
+    if (options.color !== undefined) {
+      data.setColor(options.color);
+    }
+    if (options.visible !== undefined) {
+      data.setVisible(options.visible);
+    }
     return true;
   }
 
-  /** Remove a dataset. Later dataset indices shift down by one. */
-  public removeS1P(datasetNo: number): boolean {
+  public updateTrace(id: string, values: TraceSamples): boolean {
     this.assertAlive();
-    if (!Number.isInteger(datasetNo) || !this.data[datasetNo]) {
+    const data = this.data[this.traceIndex(id)];
+    if (!data) {
       return false;
     }
-    this.data[datasetNo].destroy();
-    this.data.splice(datasetNo, 1);
+    data.update(values);
     return true;
   }
 
-  public clearS1P(): void {
+  public removeTrace(id: string): boolean {
+    this.assertAlive();
+    const index = this.traceIndex(id);
+    if (index < 0) {
+      return false;
+    }
+    this.data[index].destroy();
+    this.data.splice(index, 1);
+    return true;
+  }
+
+  /** Place a marker on an existing sample; no interpolation is performed. */
+  public addMarker(traceId: string, sampleIndex = 0): string | undefined {
+    this.assertAlive();
+    const data = this.data[this.traceIndex(traceId)];
+    if (!data) {
+      return;
+    }
+    const index = data.addMarker(sampleIndex);
+    return this.markerId(data.Markers[index].marker);
+  }
+
+  public removeMarker(id: string): boolean {
+    this.assertAlive();
+    const location = this.findMarker(id);
+    return location ? this.data[location.datasetNo].removeMarker(location.markerNo) : false;
+  }
+
+  public setMarkerSample(id: string, sampleIndex: number): boolean {
+    this.assertAlive();
+    const location = this.findMarker(id);
+    return location
+      ? this.data[location.datasetNo].setMarkerSample(location.markerNo, sampleIndex)
+      : false;
+  }
+
+  public getMarker(id: string): MarkerSnapshot | undefined {
+    const location = this.findMarker(id);
+    if (!location) {
+      return;
+    }
+    const data = this.data[location.datasetNo];
+    const marker = data.Markers[location.markerNo];
+    return {
+      ...readReflection(
+        Complex.from(...marker.selectedPoint.reflectionCoefficient),
+        this.referenceImpedanceOhms,
+      ),
+      frequencyHz: marker.selectedPoint.frequencyHz,
+      traceId: this.traceMetadata.get(data)!.id,
+      markerId: id,
+      markerNumber: marker.number,
+      sampleIndex: data.markerSampleIndex(location.markerNo),
+    };
+  }
+
+  /** Return B − A, or undefined if either marker no longer exists. */
+  public compareMarkers(a: string, b: string): MarkerComparison | undefined {
+    const first = this.getMarker(a);
+    const second = this.getMarker(b);
+    return first && second ? compareMarkerReadings(first, second) : undefined;
+  }
+
+  public clearTraces(): void {
     this.assertAlive();
     this.data.forEach((dataset) => dataset.destroy());
     this.data = [];
   }
 
-  private createSmithData(values: S1P, dataset: number): SmithData {
+  private createSmithData(values: TraceSamples, dataset: number): SmithData {
     const color = d3.schemeCategory10[(1 + dataset) % d3.schemeCategory10.length];
     const data = new SmithData(
       values,
@@ -435,104 +554,43 @@ export class Smith {
       this.scalers.default,
       (marker, dragging) => {
         this.markerDragChanged(marker, dragging);
-        this.userActionHandler?.({
-          type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
-          data: this.getMarkerData(
-            this.data.indexOf(data),
-            data.Markers.findIndex((entry) => entry.marker === marker),
-          ),
-        });
+        const snapshot = this.getMarker(this.markerId(marker));
+        if (snapshot) {
+          this.emit({
+            type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
+            data: snapshot,
+          });
+        }
       },
       this.markerContainer,
     );
-    data.setMarkerMoveHandler((marker) => {
-      if (this.userActionHandler) {
-        this.userActionHandler({
-          type: SmithEventType.Marker,
-          data: this.getMarkerData(this.data.indexOf(data), marker),
-        });
+    const number = this.nextTraceId++;
+    this.traceMetadata.set(data, { id: `trace-${number}`, name: `Trace ${number}` });
+    data.setMarkerMoveHandler((index) => {
+      const marker = data.Markers[index];
+      const snapshot = marker && this.getMarker(this.markerId(marker.marker));
+      if (snapshot) {
+        this.emit({ type: SmithEventType.Marker, data: snapshot });
       }
     });
     data.addMarker();
     return data;
   }
 
-  public getMarkerData(datasetNo: number, markerNo: number): SmithMarkerEvent | undefined {
-    if (!this.data[datasetNo]) {
-      return;
-    }
-
-    const m = this.data[datasetNo].getMarker(markerNo);
-    if (!m) {
-      return;
-    }
-
-    const rc = Complex.from(...m.selectedPoint.point);
-    const freq = m.selectedPoint.freq;
-
-    return {
-      datasetNo,
-      markerNo,
-      freq,
-      reflectionCoefficient: rc,
-      impedance: this.calcImpedance(rc),
-      admittance: this.calcAdmittance(rc),
-      swr: this.calcs.rflCoeffToSwr(rc),
-      returnLoss: this.calcs.rflCoeffToReturnLoss(rc),
-      mismatchLoss: this.calcs.rflCoeffToMismatchLoss(rc),
-      Q: this.calcs.rflCoeffToQ(rc),
+  /** Subscribe to chart events. The returned function removes this subscription. */
+  public onEvent(listener: (event: SmithEvent) => void): () => void {
+    this.assertAlive();
+    // Separate registrations of the same function remain independently removable.
+    const subscription = (event: SmithEvent) => listener(event);
+    this.listeners.add(subscription);
+    return () => {
+      this.listeners.delete(subscription);
     };
   }
 
-  public get Datasets(): SmithData[] {
-    return this.data.slice();
-  }
-
-  public get ConstResistance(): ConstResistance {
-    return this.constResistance;
-  }
-
-  public get PeripheralScales(): SmithPeripheralScales {
-    return this.peripheralScales;
-  }
-
-  public get ConstReactance(): ConstReactance {
-    return this.constReactance;
-  }
-
-  public get ConstConductance(): ConstConductance {
-    return this.constConductance;
-  }
-
-  public get ConstSusceptance(): ConstSusceptance {
-    return this.constSusceptance;
-  }
-
-  public get ConstQCircles(): ConstQCircles {
-    return this.constQCircles;
-  }
-
-  public get ConstSwrCircles(): ConstSwrCircles {
-    return this.constSwrCircles;
-  }
-
-  public setUserActionHandler(handler: ((event: SmithEvent) => void) | null): void {
-    this.assertAlive();
-    this.userActionHandler = handler;
-  }
-
-  public calcImpedance(rc: Complex): Complex | undefined {
-    const impedance = this.calcs.rflCoeffToImpedance(rc);
-    if (impedance) {
-      return impedance.mul(this.Z0);
+  private emit(event: SmithEvent): void {
+    for (const listener of this.listeners) {
+      listener(event);
     }
-    return impedance;
-  }
-  public calcAdmittance(rc: Complex): Complex | undefined {
-    const admittance = this.calcs.rflCoeffToAdmittance(rc);
-    if (admittance) {
-      return admittance.mul((1 / this.Z0) * 1000.0); // mS
-    }
-    return admittance;
   }
 }

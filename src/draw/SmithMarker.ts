@@ -86,14 +86,22 @@ export class SmithMarker extends SmithShape {
     }
     this.destroyed = true;
     this.dragHandler = null;
+    this.cancelDrag();
+    this.dragStateHandler = null;
+    this.Element.selectAll('*').on('.drag', null).interrupt();
+    this.Element.remove();
+  }
+
+  public cancelDrag(): void {
     if (this.activeDrags.size > 0) {
       this.activeDrags.clear();
       this.dragStateHandler?.(false);
     }
-    this.dragStateHandler = null;
     this.mouseGesture.destroy();
-    this.Element.selectAll('*').on('.drag', null).interrupt();
-    this.Element.remove();
+  }
+
+  public setColor(color: string): void {
+    this.inner.attr('fill', color);
   }
 
   private onDrag(event: d3.D3DragEvent<SVGPolygonElement, unknown, unknown>) {

@@ -70,6 +70,7 @@
                 </div>
                 <div id="marker-selection" hidden>
                   <label for="marker-select">Selected marker</label>
+                  <span id="marker-color" class="color-swatch" aria-hidden="true" hidden></span>
                   <select id="marker-select" disabled>
                     <option value="">No markers available</option>
                   </select>
@@ -106,6 +107,38 @@
             <p id="file-help" class="hint">One-port RI, MA or DB data, with a 50 Ω reference.</p>
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
+            <div id="trace-list" aria-label="Loaded traces"></div>
+          </section>
+          <section class="panel" aria-labelledby="comparison-heading">
+            <h2 id="comparison-heading">Compare markers</h2>
+            <div class="comparison-selectors">
+              <label for="compare-a">Marker A</label>
+              <select id="compare-a" disabled>
+                <option value="">No markers available</option>
+              </select>
+              <label for="compare-b">Marker B</label>
+              <select id="compare-b" disabled>
+                <option value="">No markers available</option>
+              </select>
+            </div>
+            <p class="hint">B − A · Phase of Γ uses the shortest difference in [−180°, 180°).</p>
+            <dl class="comparison-readout">
+              <div>
+                <dt>Frequency difference</dt>
+                <dd id="comparison-frequency">—</dd>
+              </div>
+              <div>
+                <dt>Impedance difference</dt>
+                <dd id="comparison-impedance">—</dd>
+              </div>
+              <div>
+                <dt>Phase difference</dt>
+                <dd id="comparison-phase">—</dd>
+              </div>
+            </dl>
+            <p id="comparison-help" class="hint">
+              Add at least two markers to compare measurements.
+            </p>
           </section>
         </aside>
       </div>

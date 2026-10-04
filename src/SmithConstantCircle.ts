@@ -3,15 +3,13 @@ import { Point } from './shapes/Point.js';
 import { Complex } from './complex/Complex.js';
 
 export class SmithConstantCircle {
-  private epsilon = 1e-10;
-
   public constructor(public Z0: number = 50) {}
 
   public rflCoeffToImpedance(c: Complex): Complex | undefined {
     const gr = c.real;
     const gi = c.imag;
     const d = (1 - gr) * (1 - gr) + gi * gi;
-    if (Math.abs(d) < this.epsilon) {
+    if (d === 0 || !Number.isFinite(d)) {
       return undefined;
     }
     const zr = (1 - gr * gr - gi * gi) / d;
@@ -23,7 +21,7 @@ export class SmithConstantCircle {
     const zr = c.real;
     const zi = c.imag;
     const d = (zr + 1) * (zr + 1) + zi * zi;
-    if (Math.abs(d) < this.epsilon) {
+    if (d === 0 || !Number.isFinite(d)) {
       return undefined;
     }
     const gr = (zr * zr + zi * zi - 1) / d;
@@ -35,7 +33,7 @@ export class SmithConstantCircle {
     const gr = c.real;
     const gi = c.imag;
     const d = (gr + 1) * (gr + 1) + gi * gi;
-    if (Math.abs(d) < this.epsilon) {
+    if (d === 0 || !Number.isFinite(d)) {
       return undefined;
     }
     const yr = (1 - gr * gr - gi * gi) / d;
@@ -47,7 +45,7 @@ export class SmithConstantCircle {
     const yr = c.real;
     const yi = c.imag;
     const d = (yr + 1) * (yr + 1) + yi * yi;
-    if (Math.abs(d) < this.epsilon) {
+    if (d === 0 || !Number.isFinite(d)) {
       return undefined;
     }
     const gr = (1 - yr * yr - yi * yi) / d;
@@ -143,7 +141,7 @@ export class SmithConstantCircle {
 
   public rflCoeffToQ(rc: Complex): number | undefined {
     const impedance = this.rflCoeffToImpedance(rc);
-    if (!impedance) {
+    if (!impedance || (impedance.real === 0 && impedance.imag === 0)) {
       return;
     }
     return Math.abs(impedance.imag / impedance.real);

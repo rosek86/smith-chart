@@ -43,7 +43,11 @@ first. To use an installed Chrome instead, run
 src/
   index.ts                 public package exports
   Smith.ts                 chart composition, events, and public API
-  SmithConstantCircle.ts   RF calculations and circle geometry
+  rf.ts                    public DOM-independent readings and physical conversions
+  measurements.ts          trace/marker types and comparisons
+  samples.ts               trace input contract
+  layers.ts                public layer controls
+  SmithConstantCircle.ts   internal normalized RF calculations and circle geometry
   SmithArcsDefs.ts          compatibility facade for grid definitions
   grid/                    normalized geometry, compact grid bands, and label rules
   complex/                 complex numbers, independent of the DOM
@@ -78,9 +82,9 @@ reference D3 types. Demo CSS is not part of the library, which renders SVG direc
 ## Conventions
 
 Use English for documentation, code comments, UI labels, descriptions, and error
-messages. Use descriptive private fields without a leading underscore. Keep
-existing public names compatible, even where historical getters use PascalCase.
-Update public examples when changing API behavior.
+messages. Use descriptive private fields without a leading underscore. Before the first release, prioritize clear public names and consistent units over
+compatibility with historical APIs. Update the demo, tests, and public examples
+together when changing API behavior.
 
 Always use braces for control-flow bodies, including single-line guards and loops.
 The ESLint `curly` rule enforces this; Prettier formats the resulting blocks.
@@ -142,6 +146,9 @@ operations retain their legacy implementations; extending their numerical covera
 is a separate task.
 
 ## Packaging and releases
+
+See [the 0.1.0 API review](docs/api-review.md) for API decisions, units,
+identity and lifecycle contracts, and remaining release considerations.
 
 `npm pack` runs the library build through `prepack`. Only `dist/lib/`, the README,
 the license, and package metadata are included. Demo assets and internal instructions
