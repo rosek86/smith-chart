@@ -154,9 +154,10 @@ export abstract class ConstCircles {
 
   protected defaultDrawingOptions(): ConstCirclesDrawOptions {
     return {
-      stroke: 'black',
-      majorWidth: '0.2',
-      minorWidth: '0.1',
+      // Keep curved grid strokes visible at normal browser zoom and low pixel density.
+      stroke: '#64748b',
+      majorWidth: '1',
+      minorWidth: '0.6',
       textColor: 'black',
       textFontFamily: 'Verdana',
       textFontSize: '1',

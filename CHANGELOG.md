@@ -2,6 +2,8 @@
 
 ## 0.1.0 — Unreleased
 
+- Improve grid visibility with stronger default strokes and keep VSWR stroke widths fixed during zoom.
+
 - Introduce Smithkit as an ESM library with TypeScript declarations and a separate D3 demo.
 - Add Touchstone 1.x single-port import and labeled radial scales.
 - Separate parameter scales into `SmithScales`, with cursor dots and independent mounting; chart zoom and pan affect only the square chart SVG.

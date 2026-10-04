@@ -178,6 +178,11 @@ chart.ConstQCircles.show();
 | `ConstResistance`, `ConstReactance`, `ConstConductance`, `ConstSusceptance` | `show()`, `hide()`, `visibility(boolean)`, `showMinor()`, `hideMinor()`, `displayMinor(boolean)`, text styling properties. |
 | `ConstQCircles`, `ConstSwrCircles`                                          | `show()`, `hide()`, `visibility(boolean)`, `append(value)`, `remove(value)`, `Stroke`, `StrokeWidth`.                      |
 
+Grid strokes default to slate gray (`#64748b`), with 1 px major lines and 0.6 px
+minor lines. Q and VSWR overlays use 1 px strokes. These stroke widths remain
+constant during chart zoom. Adjust `MajorWidth`, `MinorWidth`, and `Stroke` on
+the impedance/admittance layers, or `StrokeWidth` on the Q/VSWR overlays.
+
 Use positive Q values and VSWR values greater than or equal to 1. Grid labels
 represent normalized impedance or admittance; chart readouts use physical units.
 
