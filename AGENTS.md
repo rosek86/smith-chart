@@ -3,6 +3,7 @@
 - Work on a feature branch and open a pull request targeting `main`. Do not commit or push directly to `main`, and do not merge without an explicit request.
 - Treat this repository as a reusable library. Keep the demo as a consumer of its public API.
 - Keep documentation, comments, UI labels, descriptions, and error messages in English.
+- Always use braces for control-flow bodies, including single-line `if` guards and loops; ESLint enforces this.
 - Use descriptive private field names without a leading underscore; ESLint enforces this.
 - Run `npm run lint:fix` and `npm run format` for automatic cleanup. `npm run check` includes lint and formatting checks.
 - Keep the TypeScript aliases: `@typescript/native` supplies the TypeScript 7 compiler; `typescript` supplies the TypeScript 6 API required by ESLint.

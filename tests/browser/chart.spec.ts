@@ -27,11 +27,13 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   await page.getByRole('button', { name: 'Reset view' }).click();
   await expect(chart).toHaveAttribute('transform', original!);
   await page.getByLabel('Impedance', { exact: true }).uncheck();
-  for (const layer of ['resistance', 'reactance'])
+  for (const layer of ['resistance', 'reactance']) {
     await expect(svg.locator(`[data-layer=${layer}]`)).toHaveAttribute('opacity', '0');
+  }
   await page.getByLabel('Admittance', { exact: true }).check();
-  for (const layer of ['conductance', 'susceptance'])
+  for (const layer of ['conductance', 'susceptance']) {
     expect(await svg.locator(`[data-layer=${layer}]`).getAttribute('opacity')).not.toBe('0');
+  }
   await page.getByLabel('Impedance', { exact: true }).check();
   await page.getByLabel('Admittance', { exact: true }).uncheck();
   await page.getByRole('button', { name: 'Load sample trace' }).click();

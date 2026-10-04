@@ -44,7 +44,9 @@ export class SmithGridLayer extends ConstCircles {
       );
     }
     this.build();
-    if (!params.showMinor) this.minor.hide();
+    if (!params.showMinor) {
+      this.minor.hide();
+    }
   }
 
   private drawGrid(definitions: SmithTicksShapes, width: string): SmithGroup {

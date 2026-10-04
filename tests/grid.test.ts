@@ -26,9 +26,11 @@ describe('normalized grid geometry', () => {
     const z = gridGeometry('resistance', grid.resistance.major);
     const y = gridGeometry('conductance', grid.resistance.major);
     z.arcs.forEach((arc, i) => {
-      for (const endpoint of [0, 1] as const)
-        for (const axis of [0, 1])
+      for (const endpoint of [0, 1] as const) {
+        for (const axis of [0, 1]) {
           expect(y.arcs[i][endpoint][axis]).toBeCloseTo(-arc[endpoint][axis], 8);
+        }
+      }
     });
   });
   it.each(kinds)('%s has finite labels and preserves signed reactive values', (kind) => {

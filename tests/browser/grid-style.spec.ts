@@ -124,7 +124,7 @@ for (const width of [340, 900]) {
       chart.ConstSusceptance.show();
       return bounds;
     });
-    for (const layer of layers)
+    for (const layer of layers) {
       for (const label of layer.labels) {
         expect(Object.values(label).every(Number.isFinite)).toBe(true);
         expect(label.x).toBeGreaterThanOrEqual(0);
@@ -132,6 +132,7 @@ for (const width of [340, 900]) {
         expect(label.right).toBeLessThanOrEqual(layer.width);
         expect(label.bottom).toBeLessThanOrEqual(layer.height);
       }
+    }
     await page.screenshot({ path: `test-results/admittance-${width}.png`, fullPage: true });
   });
 }

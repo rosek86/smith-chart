@@ -57,11 +57,12 @@ describe('principal branches and signed zeros', () => {
     }
   });
   it('selects either side of the asinh imaginary-axis cuts', () => {
-    for (const realSign of [1, -1])
+    for (const realSign of [1, -1]) {
       for (const imagSign of [1, -1]) {
         const z = Complex.from(realSign * 0, imagSign * 2);
         closeComplex(z.asinh(), [realSign * Math.acosh(2), (imagSign * Math.PI) / 2]);
       }
+    }
   });
   it('keeps reciprocal inverse branches consistent with 1/z', () => {
     closeComplex(Complex.from(2, 0).asech(), [0, -Math.PI / 3]);

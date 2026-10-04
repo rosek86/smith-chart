@@ -74,6 +74,9 @@ messages. Use descriptive private fields without a leading underscore. Keep
 existing public names compatible, even where historical getters use PascalCase.
 Update public examples when changing API behavior.
 
+Always use braces for control-flow bodies, including single-line guards and loops.
+The ESLint `curly` rule enforces this; Prettier formats the resulting blocks.
+
 ESLint uses a flat configuration in `eslint.config.mjs` with recommended JavaScript
 and TypeScript rules, browser/Node globals for the relevant files, and a rule
 forbidding leading underscores on private fields. Prettier owns formatting;

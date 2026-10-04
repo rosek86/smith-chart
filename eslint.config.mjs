@@ -49,4 +49,8 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   prettier,
+  {
+    files: ['**/*.{js,mjs,ts}'],
+    rules: { curly: ['error', 'all'] },
+  },
 ]);

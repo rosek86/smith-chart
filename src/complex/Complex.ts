@@ -385,7 +385,9 @@ export class Complex {
   }
 
   public static sinh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     return Complex.from(
       Complex.hyperbolicProduct(z.re, Math.cos(z.im), true),
       Complex.hyperbolicProduct(z.re, Math.sin(z.im), false),
@@ -393,10 +395,14 @@ export class Complex {
   }
 
   public static asinh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     const x = Math.abs(z.re);
     const y = Math.abs(z.im);
-    if (Math.max(x, y) < 1e-8) return Complex.from(z.re, z.im);
+    if (Math.max(x, y) < 1e-8) {
+      return Complex.from(z.re, z.im);
+    }
     if (y < 1 && x < 1e-150) {
       return Complex.from(z.re / (Math.sqrt(1 - y) * Math.sqrt(1 + y)), Math.asin(z.im));
     }
@@ -429,7 +435,9 @@ export class Complex {
   }
 
   public static cosh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     return Complex.from(
       Complex.hyperbolicProduct(z.re, Math.cos(z.im), false),
       Complex.hyperbolicProduct(z.re, Math.sin(z.im), true),
@@ -437,7 +445,9 @@ export class Complex {
   }
 
   public static acosh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     if (Math.abs(z.re) < 1 && Math.abs(z.im) < 1e-150) {
       return Complex.from(
         Math.abs(z.im) / (Math.sqrt(1 - z.re) * Math.sqrt(1 + z.re)),
@@ -467,7 +477,9 @@ export class Complex {
   }
 
   public static tanh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     // Divide through by exp(2|x|); expm1 retains the real part near zero.
     const q = Math.exp(-2 * Math.abs(z.re));
     const difference = -Math.expm1(-2 * Math.abs(z.re));
@@ -481,7 +493,9 @@ export class Complex {
   }
 
   public static atanh(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     const x = Math.abs(z.re);
     const y = Math.abs(z.im);
     if (Math.max(x, y) > 1e150) {
@@ -512,12 +526,16 @@ export class Complex {
   }
 
   public static coth(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     return Complex.reciprocal(Complex.tanh(z));
   }
 
   public static acoth(z: Complex): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     if (Math.max(Math.abs(z.re), Math.abs(z.im)) < 1e-150) {
       return Complex.from(z.re, Complex.copySign(Math.PI / 2, -z.im));
     }
@@ -542,7 +560,9 @@ export class Complex {
   }
 
   public static asech(z: Complex): Complex {
-    if (!Complex.isFinite(z) || (z.re === 0 && z.im === 0)) return Complex.nan();
+    if (!Complex.isFinite(z) || (z.re === 0 && z.im === 0)) {
+      return Complex.nan();
+    }
     if (Math.max(Math.abs(z.re), Math.abs(z.im)) < 1e-150) {
       return Complex.from(Math.LN2 - Complex.logHypot(z.re, z.im), -Math.atan2(z.im, z.re));
     }
@@ -568,7 +588,9 @@ export class Complex {
   }
 
   public static acsch(z: Complex): Complex {
-    if (!Complex.isFinite(z) || (z.re === 0 && z.im === 0)) return Complex.nan();
+    if (!Complex.isFinite(z) || (z.re === 0 && z.im === 0)) {
+      return Complex.nan();
+    }
     if (Math.max(Math.abs(z.re), Math.abs(z.im)) < 1e-150) {
       return Complex.from(
         Complex.copySign(Math.LN2 - Complex.logHypot(z.re, z.im), z.re),
@@ -598,7 +620,9 @@ export class Complex {
   /** Scaled Cartesian reciprocal, preserving signed zeros on branch cuts. */
   private static reciprocal(z: Complex): Complex {
     const scale = Math.max(Math.abs(z.re), Math.abs(z.im));
-    if (scale === 0 || !Number.isFinite(scale)) return Complex.nan();
+    if (scale === 0 || !Number.isFinite(scale)) {
+      return Complex.nan();
+    }
     const x = z.re / scale;
     const y = z.im / scale;
     const denominator = x * x + y * y;
@@ -606,15 +630,21 @@ export class Complex {
   }
 
   private static hyperbolicProduct(x: number, factor: number, odd: boolean): number {
-    if (Math.abs(x) < 20) return factor * (odd ? Math.sinh(x) : Math.cosh(x));
+    if (Math.abs(x) < 20) {
+      return factor * (odd ? Math.sinh(x) : Math.cosh(x));
+    }
     const sign = odd ? factor * Math.sign(x) : factor;
-    if (factor === 0) return sign;
+    if (factor === 0) {
+      return sign;
+    }
     // Combine the factor before exponentiation to avoid a spurious Infinity * 0.
     return Complex.copySign(Math.exp(Math.abs(x) - Math.LN2 + Math.log(Math.abs(factor))), sign);
   }
 
   private static hyperbolicReciprocal(z: Complex, even: boolean): Complex {
-    if (!Complex.isFinite(z)) return Complex.nan();
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
     const x = Math.abs(z.re);
     const q = Math.exp(-2 * x);
     const difference = -Math.expm1(-2 * x);
