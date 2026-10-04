@@ -3,7 +3,7 @@ name: Check and publish Smith chart
 on:
   pull_request:
   push:
-    branches: [master, main]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

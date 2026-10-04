@@ -7,11 +7,11 @@ Source code and the workflow live in `rosek86/smith-chart`. The demo build outpu
 published to the separate `gh-pages` branch of `rosek86/smith-app`. A workflow in that
 branch uploads and deploys the already tested site through the GitHub Pages API.
 
-Pipeline: push to the default `master` branch → `npm ci` → type checking → unit tests
+Pipeline: push to the default `main` branch → `npm ci` → type checking → unit tests
 → build → browser tests → artifact → commit and push to `smith-app/gh-pages`
 → target repository Pages workflow → public site.
 Pull requests run checks without publishing. You can also select **Run workflow**
-on the default branch. The workflow also supports renaming the branch to `main`.
+on the default branch. Deployment follows the repository’s default branch.
 
 ### One-time setup
 
