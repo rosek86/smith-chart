@@ -36,6 +36,9 @@ it('publishes first and subsequent builds without rewriting master or retaining 
     expect(git('branch', '--show-current')).toBe('gh-pages');
     expect(readFileSync(join(target, 'index.html'), 'utf8')).toBe('New demo');
     expect(readFileSync(join(target, '.nojekyll'), 'utf8')).toBe('');
+    expect(readFileSync(join(target, '.github/workflows/pages.yml'), 'utf8')).toBe(
+      readFileSync(resolve('scripts/pages-workflow.yml'), 'utf8'),
+    );
     writeFileSync(join(target, 'CNAME'), 'example.com');
     git('add', 'CNAME');
     commit('Custom domain');

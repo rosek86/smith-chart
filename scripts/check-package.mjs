@@ -24,7 +24,7 @@ try {
   writeFileSync(join(temp, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
   run('npm', [
     'install',
-    '--offline',
+    '--prefer-offline',
     '--ignore-scripts',
     '--no-audit',
     '--no-fund',

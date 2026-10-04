@@ -5,6 +5,7 @@ set -euo pipefail
 build_dir=$(cd "${1:?Pass the built site directory}" && pwd)
 target_dir=$(cd "${2:?Pass a disposable target repository checkout}" && pwd)
 source_revision=${GITHUB_SHA:-local}
+workflow_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pages-workflow.yml"
 
 if [[ ! -f "$build_dir/index.html" || ! -d "$target_dir/.git" ]]; then
   echo 'Expected a built index.html and a standalone target Git checkout.' >&2
@@ -30,6 +31,8 @@ fi
 
 # Remove obsolete assets from this generated branch; keep Git metadata and custom domains.
 rsync -a --delete --exclude=/.git/ --exclude=/CNAME "$build_dir/" "$target_dir/"
+mkdir -p .github/workflows
+cp "$workflow_file" .github/workflows/pages.yml
 touch .nojekyll
 git add --all
 if git diff --cached --quiet; then
