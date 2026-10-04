@@ -170,6 +170,47 @@ footer {
   font-size: 11px;
   margin-top: 24px;
 }
+@media (min-width: 1000px) {
+  main {
+    padding: 16px 24px;
+  }
+  header {
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 4px 0;
+  }
+  .toolbar {
+    padding: 10px 16px;
+    margin-bottom: 12px;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .chart-column {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: start;
+    gap: 16px;
+  }
+  #smith {
+    width: min(100%, max(300px, calc(100dvh - 260px)));
+    max-width: 620px;
+    margin-inline: auto;
+  }
+  .scales-panel {
+    padding: 16px;
+  }
+  #smith-scales .radial-scales {
+    /* Override the component's inline auto-fit default for the desktop demo. */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  aside {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+}
 @media (max-width: 800px) {
   main {
     padding: 16px;
