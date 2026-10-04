@@ -64,6 +64,10 @@ application controls in the demo; parsers and calculations belong in the library
 `Smith` owns the square chart SVG and its zoom transform. `SmithScales` mounts
 its own responsive container; the demo connects it to cursor events. Keep scale
 rendering outside the chart transform and RF scale mappings in `radialScales.ts`.
+The demo throttles moving cursor/marker readouts to one update per 33 ms, using
+the latest position even during continuous movement. Clearing readouts and
+switching tabs cancel pending updates and render immediately. `SmithScales.update`
+remains synchronous for library consumers.
 
 The library build uses TypeScript to emit ESM JavaScript and declarations with
 matching paths. Relative source imports use `.js` extensions so consumers can

@@ -21,13 +21,15 @@ test('cursor dots follow all ten scales, including phase-dependent voltage trans
       box.y + box.height * (0.5 - 0.4 * im),
     );
     await expect(dots.first()).not.toHaveAttribute('visibility', 'hidden');
-    const positions = await dots.evaluateAll((nodes) =>
-      nodes.map((node) => Number(node.getAttribute('data-position'))),
-    );
-    for (const position of positions.slice(0, 9)) {
-      expect(position).toBeCloseTo(Math.hypot(re, im), 2);
-    }
-    expect(positions[9]).toBeCloseTo(Math.hypot(1 + re, im) / 2, 2);
+    await expect(async () => {
+      const positions = await dots.evaluateAll((nodes) =>
+        nodes.map((node) => Number(node.getAttribute('data-position'))),
+      );
+      for (const position of positions.slice(0, 9)) {
+        expect(position).toBeCloseTo(Math.hypot(re, im), 2);
+      }
+      expect(positions[9]).toBeCloseTo(Math.hypot(1 + re, im) / 2, 2);
+    }).toPass();
   }
   await expect(page.getByRole('heading', { name: 'Cursor', exact: true })).toHaveCount(0);
   const readout = page.locator('.scales-panel #parameter-readout');
@@ -217,4 +219,54 @@ test('leaving the chart cancels queued cursor updates before they can restore do
     return { events, hidden };
   });
   expect(result).toEqual({ events: [false], hidden: true });
+});
+
+test('demo throttles continuous movement and cancels pending updates on leave or tab selection', async ({
+  page,
+}) => {
+  await page.clock.install({ time: 0 });
+  await page.clock.pauseAt(1000);
+  await page.goto('./');
+  const surface = page.locator('#smith circle[fill=transparent]');
+  const move = async (re: number) => {
+    await surface.evaluate((node, value) => {
+      const box = node.getBoundingClientRect();
+      node.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: box.x + box.width * (0.5 + value / 2),
+          clientY: box.y + box.height / 2,
+        }),
+      );
+    }, re);
+  };
+  const value = page.locator('[data-scale=vswr] .scale-value');
+  await move(0.25);
+  await page.clock.runFor(20);
+  await move(0.5);
+  await expect(value).toHaveText('—');
+  await page.clock.runFor(14);
+  await expect(value).toHaveText('3 : 1');
+  await expect(page.locator('#parameter-gamma')).toHaveText('0.500 + 0.000i');
+
+  await move(0.2);
+  await page.clock.runFor(20);
+  await expect(value).toHaveText('3 : 1');
+  await move(0);
+  await page.clock.runFor(14);
+  await expect(value).toHaveText('1 : 1');
+
+  await move(0.2);
+  await page.clock.runFor(3);
+  await surface.dispatchEvent('pointerleave');
+  await expect(value).toHaveText('—');
+  await page.clock.runFor(50);
+  await expect(value).toHaveText('—');
+
+  await move(0.5);
+  await page.clock.runFor(3);
+  await page.locator('#marker-tab').evaluate((tab) => (tab as HTMLButtonElement).click());
+  await expect(page.locator('#marker-readout')).toBeVisible();
+  await expect(value).toHaveText('—');
+  await page.clock.runFor(50);
+  await expect(value).toHaveText('—');
 });

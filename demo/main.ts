@@ -36,8 +36,12 @@ let preferredSource: ReadoutSource = 'cursor';
 let cursorData: SmithCursorEvent | SmithMarkerEvent | undefined;
 let markerData: SmithMarkerEvent | undefined;
 let activeMarkerDrags = 0;
+const readoutIntervalMs = 33;
+let pendingReadout: ReturnType<typeof setTimeout> | undefined;
 
 function renderReadout(): void {
+  clearTimeout(pendingReadout);
+  pendingReadout = undefined;
   const data = source === 'cursor' ? cursorData : markerData;
   scales.update(data?.reflectionCoefficient ?? null);
   element('parameter-gamma').textContent = data
@@ -120,7 +124,13 @@ function updateReadout(event: SmithEvent): void {
       return;
     }
   }
-  renderReadout();
+  if (!event.data) {
+    renderReadout();
+    return;
+  }
+  if (pendingReadout === undefined) {
+    pendingReadout = setTimeout(renderReadout, readoutIntervalMs);
+  }
 }
 smith.setUserActionHandler(updateReadout);
 
