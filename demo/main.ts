@@ -38,6 +38,32 @@ let markerData: SmithMarkerEvent | undefined;
 let activeMarkerDrags = 0;
 const readoutIntervalMs = 33;
 let pendingReadout: ReturnType<typeof setTimeout> | undefined;
+const markerSelect = element<HTMLSelectElement>('marker-select');
+
+function markerKey(data: SmithMarkerEvent): string {
+  return `${data.datasetNo}:${data.markerNo}`;
+}
+
+function refreshMarkerOptions(): void {
+  const options = smith.Datasets.flatMap((dataset, datasetNo) =>
+    dataset.Markers.map(
+      (_, markerNo) =>
+        new Option(`Trace ${datasetNo + 1} · marker ${markerNo + 1}`, `${datasetNo}:${markerNo}`),
+    ),
+  );
+  markerSelect.replaceChildren(...options);
+  markerSelect.disabled = options.length === 0;
+  if (!markerData) {
+    markerData = smith.getMarkerData(0, 0);
+  }
+  renderReadout();
+}
+
+markerSelect.addEventListener('change', () => {
+  const [datasetNo, markerNo] = markerSelect.value.split(':').map(Number);
+  markerData = smith.getMarkerData(datasetNo!, markerNo!);
+  renderReadout();
+});
 
 function renderReadout(): void {
   clearTimeout(pendingReadout);
@@ -61,6 +87,8 @@ function renderReadout(): void {
 
   const markerReadout = element('marker-readout');
   markerReadout.hidden = source !== 'marker';
+  element('marker-selection').hidden = source !== 'marker';
+  markerSelect.value = markerData ? markerKey(markerData) : '';
   element('cursor-help').hidden = source !== 'cursor';
   if (markerData) {
     const summary = document.createElement('div');
@@ -110,7 +138,13 @@ for (const name of ['cursor', 'marker'] as const) {
 function updateReadout(event: SmithEvent): void {
   if (event.type === SmithEventType.Cursor) {
     cursorData = event.data;
-  } else if (event.data && 'freq' in event.data) {
+  } else if (
+    event.data &&
+    'freq' in event.data &&
+    (event.type === SmithEventType.MarkerDragStart ||
+      !markerData ||
+      markerKey(event.data) === markerKey(markerData))
+  ) {
     markerData = event.data;
   }
   if (event.type === SmithEventType.MarkerDragStart) {
@@ -153,6 +187,7 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
       );
     }
     smith.addS1P(parsed.values);
+    refreshMarkerOptions();
     status(`${file.name}: ${parsed.values.length} samples loaded.`);
   } catch (error) {
     status(error instanceof Error ? error.message : 'Could not read this file.', true);
@@ -170,5 +205,6 @@ element('sample').addEventListener('click', () => {
     };
   });
   smith.addS1P(values);
+  refreshMarkerOptions();
   status('Sample: 101 samples, 1–2 GHz, normalized resistance r = 1.');
 });

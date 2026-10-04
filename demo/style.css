@@ -85,7 +85,8 @@ button:hover {
   background: #edf5f4;
 }
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid #287e76;
   outline-offset: 3px;
 }
@@ -136,6 +137,25 @@ input:focus-visible {
   line-height: 16px;
   color: #617286;
   overflow-wrap: anywhere;
+}
+#marker-selection:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+#marker-selection label {
+  font-size: inherit;
+}
+#marker-select {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #bbcbd4;
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: white;
+  color: #24364b;
+  font: inherit;
 }
 #parameter-panel:focus-visible {
   outline: 2px solid #287e76;
