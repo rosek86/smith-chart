@@ -38,30 +38,58 @@
               normalized to Z₀.
             </p>
           </section>
-          <section class="panel scales-panel" aria-label="Cursor parameter scales">
-            <h2>Parameter scales</h2>
-            <p class="hint">
-              Move over the chart. Scales show dimensionless ratios unless marked dB.
-            </p>
-            <dl id="cursor-readout" class="scale-readout">
-              <div>
-                <dt>Γ · dimensionless</dt>
-                <dd id="cursor-gamma">—</dd>
+          <section class="panel scales-panel" aria-label="Parameter scales">
+            <div class="scales-heading">
+              <h2>Parameter scales</h2>
+              <div role="tablist" aria-label="Readout source" class="readout-tabs">
+                <button
+                  type="button"
+                  role="tab"
+                  id="cursor-tab"
+                  aria-controls="parameter-panel"
+                  aria-selected="true"
+                >
+                  Cursor
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="marker-tab"
+                  aria-controls="parameter-panel"
+                  aria-selected="false"
+                  tabindex="-1"
+                >
+                  Marker
+                </button>
               </div>
-              <div>
-                <dt>Z · Ω</dt>
-                <dd id="cursor-impedance">—</dd>
+            </div>
+            <div id="parameter-panel" role="tabpanel" aria-labelledby="cursor-tab" tabindex="0">
+              <div class="readout-context">
+                <div id="cursor-help">
+                  Move over the chart. Scales show dimensionless ratios unless marked dB.
+                </div>
+                <div id="marker-readout" hidden>Load a trace to place a marker.</div>
               </div>
-              <div>
-                <dt>Y · mS</dt>
-                <dd id="cursor-admittance">—</dd>
-              </div>
-              <div>
-                <dt>Q · dimensionless</dt>
-                <dd id="cursor-q">—</dd>
-              </div>
-            </dl>
-            <div id="smith-scales"></div>
+              <dl id="parameter-readout" class="scale-readout">
+                <div>
+                  <dt>Γ · dimensionless</dt>
+                  <dd id="parameter-gamma">—</dd>
+                </div>
+                <div>
+                  <dt>Z · Ω</dt>
+                  <dd id="parameter-impedance">—</dd>
+                </div>
+                <div>
+                  <dt>Y · mS</dt>
+                  <dd id="parameter-admittance">—</dd>
+                </div>
+                <div>
+                  <dt>Q · dimensionless</dt>
+                  <dd id="parameter-q">—</dd>
+                </div>
+              </dl>
+              <div id="smith-scales"></div>
+            </div>
           </section>
         </div>
         <aside>
@@ -72,10 +100,6 @@
             <p id="file-help" class="hint">One-port RI, MA or DB data, with a 50 Ω reference.</p>
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
-          </section>
-          <section class="panel">
-            <h2>Marker</h2>
-            <div id="marker-readout" class="readout">Load a trace to place a marker.</div>
           </section>
         </aside>
       </div>

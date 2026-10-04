@@ -1,6 +1,6 @@
 import './style.css';
 import { Smith, SmithScales, SmithEventType } from '../src';
-import type { SmithEvent, SmithMarkerEvent, S1P } from '../src';
+import type { SmithEvent, SmithCursorEvent, SmithMarkerEvent, S1P } from '../src';
 import { parseTouchstone } from '../src/io/touchstone';
 
 function element<T extends HTMLElement>(id: string): T {
@@ -30,56 +30,97 @@ for (const [id, groups] of layers) {
 }
 element('reset-view').addEventListener('click', () => smith.resetView());
 
+type ReadoutSource = 'cursor' | 'marker';
+let source: ReadoutSource = 'cursor';
+let preferredSource: ReadoutSource = 'cursor';
+let cursorData: SmithCursorEvent | SmithMarkerEvent | undefined;
+let markerData: SmithMarkerEvent | undefined;
+let activeMarkerDrags = 0;
+
+function renderReadout(): void {
+  const data = source === 'cursor' ? cursorData : markerData;
+  scales.update(data?.reflectionCoefficient ?? null);
+  element('parameter-gamma').textContent = data
+    ? smith.formatComplex(data.reflectionCoefficient)
+    : '—';
+  element('parameter-impedance').textContent = data
+    ? data.impedance
+      ? smith.formatComplex(data.impedance)
+      : '∞'
+    : '—';
+  element('parameter-admittance').textContent = data
+    ? data.admittance
+      ? smith.formatComplex(data.admittance)
+      : '∞'
+    : '—';
+  element('parameter-q').textContent = data?.Q?.toFixed(3) ?? '—';
+
+  const markerReadout = element('marker-readout');
+  markerReadout.hidden = source !== 'marker';
+  element('cursor-help').hidden = source !== 'cursor';
+  if (markerData) {
+    const summary = document.createElement('div');
+    summary.textContent = `Trace ${markerData.datasetNo + 1} · marker ${markerData.markerNo + 1} · Frequency: ${smith.formatNumber(markerData.freq)}Hz`;
+    const component = document.createElement('div');
+    component.textContent = `Reactive component: ${smith.getReactanceComponentValue(markerData.reflectionCoefficient, markerData.freq)} · Scales: ratios or dB.`;
+    markerReadout.replaceChildren(summary, component);
+  } else {
+    markerReadout.textContent = 'Load a trace to place a marker.';
+  }
+}
+
+function selectSource(next: ReadoutSource, remember = true): void {
+  source = next;
+  if (remember) {
+    preferredSource = next;
+  }
+  for (const name of ['cursor', 'marker'] as const) {
+    const tab = element<HTMLButtonElement>(`${name}-tab`);
+    tab.setAttribute('aria-selected', String(name === source));
+    tab.tabIndex = name === source ? 0 : -1;
+  }
+  element('parameter-panel').setAttribute('aria-labelledby', `${source}-tab`);
+  renderReadout();
+}
+
+for (const name of ['cursor', 'marker'] as const) {
+  const tab = element<HTMLButtonElement>(`${name}-tab`);
+  tab.addEventListener('click', () => selectSource(name));
+  tab.addEventListener('keydown', (event) => {
+    let next: ReadoutSource;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      next = name === 'cursor' ? 'marker' : 'cursor';
+    } else if (event.key === 'Home') {
+      next = 'cursor';
+    } else if (event.key === 'End') {
+      next = 'marker';
+    } else {
+      return;
+    }
+    event.preventDefault();
+    selectSource(next);
+    element(`${next}-tab`).focus();
+  });
+}
+
 function updateReadout(event: SmithEvent): void {
-  const data = event.data;
   if (event.type === SmithEventType.Cursor) {
-    scales.update(data?.reflectionCoefficient ?? null);
-    element('cursor-gamma').textContent = data
-      ? smith.formatComplex(data.reflectionCoefficient)
-      : '—';
-    element('cursor-impedance').textContent = data
-      ? data.impedance
-        ? smith.formatComplex(data.impedance)
-        : '∞'
-      : '—';
-    element('cursor-admittance').textContent = data
-      ? data.admittance
-        ? smith.formatComplex(data.admittance)
-        : '∞'
-      : '—';
-    element('cursor-q').textContent = data?.Q?.toFixed(3) ?? '—';
+    cursorData = event.data;
+  } else if (event.data && 'freq' in event.data) {
+    markerData = event.data;
+  }
+  if (event.type === SmithEventType.MarkerDragStart) {
+    activeMarkerDrags++;
+    selectSource('marker', false);
     return;
+  } else if (event.type === SmithEventType.MarkerDragEnd) {
+    activeMarkerDrags = Math.max(0, activeMarkerDrags - 1);
+    if (activeMarkerDrags === 0) {
+      selectSource(preferredSource, false);
+      return;
+    }
   }
-  if (!data) {
-    return;
-  }
-  const rows = [
-    `Γ: ${smith.formatComplex(data.reflectionCoefficient)}`,
-    `Z: ${data.impedance ? smith.formatComplex(data.impedance, 'Ω') : '∞ [Ω]'}`,
-    `Y: ${data.admittance ? smith.formatComplex(data.admittance, 'mS') : '∞ [mS]'}`,
-    `VSWR: ${data.swr.toFixed(3)} : 1`,
-    `Return loss: ${data.returnLoss.toFixed(2)} dB`,
-    `Mismatch loss: ${data.mismatchLoss.toFixed(2)} dB`,
-    `Q: ${data.Q?.toFixed(3) ?? '—'}`,
-  ];
-  const isMarker = event.type === SmithEventType.Marker;
-  if (isMarker) {
-    const marker = data as SmithMarkerEvent;
-    rows.unshift(
-      `Trace ${marker.datasetNo + 1} · marker ${marker.markerNo + 1}`,
-      `Frequency: ${smith.formatNumber(marker.freq)}Hz`,
-    );
-    rows.push(
-      `Reactive component: ${smith.getReactanceComponentValue(marker.reflectionCoefficient, marker.freq)}`,
-    );
-  }
-  element('marker-readout').replaceChildren(
-    ...rows.map((text) => {
-      const row = document.createElement('div');
-      row.textContent = text;
-      return row;
-    }),
-  );
+  renderReadout();
 }
 smith.setUserActionHandler(updateReadout);
 

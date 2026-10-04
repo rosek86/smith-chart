@@ -65,7 +65,10 @@ not impedance. Frequencies are in Hz. A marker is added to each nonempty dataset
 drag it along the trace to select a sample. Markers show a grab cursor, changing
 to grabbing during a drag. Chart cursor guides and cursor events with position data
 are suspended while dragging a marker; they resume on the next pointer move after
-release. Connected parameter scales clear their cursor indicators during the drag.
+release. `MarkerDragStart` and `MarkerDragEnd` events carry the marker payload,
+so applications can temporarily show marker values in place of cursor readouts.
+The demo uses these events to switch its shared scales panel to the Marker tab
+during a drag, then restore the previously selected tab.
 Scroll to zoom, drag the chart to pan,
 and call `chart.resetView()` to restore the initial view.
 
@@ -212,6 +215,10 @@ can be infinite. Loss and VSWR readouts assume passive loads (`|Γ| ≤ 1`).
 Leaving the chart or starting a marker drag emits a `Cursor` event with
 `data: undefined`, allowing consumers
 to hide cursor indicators. `chart.CursorData` retains the last position.
+
+`MarkerDragStart` fires when a marker is grabbed, before it moves; `MarkerDragEnd`
+fires on release or when a dragged marker/dataset is removed. Both use the same
+payload as `Marker`. Destroying the chart suppresses further application callbacks.
 
 Cursor payloads also include `dBS`, `rflCoeffP`, `rflCoeffEOrI`, and `transmCoeffP`.
 Marker payloads add `freq`, `datasetNo`, and `markerNo`. Dataset and marker indices

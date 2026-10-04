@@ -58,6 +58,8 @@ export interface SmithMarkerEvent {
 export enum SmithEventType {
   Cursor,
   Marker,
+  MarkerDragStart,
+  MarkerDragEnd,
 }
 
 export interface SmithEvent {
@@ -188,9 +190,9 @@ export class Smith {
     if (this.destroyed) {
       return;
     }
+    this.userActionHandler = null;
     this.clearS1P();
     this.destroyed = true;
-    this.userActionHandler = null;
     this.cursor.setMoveHandler(null);
     this.mouseGesture.destroy();
     this.zoomBehavior.on('start', null).on('zoom', null);
@@ -426,7 +428,16 @@ export class Smith {
       this.transform,
       this.dataContainer,
       this.scalers.default,
-      (marker, dragging) => this.markerDragChanged(marker, dragging),
+      (marker, dragging) => {
+        this.markerDragChanged(marker, dragging);
+        this.userActionHandler?.({
+          type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
+          data: this.getMarkerData(
+            this.data.indexOf(data),
+            data.Markers.findIndex((entry) => entry.marker === marker),
+          ),
+        });
+      },
     );
     data.setMarkerMoveHandler((marker) => {
       if (this.userActionHandler) {

@@ -106,9 +106,40 @@ input:focus-visible {
   display: grid;
   gap: 20px;
 }
-.scales-panel .hint {
-  margin-top: -6px;
+.scales-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+}
+.scales-heading h2 {
+  margin: 0;
+}
+.readout-tabs {
+  display: flex;
+  gap: 4px;
+}
+.readout-tabs button {
+  padding: 6px 10px;
+}
+.readout-tabs [aria-selected='true'] {
+  color: #1b655e;
+  background: #edf5f4;
+  border-color: #287e76;
+}
+.readout-context {
+  min-height: 32px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #617286;
+  overflow-wrap: anywhere;
+}
+#parameter-panel:focus-visible {
+  outline: 2px solid #287e76;
+  outline-offset: 3px;
 }
 .scale-readout {
   display: grid;
@@ -179,16 +210,6 @@ input[type='file'] {
 #file-status[data-error='true'] {
   color: #b42318;
 }
-.readout {
-  font-size: 12px;
-  line-height: 1.9;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.readout div {
-  border-top: 1px solid #edf1f4;
-  padding: 3px 0;
-}
 footer {
   color: #7b8997;
   font-size: 11px;
@@ -229,6 +250,7 @@ footer {
   #smith-scales .radial-scales {
     /* Override the component's inline auto-fit default for the desktop demo. */
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    row-gap: 4px !important;
   }
   aside {
     grid-template-columns: repeat(2, minmax(0, 1fr));

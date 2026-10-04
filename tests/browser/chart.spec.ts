@@ -20,7 +20,7 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   await page.mouse.move(center.x, center.y);
   await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
-  await expect(page.locator('#cursor-q')).toHaveText('0.000');
+  await expect(page.locator('#parameter-q')).toHaveText('0.000');
   const chart = svg.locator(':scope > g');
   const original = await chart.getAttribute('transform');
   await page.mouse.wheel(0, -240);
