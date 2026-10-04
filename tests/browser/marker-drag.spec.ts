@@ -1,6 +1,59 @@
 import { expect, test } from '@playwright/test';
 import { loadLibrary } from './library';
 
+test('the marker selector preserves selection across imports and follows marker dragging', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('./');
+  const selector = page.getByRole('combobox', { name: 'Selected marker' });
+  await expect(page.locator('#marker-select')).toBeHidden();
+  await page.getByRole('tab', { name: 'Marker', exact: true }).click();
+  await expect(selector).toBeDisabled();
+  await expect(selector).toHaveText('No markers available');
+
+  const input = page.locator('#file');
+  await input.setInputFiles({
+    name: 'matched.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# GHz S RI R 50\n1 0 0'),
+  });
+  await expect(selector).toBeEnabled();
+  await expect(selector).toHaveValue('0:0');
+  await input.setInputFiles({
+    name: 'mismatched.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# GHz S RI R 50\n2 0.5 0'),
+  });
+  await expect(selector.locator('option')).toHaveText(['Trace 1 · marker 1', 'Trace 2 · marker 1']);
+  await expect(selector).toHaveValue('0:0');
+  await expect(page.locator('#parameter-gamma')).toHaveText('0.000 + 0.000i');
+  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
+
+  await selector.selectOption('1:0');
+  await expect(page.locator('#marker-readout')).toContainText('Frequency: 2 GHz');
+  await expect(page.locator('#parameter-gamma')).toHaveText('0.500 + 0.000i');
+  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('3 : 1');
+  await page.getByRole('button', { name: 'Load sample trace' }).click();
+  await expect(selector.locator('option')).toHaveCount(3);
+  await expect(selector).toHaveValue('1:0');
+  await expect(page.locator('#marker-readout')).toContainText('Frequency: 2 GHz');
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const panel = (await page.locator('.scales-panel').boundingBox())!;
+  expect(panel.y + panel.height).toBeLessThanOrEqual(720);
+
+  await page.locator('#smith [data-role=marker]').first().locator('polygon').last().hover();
+  await page.mouse.down();
+  await expect(selector).toHaveValue('0:0');
+  await expect(page.locator('#parameter-gamma')).toHaveText('0.000 + 0.000i');
+  await page.mouse.up();
+  await expect(selector).toHaveValue('0:0');
+  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
+  await page.getByRole('tab', { name: 'Cursor', exact: true }).click();
+  await expect(selector).toBeHidden();
+});
+
 test('dragging a marker suspends cursor guides and readouts until the next pointer move', async ({
   page,
 }) => {
