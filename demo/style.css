@@ -246,6 +246,21 @@ footer {
   padding-top: 12px;
   margin-top: 16px;
 }
+.trace-appearance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.trace-appearance input {
+  width: 64px;
+}
+.trace-appearance select {
+  max-width: 100%;
+}
+
 .trace-heading,
 .trace-actions,
 .marker-controls {
@@ -371,19 +386,4 @@ footer {
   h1 {
     font-size: 30px;
   }
-}
-
-.trace-appearance {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  align-items: center;
-  margin-bottom: 8px;
-  font-size: 12px;
-}
-.trace-appearance input {
-  width: 64px;
-}
-.trace-appearance select {
-  max-width: 100%;
 }
