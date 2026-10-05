@@ -1,7 +1,17 @@
 import { Complex } from './complex/Complex.js';
 import type { SmithReading } from './rf.js';
 
-export interface TraceOptions {
+export type TraceRenderMode = 'points' | 'line' | 'both';
+
+export interface TraceStyle {
+  mode: TraceRenderMode;
+  /** Non-scaling SVG stroke width in CSS pixels. Default: 2. */
+  lineWidth: number;
+  /** Point radius in chart units at zoom k = 1; remains constant under chart zoom. Default: 2. */
+  pointRadius: number;
+}
+
+export interface TraceOptions extends Partial<TraceStyle> {
   name?: string;
   /** A solid CSS color, such as '#2563eb' or 'orange'. */
   color?: string;
@@ -15,7 +25,7 @@ export interface MarkerInfo {
   readonly sampleIndex: number;
 }
 
-export interface TraceInfo {
+export interface TraceInfo extends Readonly<TraceStyle> {
   readonly id: string;
   readonly name: string;
   readonly color: string;

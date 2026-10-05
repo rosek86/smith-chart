@@ -385,7 +385,7 @@ export class Smith {
     if (!values.length) {
       throw new RangeError('A trace requires at least one sample.');
     }
-    const data = this.createSmithData(values, this.nextDatasetColor);
+    const data = this.createSmithData(values, this.nextDatasetColor, options);
     this.nextDatasetColor++;
     this.data.push(data);
     const id = this.traceMetadata.get(data)!.id;
@@ -397,6 +397,7 @@ export class Smith {
   public getTraces(): TraceInfo[] {
     return this.data.map((data) => ({
       ...this.traceMetadata.get(data)!,
+      ...data.Style,
       color: data.Color,
       visible: data.Visible,
       sampleCount: data.SampleCount,
@@ -432,6 +433,15 @@ export class Smith {
   }
 
   private validateTraceOptions(options: TraceOptions): void {
+    if (options.mode !== undefined && !['points', 'line', 'both'].includes(options.mode)) {
+      throw new TypeError('Trace mode must be points, line, or both.');
+    }
+    for (const key of ['lineWidth', 'pointRadius'] as const) {
+      const value = options[key];
+      if (value !== undefined && (!Number.isFinite(value) || value <= 0)) {
+        throw new RangeError(`${key} must be positive and finite.`);
+      }
+    }
     if (options.name !== undefined && (typeof options.name !== 'string' || !options.name.trim())) {
       throw new TypeError('Trace name must not be empty.');
     }
@@ -453,6 +463,7 @@ export class Smith {
       return false;
     }
     this.validateTraceOptions(options);
+    data.setStyle(options);
     if (options.name !== undefined) {
       this.traceMetadata.get(data)!.name = options.name.trim();
     }
@@ -544,7 +555,7 @@ export class Smith {
     this.data = [];
   }
 
-  private createSmithData(values: TraceSamples, dataset: number): SmithData {
+  private createSmithData(values: TraceSamples, dataset: number, options: TraceOptions): SmithData {
     const color = d3.schemeCategory10[(1 + dataset) % d3.schemeCategory10.length];
     const data = new SmithData(
       values,
@@ -563,6 +574,7 @@ export class Smith {
         }
       },
       this.markerContainer,
+      options,
     );
     const number = this.nextTraceId++;
     this.traceMetadata.set(data, { id: `trace-${number}`, name: `Trace ${number}` });
