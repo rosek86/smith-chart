@@ -11,14 +11,10 @@ test('grid setters and drawing options update the rendered geometry of all four 
       .SmithTest;
     const chart = new Smith();
     chart.draw('#chart');
-    return [
-      chart.ConstResistance,
-      chart.ConstReactance,
-      chart.ConstConductance,
-      chart.ConstSusceptance,
-    ].map((layer) => {
-      layer.show();
-      const [minor, major, labels] = layer.draw().Node!.children;
+    return (['resistance', 'reactance', 'conductance', 'susceptance'] as const).map((name) => {
+      const layer = chart.layers[name];
+      layer.setVisible(true);
+      const [minor, major, labels] = document.querySelector(`[data-layer=${name}]`)!.children;
       const geometryStyles = (group: Element) =>
         Array.from(group.querySelectorAll('line, circle, path'), (shape) => {
           const style = getComputedStyle(shape);
@@ -39,11 +35,9 @@ test('grid setters and drawing options update the rendered geometry of all four 
         };
       };
       const initial = snapshot();
-      layer.Stroke = '#123456';
-      layer.MajorWidth = '2';
-      layer.MinorWidth = '0.5';
+      layer.setStyle({ stroke: '#123456', majorWidth: '2', minorWidth: '0.5' });
       const updated = snapshot();
-      layer.setDrawOptions({
+      layer.setStyle({
         stroke: '#654321',
         majorWidth: '3',
         minorWidth: '0.75',
@@ -53,9 +47,7 @@ test('grid setters and drawing options update the rendered geometry of all four 
       });
       const options = snapshot();
       // Individual setters must still work after applying a complete options object.
-      layer.Stroke = '#123456';
-      layer.MajorWidth = '2';
-      layer.MinorWidth = '0.5';
+      layer.setStyle({ stroke: '#123456', majorWidth: '2', minorWidth: '0.5' });
       return { initial, updated, options, updatedAgain: snapshot() };
     });
   });
@@ -101,19 +93,18 @@ for (const width of [340, 900]) {
       chart.draw('#chart');
       const box = document.querySelector('svg')!.getBoundingClientRect();
       const bounds = [];
-      for (const layer of [
-        chart.ConstResistance,
-        chart.ConstReactance,
-        chart.ConstConductance,
-        chart.ConstSusceptance,
-        {
-          show: () => chart.PeripheralScales.show(),
-          hide: () => chart.PeripheralScales.hide(),
-          draw: () => chart.PeripheralScales,
-        },
-      ]) {
-        layer.show();
-        const labels = [...layer.draw().Node!.querySelectorAll('text')].map((label) => {
+      for (const name of [
+        'resistance',
+        'reactance',
+        'conductance',
+        'susceptance',
+        'peripheral-scales',
+      ] as const) {
+        const layer = name === 'peripheral-scales' ? chart.peripheralScales : chart.layers[name];
+        layer.setVisible(true);
+        const labels = [
+          ...document.querySelectorAll<SVGTextElement>(`[data-layer=${name}] text`),
+        ].map((label) => {
           const rect = label.getBoundingClientRect();
           return {
             x: rect.x - box.x,
@@ -123,10 +114,10 @@ for (const width of [340, 900]) {
           };
         });
         bounds.push({ width: box.width, height: box.height, labels });
-        layer.hide();
+        layer.setVisible(false);
       }
-      chart.ConstConductance.show();
-      chart.ConstSusceptance.show();
+      chart.layers.conductance.setVisible(true);
+      chart.layers.susceptance.setVisible(true);
       return bounds;
     });
     for (const layer of layers) {

@@ -26,6 +26,19 @@ describe('Smith chart coordinates', () => {
     expect(calcs.impedanceToRflCoeff(Complex.i)?.toVector()).toEqual([0, 1]);
     expect(calcs.rflCoeffToImpedance(Complex.one())).toBeUndefined();
   });
+  it('distinguishes true singularities from very large finite impedances and admittances', () => {
+    const gamma = 1 - 1e-6;
+    expect(
+      calcs.rflCoeffToImpedance(Complex.from(gamma))!.re / ((1 + gamma) / (1 - gamma)),
+    ).toBeCloseTo(1, 9);
+    expect(
+      calcs.rflCoeffToAdmittance(Complex.from(-gamma))!.re / ((1 + gamma) / (1 - gamma)),
+    ).toBeCloseTo(1, 9);
+    expect(calcs.rflCoeffToAdmittance(Complex.from(-1))).toBeUndefined();
+    expect(calcs.rflCoeffToImpedance(Complex.from(NaN))).toBeUndefined();
+    expect(calcs.rflCoeffToQ(Complex.from(-1))).toBeUndefined();
+    expect(calcs.rflCoeffToQ(Complex.i)).toBe(Infinity);
+  });
   it('round-trips impedance and admittance through Γ', () => {
     for (const z of [Complex.from(0.5, 1), Complex.from(2, -3), Complex.from(50, 0)]) {
       const gamma = calcs.impedanceToRflCoeff(z)!;

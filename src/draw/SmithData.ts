@@ -3,12 +3,13 @@ import { SmithCircle } from './SmithCircle.js';
 import { SmithMarker } from './SmithMarker.js';
 import { SmithScaler } from './SmithScaler.js';
 
-import { S1P, S1PEntry } from '../SnP.js';
+import { TraceSamples, TraceSample } from '../samples.js';
 import { Point } from '../shapes/Point.js';
 
 interface Marker {
   marker: SmithMarker;
-  selectedPoint: S1PEntry;
+  selectedPoint: TraceSample;
+  number: number;
 }
 
 interface Transform {
@@ -20,6 +21,7 @@ interface Transform {
 export class SmithData {
   private pointRadius = 2;
   private destroyed = false;
+  private visible = true;
   private pendingEvents = new Set<ReturnType<typeof setTimeout>>();
 
   private group: SmithGroup;
@@ -27,10 +29,10 @@ export class SmithData {
   private markersCount = 0;
   private markers: Marker[] = [];
 
-  private handler: ((marker: number, data: S1PEntry) => void) | null = null;
+  private handler: ((marker: number, data: TraceSample) => void) | null = null;
 
   public constructor(
-    private data: S1P,
+    private data: TraceSamples,
     private color: string,
     private transform: Transform,
     private fgContainer: SmithGroup,
@@ -45,7 +47,7 @@ export class SmithData {
     this.zoomDataPoints();
   }
 
-  private drawPoints(data: S1P): SmithGroup {
+  private drawPoints(data: TraceSamples): SmithGroup {
     const group = new SmithGroup({
       stroke: 'none',
       strokeWidth: 'none',
@@ -53,7 +55,7 @@ export class SmithData {
     });
     group.attr('data-role', 'samples');
     data.forEach((dp) => {
-      const p = this.scaler.point(dp.point);
+      const p = this.scaler.point(dp.reflectionCoefficient);
       group.append(new SmithCircle({ p, r: this.pointRadius }));
     });
     return group;
@@ -83,16 +85,21 @@ export class SmithData {
     }
   }
 
-  public addMarker(): void {
+  public addMarker(sampleIndex = 0): number {
     if (this.destroyed) {
       throw new Error('This dataset has been removed.');
     }
+    this.validateSampleIndex(sampleIndex);
     const markerIndex = this.markersCount++;
     const marker = new SmithMarker(markerIndex + 1, this.color, (dragging) =>
       this.markerDragHandler?.(marker, dragging),
     );
 
-    const markerDesc: Marker = { marker, selectedPoint: this.data[0] };
+    const markerDesc: Marker = {
+      marker,
+      selectedPoint: this.data[sampleIndex],
+      number: markerIndex + 1,
+    };
     this.markers.push(markerDesc);
 
     marker.Element.attr('data-role', 'marker');
@@ -106,39 +113,107 @@ export class SmithData {
       }
       markerDesc.selectedPoint = dp;
 
-      marker.move(this.scaler.point(dp.point));
+      marker.move(this.scaler.point(dp.reflectionCoefficient));
       marker.zoom(this.transform.k);
 
-      this.notifyMarker(markerIndex);
+      this.notifyMarker(markerDesc);
     });
 
     marker.zoom(this.transform.k);
     marker.show();
-    marker.move(this.scaler.point(markerDesc.selectedPoint.point));
+    marker.move(this.scaler.point(markerDesc.selectedPoint.reflectionCoefficient));
+    marker.Element.style('display', () => (this.visible ? null : 'none'));
 
-    this.notifyMarker(markerIndex);
+    this.notifyMarker(markerDesc);
+    return this.markers.length - 1;
   }
 
-  private copySamples(values: S1P): S1P {
+  public removeMarker(index: number): boolean {
+    const entry = this.markers[index];
+    if (!entry) {
+      return false;
+    }
+    entry.marker.destroy();
+    this.markers.splice(index, 1);
+    return true;
+  }
+
+  public setMarkerSample(index: number, sampleIndex: number): boolean {
+    const entry = this.markers[index];
+    if (!entry) {
+      return false;
+    }
+    this.validateSampleIndex(sampleIndex);
+    entry.selectedPoint = this.data[sampleIndex];
+    entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
+    this.notifyMarker(entry);
+    return true;
+  }
+
+  private validateSampleIndex(index: number): void {
+    if (!Number.isInteger(index) || index < 0 || index >= this.data.length) {
+      throw new RangeError('Sample index is outside this trace.');
+    }
+  }
+
+  public get SampleCount(): number {
+    return this.data.length;
+  }
+  public get Color(): string {
+    return this.color;
+  }
+  public get Visible(): boolean {
+    return this.visible;
+  }
+  public markerSampleIndex(index: number): number {
+    const entry = this.markers[index];
+    return entry ? this.data.indexOf(entry.selectedPoint) : -1;
+  }
+
+  public setColor(color: string): void {
+    this.color = color;
+    this.group.attr('fill', color);
+    this.markers.forEach(({ marker }) => marker.setColor(color));
+  }
+
+  public setVisible(visible: boolean): void {
+    this.visible = visible;
+    this.group.Element.style('display', () => (visible ? null : 'none'));
+    this.markers.forEach(({ marker }) => {
+      if (!visible) {
+        marker.cancelDrag();
+      }
+      marker.Element.style('display', () => (visible ? null : 'none'));
+    });
+  }
+
+  private copySamples(values: TraceSamples): TraceSamples {
     if (
       !values.length ||
       values.some(
-        ({ freq, point }) =>
-          !Number.isFinite(freq) || freq < 0 || point.length !== 2 || !point.every(Number.isFinite),
+        ({ frequencyHz, reflectionCoefficient }) =>
+          !Number.isFinite(frequencyHz) ||
+          frequencyHz < 0 ||
+          reflectionCoefficient.length !== 2 ||
+          !reflectionCoefficient.every(Number.isFinite),
       )
     ) {
       throw new Error(
         'A dataset requires samples with a non-negative finite frequency and two finite coordinates.',
       );
     }
-    return values.map(({ freq, point }) => ({ freq, point: [point[0], point[1]] }));
+    return values.map(({ frequencyHz, reflectionCoefficient }) => ({
+      frequencyHz,
+      reflectionCoefficient: [reflectionCoefficient[0], reflectionCoefficient[1]],
+    }));
   }
 
-  private notifyMarker(index: number): void {
+  private notifyMarker(entry: Marker): void {
     const timer = setTimeout(() => {
       this.pendingEvents.delete(timer);
-      if (!this.destroyed) {
-        this.handler?.(index, this.markers[index].selectedPoint);
+      const index = this.markers.indexOf(entry);
+      if (!this.destroyed && index >= 0) {
+        this.handler?.(index, entry.selectedPoint);
       }
     }, 0);
     this.pendingEvents.add(timer);
@@ -149,7 +224,7 @@ export class SmithData {
     this.pendingEvents.clear();
   }
 
-  public update(values: S1P): void {
+  public update(values: TraceSamples): void {
     if (this.destroyed) {
       throw new Error('This dataset has been removed.');
     }
@@ -159,12 +234,13 @@ export class SmithData {
     const group = this.drawPoints(samples).attr('pointer-events', 'none');
     this.group.Element.remove();
     this.group = group;
+    this.group.Element.style('display', () => (this.visible ? null : 'none'));
     this.fgContainer.append(group);
     this.zoomDataPoints();
-    this.markers.forEach((entry, index) => {
-      entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.point);
-      entry.marker.move(this.scaler.point(entry.selectedPoint.point));
-      this.notifyMarker(index);
+    this.markers.forEach((entry) => {
+      entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
+      entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
+      this.notifyMarker(entry);
     });
   }
 
@@ -190,11 +266,11 @@ export class SmithData {
     return this.markers.slice();
   }
 
-  public setMarkerMoveHandler(handler: (marker: number, data: S1PEntry) => void): void {
+  public setMarkerMoveHandler(handler: (marker: number, data: TraceSample) => void): void {
     this.handler = handler;
   }
 
-  private findClosestPointTo(p: Point): S1PEntry {
+  private findClosestPointTo(p: Point): TraceSample {
     const dist = (p1: Point, p2: Point) => {
       const xd = p1[0] - p2[0];
       const yd = p1[1] - p2[1];
@@ -202,8 +278,8 @@ export class SmithData {
     };
 
     return this.data.reduce((prev, curr) => {
-      const d1 = dist(p, prev.point);
-      const d2 = dist(p, curr.point);
+      const d1 = dist(p, prev.reflectionCoefficient);
+      const d2 = dist(p, curr.reflectionCoefficient);
       return d1 <= d2 ? prev : curr;
     });
   }

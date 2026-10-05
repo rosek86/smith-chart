@@ -33,32 +33,66 @@ try {
   writeFileSync(
     join(temp, 'consumer.ts'),
     `
-import { Smith, SmithScales, Complex, SmithConstantCircle, parseTouchstone, SmithEventType } from 'smithkit';
-import type { S1P, S1PEntry, TouchstoneData, SmithEvent, SmithCursorEvent, SmithMarkerEvent } from 'smithkit';
-const entry: S1PEntry = { freq: 1e9, point: [0, 0] };
-const samples: S1P = [entry];
+import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings } from 'smithkit';
+import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
+const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
+const samples: TraceSamples = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
-const chart = new Smith(parsed.referenceImpedance);
+const chart = new Smith(parsed.referenceImpedanceOhms);
+const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true };
+const traceId: string = chart.addTrace(samples, options);
+const traces: TraceInfo[] = chart.getTraces();
+const markerId: string | undefined = chart.addMarker(traceId, 0);
+if (markerId) {
+  chart.setMarkerSample(markerId, 0);
+  const marker: MarkerSnapshot | undefined = chart.getMarker(markerId);
+  const comparison: MarkerComparison | undefined = chart.compareMarkers(markerId, markerId);
+  if (marker) { compareMarkerReadings(marker, marker); }
+  chart.removeMarker(markerId);
+  void comparison;
+}
+chart.setTraceOptions(traceId, { visible: false });
+chart.updateTrace(traceId, samples);
+chart.removeTrace(traceId);
+void [traces, chart.referenceImpedanceOhms];
 chart.draw(document.createElement('div'));
 const scales = new SmithScales();
 scales.draw(document.createElement('div'));
 scales.update(Complex.zero());
 scales.update(null);
 scales.destroy();
-const index: number | undefined = chart.addS1P(samples);
-if (index !== undefined) {
-  const updated: boolean = chart.updateS1P(index, samples);
-  const removed: boolean = chart.removeS1P(index);
-  void [updated, removed];
-}
-chart.setUserActionHandler((event: SmithEvent) => console.log(event));
-chart.setUserActionHandler(null);
-chart.clearS1P();
+const unsubscribe = chart.onEvent((event: SmithEvent) => {
+  if (event.type === SmithEventType.Marker) {
+    const frequency: number = event.data.frequencyHz;
+    const id: string = event.data.markerId;
+    void [frequency, id];
+  } else if (event.type === SmithEventType.Cursor) {
+    const reading: SmithReading | undefined = event.data;
+    void reading;
+  }
+});
+chart.layers.resistance.setStyle({ majorWidth: '2' });
+chart.peripheralScales.update(Complex.zero());
+unsubscribe();
+chart.clearTraces();
 chart.destroy();
-const events: (SmithCursorEvent | SmithMarkerEvent)[] = [];
-void [Complex, SmithConstantCircle, SmithEventType, events];
+const events: (SmithReading | MarkerSnapshot)[] = [];
+void [Complex, readReflection, SmithEventType, events];
 `,
   );
+  const examples = [
+    ...readFileSync(join(repo, 'README.md'), 'utf8').matchAll(/```ts\n([\s\S]*?)```/g),
+  ].map(([, source], index) => {
+    const name = `readme-example-${index}.ts`;
+    const context = [
+      'export {};',
+      !/^const chart\b/m.test(source) ? "declare const chart: import('smithkit').Smith;" : '',
+      !/^const traceId\b/m.test(source) ? 'declare const traceId: string;' : '',
+    ].join('\n');
+    writeFileSync(join(temp, name), `${context}\n${source}`);
+    return name;
+  });
+  assert.ok(examples.length > 0, 'Expected TypeScript examples in README.md.');
   for (const [module, resolution] of [
     ['NodeNext', 'NodeNext'],
     ['ESNext', 'Bundler'],
@@ -73,6 +107,7 @@ void [Complex, SmithConstantCircle, SmithEventType, events];
       '--moduleResolution',
       resolution,
       'consumer.ts',
+      ...examples,
     ]);
   }
   run('node', [
@@ -80,17 +115,19 @@ void [Complex, SmithConstantCircle, SmithEventType, events];
     '-e',
     `
 import assert from 'node:assert/strict';
-import { Smith, SmithScales, Complex, SmithConstantCircle, parseTouchstone } from 'smithkit';
+import { Smith, SmithScales, Complex, readReflection, parseTouchstone, compareMarkerReadings } from 'smithkit';
+const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), impedanceOhms: Complex.from(150) };
+assert.equal(compareMarkerReadings(reading, reading).phaseDeltaDegrees, 0);
 assert.equal(typeof SmithScales.prototype.update, 'function');
 assert.equal(typeof Smith.prototype.destroy, 'function');
-assert.equal(typeof Smith.prototype.updateS1P, 'function');
+assert.equal(typeof Smith.prototype.updateTrace, 'function');
 assert.equal(Complex.from(3, 4).abs(), 5);
-assert.equal(new SmithConstantCircle().frequencyFromWaveLength(1), 299792458);
-assert.deepEqual(parseTouchstone('# GHz S RI R 50\\n1 0 0').values, [{ freq: 1e9, point: [0, 0] }]);
+assert.equal(readReflection(Complex.zero(), 75).impedanceOhms.re, 75);
+assert.deepEqual(parseTouchstone('# GHz S RI R 50\\n1 0 0').samples, [{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
 `,
   ]);
   console.log(
-    `Verified ${packed.filename}: contents, installation, ESM runtime, and NodeNext/Bundler types.`,
+    `Verified ${packed.filename}: contents, installation, ESM runtime, NodeNext/Bundler types, and ${examples.length} README examples.`,
   );
 } finally {
   rmSync(temp, { recursive: true, force: true });

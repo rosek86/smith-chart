@@ -1,8 +1,8 @@
-import type { S1P } from '../SnP.js';
+import type { TraceSample, TraceSamples } from '../samples.js';
 
 export interface TouchstoneData {
-  values: S1P;
-  referenceImpedance: number;
+  samples: TraceSamples;
+  referenceImpedanceOhms: number;
 }
 
 /** Read one-port Touchstone 1.x data; frequencies in the result are always Hz. */
@@ -10,9 +10,9 @@ export function parseTouchstone(text: string): TouchstoneData {
   const units: Record<string, number> = { HZ: 1, KHZ: 1e3, MHZ: 1e6, GHZ: 1e9 };
   let frequencyScale = 1e9;
   let format = 'MA';
-  let referenceImpedance = 50;
+  let referenceImpedanceOhms = 50;
   let optionsSeen = false;
-  const values: S1P = [];
+  const samples: TraceSample[] = [];
 
   for (const [index, raw] of text
     .replace(/^\uFEFF/, '')
@@ -29,7 +29,7 @@ export function parseTouchstone(text: string): TouchstoneData {
       fail('Only Touchstone 1.x one-port files (.s1p) are supported.');
     }
     if (line.startsWith('#')) {
-      if (optionsSeen || values.length) {
+      if (optionsSeen || samples.length) {
         fail('The option line must appear once, before the data.');
       }
       optionsSeen = true;
@@ -50,19 +50,19 @@ export function parseTouchstone(text: string): TouchstoneData {
       }
       frequencyScale = units[unit];
       format = representation;
-      referenceImpedance = Number(impedance);
-      if (!Number.isFinite(referenceImpedance) || referenceImpedance <= 0) {
+      referenceImpedanceOhms = Number(impedance);
+      if (!Number.isFinite(referenceImpedanceOhms) || referenceImpedanceOhms <= 0) {
         fail('Reference impedance must be positive.');
       }
       continue;
     }
     const fields = line.split(/\s+/).map(Number);
     if (fields.length !== 3 || !fields.every(Number.isFinite)) {
-      fail('Expected frequency and two finite S11 values.');
+      fail('Expected frequency and two finite S11 components.');
     }
     const [frequency, a, b] = fields;
-    const freq = frequency * frequencyScale;
-    if (freq < 0 || !Number.isFinite(freq)) {
+    const frequencyHz = frequency * frequencyScale;
+    if (frequencyHz < 0 || !Number.isFinite(frequencyHz)) {
       fail('Frequency must be finite and non-negative.');
     }
     if (format === 'MA' && a < 0) {
@@ -70,15 +70,15 @@ export function parseTouchstone(text: string): TouchstoneData {
     }
     const magnitude = format === 'DB' ? 10 ** (a / 20) : a;
     const radians = (b * Math.PI) / 180;
-    const point: [number, number] =
+    const reflectionCoefficient: [number, number] =
       format === 'RI' ? [a, b] : [magnitude * Math.cos(radians), magnitude * Math.sin(radians)];
-    if (!point.every(Number.isFinite)) {
+    if (!reflectionCoefficient.every(Number.isFinite)) {
       fail('S11 is outside the supported numeric range.');
     }
-    values.push({ freq, point });
+    samples.push({ frequencyHz, reflectionCoefficient });
   }
-  if (!values.length) {
+  if (!samples.length) {
     throw new Error('The file contains no S11 samples.');
   }
-  return { values, referenceImpedance };
+  return { samples, referenceImpedanceOhms };
 }

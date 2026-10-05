@@ -35,53 +35,71 @@ test('mounts by element, moves without duplicating SVG, and validates containers
   expect(result).toEqual({ invalid: true, once: 1, moved: true, missing: true });
 });
 
-test('updates samples and markers, keeps colors, and resolves indices after removal', async ({
+test('updates samples and markers, keeps colors, and retains stable IDs after removal', async ({
   page,
 }) => {
   const result = await page.evaluate(async () => {
     const { Smith } = window.SmithTest;
     const chart = new Smith();
     chart.draw('#first');
-    const events: import('../../src/index').SmithMarkerEvent[] = [];
-    chart.setUserActionHandler((event) => {
-      if (event.data && 'datasetNo' in event.data) {
+    const events: import('../../src/index').MarkerSnapshot[] = [];
+    chart.onEvent((event) => {
+      if (event.type === window.SmithTest.SmithEventType.Marker) {
         events.push(event.data);
       }
     });
-    const sample: import('../../src/index').S1P = [{ freq: 1e9, point: [0.5, 0] }];
-    const first = chart.addS1P(sample);
-    chart.addS1P([{ freq: 2e9, point: [0, 0] }]);
-    const dataset = chart.Datasets[1];
-    dataset.addMarker();
-    const markers = dataset.Markers.map((m) => m.marker);
+    const sample: import('../../src/index').TraceSamples = [
+      { frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] },
+    ];
+    const first = chart.addTrace(sample);
+    const second = chart.addTrace([{ frequencyHz: 2e9, reflectionCoefficient: [0, 0] }]);
+    chart.addMarker(second);
+    const markers = chart.getTraces()[1].markers.map((m) => m.id);
     const color = document.querySelectorAll('[data-role=samples]')[1].getAttribute('fill');
-    sample[0].point[0] = -1;
-    const copied = chart.getMarkerData(0, 0)?.reflectionCoefficient.real === 0.5;
-    chart.Datasets.pop();
-    const defensive = chart.Datasets.length === 2;
-    chart.removeS1P(0);
-    chart.updateS1P(0, [
-      { freq: 3e9, point: [0.1, 0] },
-      { freq: 4e9, point: [0.9, 0] },
+    sample[0].reflectionCoefficient[0] = -1;
+    const copied =
+      chart.getMarker(chart.getTraces()[0].markers[0].id)?.reflectionCoefficient.real === 0.5;
+    chart.getTraces().pop();
+    const defensive = chart.getTraces().length === 2;
+    chart.removeTrace(first);
+    chart.updateTrace(second, [
+      { frequencyHz: 3e9, reflectionCoefficient: [0.1, 0] },
+      { frequencyHz: 4e9, reflectionCoefficient: [0.9, 0] },
     ]);
     let invalid = false;
     try {
-      chart.updateS1P(0, [{ freq: NaN, point: [0, 0] }]);
+      chart.updateTrace(second, [{ frequencyHz: NaN, reflectionCoefficient: [0, 0] }]);
     } catch {
       invalid = true;
     }
     await new Promise((resolve) => setTimeout(resolve, 20));
     const preserved =
-      dataset === chart.Datasets[0] && markers.every((m, i) => dataset.Markers[i].marker === m);
+      chart.getTraces()[0].id === second &&
+      markers.every((id, i) => chart.getTraces()[0].markers[i].id === id);
     const colorUnchanged =
       document.querySelector('[data-role=samples]')?.getAttribute('fill') === color;
     const pointCount = document.querySelectorAll('[data-role=samples] circle').length;
-    const notified = events.map((event) => [event.datasetNo, event.markerNo, event.freq]);
-    const missing = [chart.removeS1P(-1), chart.updateS1P(8, sample), chart.removeS1P(0.5)];
-    const emptyIgnored = chart.addS1P([]) === undefined;
-    chart.updateS1P(0, []);
+    const notified = events.map((event) => [event.traceId, event.markerNumber, event.frequencyHz]);
+    const missing = [
+      chart.removeTrace('missing'),
+      chart.updateTrace('missing', sample),
+      chart.removeMarker('missing'),
+    ];
+    let emptyRejected = false;
+    try {
+      chart.addTrace([]);
+    } catch {
+      emptyRejected = true;
+    }
+    let emptyUpdateRejected = false;
+    try {
+      chart.updateTrace(second, []);
+    } catch {
+      emptyUpdateRejected = chart.getTraces()[0].sampleCount === 2;
+    }
+    chart.removeTrace(second);
     const empty =
-      chart.Datasets.length === 0 && document.querySelectorAll('[data-role]').length === 0;
+      chart.getTraces().length === 0 && document.querySelectorAll('[data-role]').length === 0;
     chart.destroy();
     return {
       first,
@@ -93,12 +111,13 @@ test('updates samples and markers, keeps colors, and resolves indices after remo
       pointCount,
       notified,
       missing,
-      emptyIgnored,
+      emptyRejected,
+      emptyUpdateRejected,
       empty,
     };
   });
   expect(result).toEqual({
-    first: 0,
+    first: 'trace-1',
     copied: true,
     defensive: true,
     invalid: true,
@@ -106,11 +125,12 @@ test('updates samples and markers, keeps colors, and resolves indices after remo
     colorUnchanged: true,
     pointCount: 2,
     notified: [
-      [0, 0, 3e9],
-      [0, 1, 3e9],
+      ['trace-2', 1, 3e9],
+      ['trace-2', 2, 3e9],
     ],
     missing: [false, false, false],
-    emptyIgnored: true,
+    emptyRejected: true,
+    emptyUpdateRejected: true,
     empty: true,
   });
 });
@@ -123,14 +143,14 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
     let calls = 0;
     const other = new Smith();
     other.draw('#second');
-    other.setUserActionHandler(() => calls++);
+    other.onEvent(() => calls++);
     let invalidCalls = 0;
     for (let i = 0; i < 5; i++) {
       const chart = new Smith();
       chart.draw('#first');
-      chart.setUserActionHandler(() => invalidCalls++);
-      chart.addS1P([{ freq: 1, point: [0, 0] }]);
-      const dataset = chart.Datasets[0];
+      chart.onEvent(() => invalidCalls++);
+      chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
+
       const nodes = [...document.querySelectorAll('#first svg, #first svg *')];
       chart.destroy();
       chart.destroy();
@@ -138,7 +158,7 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
       if (events) {
         throw new Error('Retained nodes still have listeners.');
       }
-      if (dataset.Markers.length) {
+      if (chart.getTraces().length) {
         throw new Error('Removed dataset retained its markers.');
       }
       try {
@@ -150,11 +170,11 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
         }
       }
     }
-    other.addS1P([{ freq: 2, point: [0, 0] }]);
+    other.addTrace([{ frequencyHz: 2, reflectionCoefficient: [0, 0] }]);
     other.resetView();
     await new Promise((resolve) => setTimeout(resolve, 20));
     const remaining = document.querySelectorAll('svg').length;
-    other.clearS1P();
+    other.clearTraces();
     other.destroy();
     return { invalidCalls, calls, remaining };
   });
@@ -166,7 +186,7 @@ for (const gesture of ['zoom', 'drag'] as const) {
     await page.evaluate(() => {
       const chart = new window.SmithTest.Smith();
       chart.draw('#first');
-      chart.addS1P([{ freq: 1, point: [0, 0] }]);
+      chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
       (window as typeof window & { destroyChart: () => void }).destroyChart = () => chart.destroy();
     });
     const target =
@@ -213,20 +233,20 @@ test('all markers stay above all sample points after adding and updating dataset
           ),
       );
     };
-    chart.addS1P([{ freq: 1, point: [0, 0] }]);
-    chart.addS1P([{ freq: 2, point: [0, 0.05] }]);
+    const first = chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
+    const second = chart.addTrace([{ frequencyHz: 2, reflectionCoefficient: [0, 0.05] }]);
     recordOrder();
-    chart.updateS1P(0, [{ freq: 3, point: [0, 0] }]);
+    chart.updateTrace(first, [{ frequencyHz: 3, reflectionCoefficient: [0, 0] }]);
     recordOrder();
-    chart.updateS1P(1, [{ freq: 4, point: [0, 0.05] }]);
+    chart.updateTrace(second, [{ frequencyHz: 4, reflectionCoefficient: [0, 0.05] }]);
     recordOrder();
-    chart.Datasets[0].addMarker();
-    chart.addS1P([{ freq: 5, point: [0, 0.05] }]);
+    chart.addMarker(first);
+    chart.addTrace([{ frequencyHz: 5, reflectionCoefficient: [0, 0.05] }]);
     chart.resetView();
     recordOrder();
-    chart.removeS1P(1);
+    chart.removeTrace(second);
     recordOrder();
-    chart.clearS1P();
+    chart.clearTraces();
     const remaining = document.querySelectorAll(
       '#first [data-role=marker], #first [data-role=samples]',
     ).length;
@@ -234,4 +254,47 @@ test('all markers stay above all sample points after adding and updating dataset
     return { snapshots, remaining };
   });
   expect(result).toEqual({ snapshots: [true, true, true, true, true], remaining: 0 });
+});
+
+test('event subscriptions are independent, removable, and cleared on destruction', async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    const { Smith, SmithEventType } = window.SmithTest;
+    const chart = new Smith();
+    chart.draw('#first');
+    let count = 0;
+    const listener = (event: import('../../src').SmithEvent) => {
+      if (event.type === SmithEventType.Marker) {
+        count++;
+      }
+    };
+    const stopA = chart.onEvent(listener);
+    const stopB = chart.onEvent(listener);
+    const trace = chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0.5, 0] }]);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const both = count;
+    stopA();
+    stopA();
+    const marker = chart.getTraces()[0].markers[0].id;
+    chart.setMarkerSample(marker, 0);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const one = count;
+    chart.addMarker(trace);
+    stopB();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const stopped = count;
+    chart.onEvent(listener);
+    chart.setMarkerSample(marker, 0);
+    chart.destroy();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    let rejected = false;
+    try {
+      chart.onEvent(listener);
+    } catch {
+      rejected = true;
+    }
+    return { both, one, stopped, destroyed: count, rejected };
+  });
+  expect(result).toEqual({ both: 2, one: 3, stopped: 3, destroyed: 3, rejected: true });
 });
