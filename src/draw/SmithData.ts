@@ -326,7 +326,12 @@ export class SmithData {
     const samples = this.copySamples(values);
     this.cancelEvents();
     this.data = samples;
-    this.redraw();
+    const group = this.drawTrace(samples).attr('pointer-events', 'none');
+    this.group.Element.remove();
+    this.group = group;
+    this.group.Element.style('display', () => (this.visible ? null : 'none'));
+    this.fgContainer.append(group);
+    this.zoomDataPoints();
     this.markers.forEach((entry) => {
       entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
       entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
