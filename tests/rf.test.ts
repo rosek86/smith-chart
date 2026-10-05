@@ -65,3 +65,40 @@ it('keeps finite readings near singularities and rejects invalid inputs', () => 
   expect(() => readReflection(Complex.from(NaN))).toThrow(RangeError);
   expect(() => readReflection(Complex.from(Infinity))).toThrow(RangeError);
 });
+
+it('does not overflow squared denominators for large finite loads', () => {
+  const gamma = impedanceToReflection(Complex.from(1e200, 1e200))!;
+  expect(gamma.re).toBe(1);
+  expect(gamma.im / 5e-199).toBeCloseTo(1, 12);
+  const active = reflectionToImpedance(Complex.from(1e200, 1e200))!;
+  expect(active.re).toBe(-50);
+  expect(active.im / 5e-199).toBeCloseTo(1, 12);
+});
+
+it('retains finite reactive components when squared denominators would underflow', () => {
+  const open = reflectionToImpedance(Complex.from(1, 1e-200))!;
+  expect(open.re).toBe(-50);
+  expect(open.im / 1e202).toBeCloseTo(1, 12);
+  const short = reflectionToAdmittance(Complex.from(-1, 1e-200))!;
+  expect(short.re).toBe(-0.02);
+  expect(short.im / -4e198).toBeCloseTo(1, 12);
+});
+
+it('preserves tiny reflection loss and reciprocal Z/Y away from singularities', () => {
+  expect(readReflection(Complex.from(1e-10)).reflectionLossDb! / 4.342944819032518e-20).toBeCloseTo(
+    1,
+    12,
+  );
+  for (const reference of [1, 50, 75, 1e4]) {
+    for (const gamma of [
+      Complex.from(0.99, 0.01),
+      Complex.from(-0.99, 0.01),
+      Complex.from(0.3, -0.7),
+    ]) {
+      const z = reflectionToImpedance(gamma, reference)!;
+      const y = reflectionToAdmittance(gamma, reference)!;
+      expect(z.mul(y).re).toBeCloseTo(1, 12);
+      expect(z.mul(y).im).toBeCloseTo(0, 12);
+    }
+  }
+});

@@ -7,13 +7,14 @@ as available until the registry release succeeds.
 ## API scope for 0.1.x
 
 The supported entry point is `smithkit`; deep imports are not exported. Supported
-chart, parser, and RF operations are documented in the README. Existing PascalCase
-getters remain available. Dataset numbers are array indices, so removing an entry
-shifts subsequent indices; marker events always report the current index.
+chart, parser, and RF operations are documented in the README and reviewed in
+[api-review.md](api-review.md). Traces and markers use stable IDs; readings expose
+units in their field names. Events are discriminated unions with independent
+subscriptions, and layer controls do not expose renderer objects. Historical
+index-based methods and PascalCase getters are not exported.
 
 The hyperbolic and reciprocal `Complex` operations are implemented with principal
-inverse branches and signed-zero handling. The README documents their finite-input
-contract and pole behavior. Independent reference values and branch-boundary tests
+inverse branches and signed-zero handling. Their finite-input contract and pole behavior are covered by the reference tests. Independent reference values and branch-boundary tests
 must pass before publishing numerical changes.
 
 During 0.x development, document breaking changes in a minor release and fixes in
@@ -40,7 +41,7 @@ together. A stable 1.0 release should follow validation in real consuming applic
    not a placeholder. Do not run it until the release is ready.
 
 3. In npm package settings, configure a GitHub Actions trusted publisher:
-   owner **rosek86**, repository **smith-chart**, workflow **release.yml**,
+   owner **rosek86**, repository **smithkit**, workflow **release.yml**,
    environment **npm**, with direct `npm publish` allowed.
 4. Record the published commit with the matching Git tag. The initial version was
    published manually; avoid triggering its automated publish again. Configure the

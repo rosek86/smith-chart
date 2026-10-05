@@ -28,8 +28,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run check:package
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
+      - run: npm run test:e2e:webkit
       - uses: actions/upload-artifact@v7
         with:
           name: smith-app-site
@@ -45,7 +46,7 @@ jobs:
   deploy:
     needs: check
     if: >-
-      github.repository == 'rosek86/smith-chart' &&
+      github.repository == 'rosek86/smithkit' &&
       github.event_name != 'pull_request' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       vars.SMITH_APP_DEPLOY_ENABLED == 'true'
