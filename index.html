@@ -16,7 +16,7 @@
         <h1>Smith chart</h1>
         <p>
           Explore impedance, admittance and reflection. Reference impedance:
-          <strong>Z₀ = 50 Ω</strong>.
+          <strong id="reference-value">Z₀ = 50 Ω</strong>.
         </p>
       </header>
       <div class="toolbar" aria-label="Chart controls">
@@ -102,9 +102,23 @@
         <aside>
           <section class="panel">
             <h2>Measurements</h2>
+            <div class="reference-controls">
+              <label for="reference-impedance">Chart Z₀ (Ω)</label>
+              <input id="reference-impedance" type="number" min="0" step="any" value="50" />
+              <button id="apply-reference" type="button">Apply Z₀</button>
+            </div>
+            <p class="hint">
+              Applying Z₀ renormalizes existing traces and preserves their physical impedance.
+            </p>
+            <label class="import-reference-option"
+              ><input id="renormalize-import" type="checkbox" checked /> Renormalize imported data
+              to chart Z₀</label
+            >
             <label class="file-label" for="file">Import Touchstone (.s1p)</label>
             <input type="file" id="file" accept=".s1p" aria-describedby="file-help file-status" />
-            <p id="file-help" class="hint">One-port RI, MA or DB data, with a 50 Ω reference.</p>
+            <p id="file-help" class="hint">
+              One-port RI, MA or DB data. The file reference impedance is read from its header.
+            </p>
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>
             <div id="trace-list" aria-label="Loaded traces"></div>

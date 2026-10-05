@@ -175,6 +175,10 @@ export class SmithData {
     }
   }
 
+  public get Samples(): TraceSamples {
+    return this.data;
+  }
+
   public get SampleCount(): number {
     return this.data.length;
   }
@@ -243,11 +247,12 @@ export class SmithData {
     this.pendingEvents.clear();
   }
 
-  public update(values: TraceSamples): void {
+  public update(values: TraceSamples, preserveMarkerIndices = false): void {
     if (this.destroyed) {
       throw new Error('This dataset has been removed.');
     }
     const samples = this.copySamples(values);
+    const selectedIndices = this.markers.map((entry) => this.data.indexOf(entry.selectedPoint));
     this.cancelEvents();
     this.data = samples;
     const group = this.drawPoints(samples).attr('pointer-events', 'none');
@@ -256,8 +261,10 @@ export class SmithData {
     this.group.Element.style('display', () => (this.visible ? null : 'none'));
     this.fgContainer.append(group);
     this.zoomDataPoints();
-    this.markers.forEach((entry) => {
-      entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
+    this.markers.forEach((entry, index) => {
+      entry.selectedPoint = preserveMarkerIndices
+        ? samples[selectedIndices[index]]
+        : this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
       entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
       this.notifyMarker(entry);
     });

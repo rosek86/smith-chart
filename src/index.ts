@@ -29,3 +29,4 @@ export type {
   ChartLayers,
   PeripheralScales,
 } from './layers.js';
+export { renormalizeReflection, renormalizeSamples } from './renormalization.js';

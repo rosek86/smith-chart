@@ -50,7 +50,11 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   const markerBox = (await marker.boundingBox())!;
   await page.mouse.move(markerBox.x + markerBox.width / 2, markerBox.y + markerBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(center.x, center.y, { steps: 15 });
+  // Loading controls can scroll the document; use the current chart geometry.
+  const currentBox = (await svg.boundingBox())!;
+  await page.mouse.move(currentBox.x + currentBox.width / 2, currentBox.y + currentBox.height / 2, {
+    steps: 15,
+  });
   await page.mouse.up();
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 1.5 GHz');
   expect(errors).toEqual([]);

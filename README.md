@@ -314,6 +314,34 @@ transmission phase is undefined at Γ = −1.
 Scale conventions follow the [complete Smith chart reference](https://www.uiyinc.com/assets/The-Complete-Smith-Chart-Black-Magic-Design.jpg)
 and [CERN's Smith chart introduction](https://arxiv.org/abs/1201.4068).
 
+## Reference impedance and renormalization
+
+`chart.renormalize(referenceImpedanceOhms)` changes the positive real reference
+impedance and transforms every loaded Γ to preserve physical Z. Trace/marker IDs,
+names, colors, visibility, frequencies, and selected sample indices are retained.
+Results for all traces are validated before any change; a singular/unrepresentable
+result rejects the operation without changing Z₀ or data. Active marker drags end,
+cursor indicators are cleared, and marker readings are queued with the new values.
+Changing to the current Z₀ has no effect. Mutations after destruction throw.
+
+Two DOM-independent helpers are also exported:
+
+- `renormalizeReflection(gamma, fromOhms, toOhms)` returns the new complex Γ or
+  `undefined` for a singular/unrepresentable result. Exact open and short limits
+  remain Γ = +1 and −1. References must be positive, finite, real ohm values.
+- `renormalizeSamples(samples, fromOhms, toOhms)` returns a new sample array in
+  the same order, preserving frequencies. Invalid samples or a singular result
+  throw `RangeError`; the input is never modified.
+
+For example, a matched 75 Ω load has Γ = 0 at 75 Ω and Γ = 0.2 at 50 Ω.
+Renormalization changes Γ, VSWR, and loss readings; physical impedance stays 75 Ω.
+Simply relabeling the same Γ with a new Z₀ would describe a different load.
+
+The demo exposes chart Z₀ and explicitly renormalizes existing traces when applied.
+Import renormalization is enabled by a labeled checkbox. Disable it to reject
+files whose reference differs from the chart. Complex reference impedances and
+multiport renormalization are outside the supported scope.
+
 ## Touchstone import
 
 `parseTouchstone(text)` returns `{ samples, referenceImpedanceOhms }`. It accepts
@@ -332,9 +360,10 @@ async function showMeasurement(file: File): Promise<Smith> {
 }
 ```
 
-Omitted options use Touchstone defaults: GHz, S, MA, 50 Ω. Imported files must
-match an existing chart's reference impedance. Automatic renormalization,
-multiport data, and Touchstone 2.x are not supported.
+Omitted options use Touchstone defaults: GHz, S, MA, 50 Ω. For an existing chart,
+use `renormalizeSamples` when the file reference differs from
+`chart.referenceImpedanceOhms`. The parser itself does not renormalize data.
+Multiport data and Touchstone 2.x are not supported.
 
 ## Development and license
 

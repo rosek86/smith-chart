@@ -33,7 +33,7 @@ try {
   writeFileSync(
     join(temp, 'consumer.ts'),
     `
-import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings } from 'smithkit';
+import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
 import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
@@ -73,6 +73,7 @@ const unsubscribe = chart.onEvent((event: SmithEvent) => {
     void reading;
   }
 });
+chart.renormalize(75);
 chart.layers.resistance.setStyle({ majorWidth: '2' });
 chart.peripheralScales.update(Complex.zero());
 unsubscribe();
@@ -117,13 +118,15 @@ void [Complex, readReflection, SmithEventType, events];
     '-e',
     `
 import assert from 'node:assert/strict';
-import { Smith, SmithScales, Complex, readReflection, parseTouchstone, compareMarkerReadings } from 'smithkit';
+import { Smith, SmithScales, Complex, readReflection, parseTouchstone, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
 const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), impedanceOhms: Complex.from(150) };
 assert.equal(compareMarkerReadings(reading, reading).phaseDeltaDegrees, 0);
 assert.equal(typeof SmithScales.prototype.update, 'function');
 assert.equal(typeof Smith.prototype.destroy, 'function');
 assert.equal(typeof Smith.prototype.updateTrace, 'function');
 assert.equal(Complex.from(3, 4).abs(), 5);
+assert.ok(Math.abs(renormalizeReflection(Complex.zero(), 75, 50).re - 0.2) < 1e-14);
+assert.equal(renormalizeSamples([{frequencyHz: 1, reflectionCoefficient: [0, 0]}], 75, 50)[0].frequencyHz, 1);
 assert.equal(readReflection(Complex.zero(), 75).impedanceOhms.re, 75);
 assert.deepEqual(parseTouchstone('# GHz S RI R 50\\n1 0 0').samples, [{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
 `,
