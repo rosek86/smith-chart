@@ -56,6 +56,7 @@ globals. README TypeScript examples are checked against the packaged declaration
 
 - Broader numerical coverage for historical `Complex` operations and extreme
   finite magnitudes is separate work; this review is not a numerical certification.
-- Touchstone renormalization/multiport support and configurable demo reference
-  impedance remain separate features.
+- Renormalization supports positive real reference impedances and preserves
+  physical impedance and selected sample indices. Complex reference impedances
+  and multiport support remain separate features.
 - Cross-browser visual limitations are tracked in CONTRIBUTING.md.

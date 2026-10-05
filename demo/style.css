@@ -213,6 +213,25 @@ h2 {
   font-size: 14px;
   margin: 0 0 16px;
 }
+.reference-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.reference-controls input {
+  width: 100px;
+  border: 1px solid #bbcbd4;
+  border-radius: 4px;
+  padding: 5px;
+}
+.import-reference-option {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
 .file-label {
   display: block;
   margin-bottom: 10px;

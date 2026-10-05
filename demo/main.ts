@@ -1,7 +1,7 @@
 import './style.css';
 import { Smith, SmithScales, SmithEventType } from '../src';
 import type { SmithEvent, SmithReading, MarkerSnapshot, TraceSamples } from '../src';
-import { parseTouchstone } from '../src';
+import { parseTouchstone, renormalizeSamples } from '../src';
 import { Measurements, markerLabel } from './measurements';
 
 function element<T extends HTMLElement>(id: string): T {
@@ -182,6 +182,24 @@ function status(message: string, error = false): void {
   node.textContent = message;
   node.dataset.error = String(error);
 }
+element('apply-reference').addEventListener('click', () => {
+  const input = element<HTMLInputElement>('reference-impedance');
+  try {
+    if (!input.value || !input.checkValidity()) {
+      throw new RangeError('Reference impedance must be positive and finite.');
+    }
+    smith.renormalize(Number(input.value));
+    element('reference-value').textContent = `Z₀ = ${smith.referenceImpedanceOhms} Ω`;
+    cursorData = undefined;
+    refreshMarkerOptions();
+    status(
+      `Chart renormalized to ${smith.referenceImpedanceOhms} Ω. Physical impedances and selected samples are preserved.`,
+    );
+  } catch (error) {
+    input.value = String(smith.referenceImpedanceOhms);
+    status(error instanceof Error ? error.message : 'Could not change reference impedance.', true);
+  }
+});
 element<HTMLInputElement>('file').addEventListener('change', async (event) => {
   const input = event.currentTarget as HTMLInputElement;
   const file = input.files?.[0];
@@ -190,14 +208,21 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
   }
   try {
     const parsed = parseTouchstone(await file.text());
-    if (parsed.referenceImpedanceOhms !== 50) {
+    const reference = smith.referenceImpedanceOhms;
+    const mismatch = parsed.referenceImpedanceOhms !== reference;
+    if (mismatch && !element<HTMLInputElement>('renormalize-import').checked) {
       throw new Error(
-        `This chart uses 50 Ω; the file uses ${parsed.referenceImpedanceOhms} Ω. Renormalize the data before importing.`,
+        `This chart uses ${reference} Ω; the file uses ${parsed.referenceImpedanceOhms} Ω. Enable import renormalization or change chart Z₀.`,
       );
     }
-    smith.addTrace(parsed.samples, { name: file.name });
+    const samples = mismatch
+      ? renormalizeSamples(parsed.samples, parsed.referenceImpedanceOhms, reference)
+      : parsed.samples;
+    smith.addTrace(samples, { name: file.name });
     refreshMarkerOptions();
-    status(`${file.name}: ${parsed.samples.length} samples loaded.`);
+    status(
+      `${file.name}: ${samples.length} samples loaded.${mismatch ? ` The file uses ${parsed.referenceImpedanceOhms} Ω; converted to ${reference} Ω.` : ''}`,
+    );
   } catch (error) {
     status(error instanceof Error ? error.message : 'Could not read this file.', true);
   } finally {
