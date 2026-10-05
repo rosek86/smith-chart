@@ -150,6 +150,25 @@ export class SmithData {
     return true;
   }
 
+  public setMarkerFrequency(index: number, frequencyHz: number): boolean {
+    if (!this.markers[index]) {
+      return false;
+    }
+    if (!Number.isFinite(frequencyHz) || frequencyHz < 0) {
+      throw new RangeError('Marker frequency must be finite and non-negative.');
+    }
+    let closest = 0;
+    let distance = Math.abs(this.data[0].frequencyHz - frequencyHz);
+    for (let i = 1; i < this.data.length; i++) {
+      const nextDistance = Math.abs(this.data[i].frequencyHz - frequencyHz);
+      if (nextDistance < distance) {
+        closest = i;
+        distance = nextDistance;
+      }
+    }
+    return this.setMarkerSample(index, closest);
+  }
+
   private validateSampleIndex(index: number): void {
     if (!Number.isInteger(index) || index < 0 || index >= this.data.length) {
       throw new RangeError('Sample index is outside this trace.');

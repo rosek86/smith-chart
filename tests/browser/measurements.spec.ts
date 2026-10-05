@@ -132,7 +132,7 @@ test('demo manages named traces and markers and updates comparisons', async ({ p
   await trace.getByLabel('Color for Antenna').fill('#2563eb');
   await trace.getByLabel('Color for Antenna').dispatchEvent('change');
   await expect(page.locator('#marker-color')).toHaveCSS('background-color', 'rgb(37, 99, 235)');
-  const sample = trace.locator('.marker-controls').nth(1).getByRole('spinbutton');
+  const sample = trace.locator('.marker-controls').nth(1).locator('[data-marker-sample]');
   await sample.fill('1');
   await sample.press('Tab');
   await expect(page.locator('#comparison-frequency')).toHaveText('0 Hz');

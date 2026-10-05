@@ -58,21 +58,21 @@ test('imports measurements and reports errors without losing existing traces', a
     mimeType: 'text/plain',
     buffer: Buffer.from('# MHz S RI R 50\n1000 0.5 -0.2\n1500 0 0'),
   });
-  await expect(page.getByRole('status')).toContainText('2 samples loaded');
+  await expect(page.locator('#file-status')).toContainText('2 samples loaded');
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 1 GHz');
   await input.setInputFiles({
     name: 'invalid.s1p',
     mimeType: 'text/plain',
     buffer: Buffer.from('# Hz S RI R 50\ninvalid'),
   });
-  await expect(page.getByRole('status')).toHaveAttribute('data-error', 'true');
+  await expect(page.locator('#file-status')).toHaveAttribute('data-error', 'true');
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 1 GHz');
   await input.setInputFiles({
     name: '75-ohm.s1p',
     mimeType: 'text/plain',
     buffer: Buffer.from('# Hz S RI R 75\n1 0 0'),
   });
-  await expect(page.getByRole('status')).toContainText('file uses 75 Ω');
+  await expect(page.locator('#file-status')).toContainText('file uses 75 Ω');
 });
 
 test('fits the chart and radial labels on a narrow screen', async ({ page }) => {
