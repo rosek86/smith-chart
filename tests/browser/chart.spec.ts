@@ -19,8 +19,15 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   // The square chart is centered in its own SVG.
   const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   await page.mouse.move(center.x, center.y);
-  await expect(page.locator('[data-scale=vswr] .scale-value')).toHaveText('1 : 1');
-  await expect(page.locator('#parameter-q')).toHaveText('0.000');
+  // Native mouse coordinates can be rounded to device pixels in WebKit.
+  // Exact RF values are covered by synthetic-coordinate and unit tests.
+  await expect(async () => {
+    const vswr = parseFloat((await page.locator('[data-scale=vswr] .scale-value').textContent())!);
+    const q = Number(await page.locator('#parameter-q').textContent());
+    expect(vswr).toBeGreaterThanOrEqual(1);
+    expect(vswr).toBeLessThan(1.02);
+    expect(q).toBeLessThan(0.02);
+  }).toPass();
   const chart = svg.locator(':scope > g');
   const original = await chart.getAttribute('transform');
   await page.mouse.wheel(0, -240);
@@ -82,7 +89,12 @@ test('fits the chart and radial labels on a narrow screen', async ({ page }) => 
   const labels = page.locator('.radial-scales text');
   const svg = (await page.locator('#smith-scales').boundingBox())!;
   for (const label of await labels.all()) {
-    const box = (await label.boundingBox())!;
+    // WebKit's automation boundingBox ignores text-anchor on SVG text.
+    // The DOM rect includes the actual anchored position used by layout.
+    const box = await label.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    });
     expect(box.x).toBeGreaterThanOrEqual(svg.x);
     expect(box.x + box.width).toBeLessThanOrEqual(svg.x + svg.width);
     expect(box.y + box.height).toBeLessThanOrEqual(svg.y + svg.height);

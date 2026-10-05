@@ -3,7 +3,7 @@
 This guide is for maintainers of the demo site. Library users do not need to configure GitHub Pages.
 
 Target URL: **https://rosek86.github.io/smith-app/**.
-Source code and the workflow live in `rosek86/smith-chart`. The demo build output (`dist/demo/`) is
+Source code and the workflow live in `rosek86/smithkit`. The demo build output (`dist/demo/`) is
 published to the separate `gh-pages` branch of `rosek86/smith-app`. A workflow in that
 branch uploads and deploys the already tested site through the GitHub Pages API.
 
@@ -23,7 +23,7 @@ on the default branch. Deployment follows the repository’s default branch.
 
 2. In **smith-app → Settings → Deploy keys**, add the contents of
    `~/.ssh/smith-app-pages.pub` and select **Allow write access**.
-3. In **smith-chart → Settings → Secrets and variables → Actions → Secrets**,
+3. In **smithkit → Settings → Secrets and variables → Actions → Secrets**,
    add a secret named **`SMITH_APP_DEPLOY_KEY`** containing the private key from
    `~/.ssh/smith-app-pages`.
 4. In the **Variables** tab of the same repository, add

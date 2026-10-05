@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   verify:
-    if: github.repository == 'rosek86/smith-chart'
+    if: github.repository == 'rosek86/smithkit'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
