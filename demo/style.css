@@ -372,3 +372,12 @@ footer {
     font-size: 30px;
   }
 }
+
+.marker-controls input[data-marker-frequency] {
+  width: 105px;
+}
+.marker-controls output {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: #617286;
+}

@@ -45,6 +45,8 @@ const traces: TraceInfo[] = chart.getTraces();
 const markerId: string | undefined = chart.addMarker(traceId, 0);
 if (markerId) {
   chart.setMarkerSample(markerId, 0);
+  const selected: boolean = chart.setMarkerFrequency(markerId, 1.2e9);
+  void selected;
   const marker: MarkerSnapshot | undefined = chart.getMarker(markerId);
   const comparison: MarkerComparison | undefined = chart.compareMarkers(markerId, markerId);
   if (marker) { compareMarkerReadings(marker, marker); }

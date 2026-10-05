@@ -187,6 +187,20 @@ available. Non-finite complex inputs or invalid reference impedances throw
 `RangeError` in the public RF functions. Unrepresentable complex conversion
 results are `undefined`.
 
+## Selecting a marker by frequency
+
+`chart.setMarkerFrequency(markerId, frequencyHz)` selects the nearest measured
+frequency and returns `true`, or `false` if the marker does not exist. It accepts
+finite, non-negative Hz values; other values throw `RangeError`. It works with
+unsorted sweeps and duplicate frequencies. Equal-distance ties choose the earliest
+sample in input order. Requests outside the sweep select the nearest endpoint.
+No interpolation or sample reordering is performed.
+
+Read `chart.getMarker(markerId).frequencyHz` for the actual selected frequency.
+The same queued `Marker` event is emitted as for sample-index selection, and
+comparisons update accordingly. The demo accepts MHz and shows the selected
+measurement frequency; dragging and sample selection keep that field synchronized.
+
 ## Calculations without a chart
 
 ```ts

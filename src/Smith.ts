@@ -511,6 +511,15 @@ export class Smith {
       : false;
   }
 
+  /** Select the nearest measured frequency; ties choose the earliest input sample. */
+  public setMarkerFrequency(id: string, frequencyHz: number): boolean {
+    this.assertAlive();
+    const location = this.findMarker(id);
+    return location
+      ? this.data[location.datasetNo].setMarkerFrequency(location.markerNo, frequencyHz)
+      : false;
+  }
+
   public getMarker(id: string): MarkerSnapshot | undefined {
     const location = this.findMarker(id);
     if (!location) {
