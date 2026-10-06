@@ -47,7 +47,8 @@ together. A stable 1.0 release should follow validation in real consuming applic
 
 `prepare:release` does not publish, create tags, or create a GitHub Release.
 CI uploads the tested archive and manifest as `smithkit-package`. Manual dispatch
-of `release.yml` performs verification only and uploads `npm-package`.
+of `release.yml` without a `release_tag` performs verification only and uploads
+`npm-package`.
 
 ## Trusted publisher configuration
 
@@ -85,8 +86,11 @@ repack an existing version to include them.
 
 The workflow supports normal `x.y.z` versions. Prerelease versions and dist-tags
 need an explicit workflow change. Failed publication can be rerun after fixing
-account configuration. An identical existing archive is skipped; a different
-archive requires a new version.
+account configuration. To retry with the current workflow without moving a release
+tag, run `release.yml` from the default branch and set `release_tag` to the existing
+tag (for example `v0.1.1`). This verifies and publishes that tag's source. The same
+input is rejected on other branches. Leave it empty for verification only.
+An identical existing archive is skipped; a different archive requires a new version.
 
 Trusted publishing requires npm CLI 11.5.1+ and Node.js 22.14.0+; the workflow uses
 Node.js 24. See the [official npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
