@@ -1,5 +1,6 @@
 import { SmithGroup } from './SmithGroup.js';
-import { SmithCircle } from './SmithCircle.js';
+import { line } from 'd3';
+import type { TraceStyle } from '../measurements.js';
 import { SmithMarker } from './SmithMarker.js';
 import { SmithScaler } from './SmithScaler.js';
 
@@ -19,7 +20,7 @@ interface Transform {
 }
 
 export class SmithData {
-  private pointRadius = 2;
+  private style: TraceStyle;
   private destroyed = false;
   private visible = true;
   private pendingEvents = new Set<ReturnType<typeof setTimeout>>();
@@ -39,26 +40,77 @@ export class SmithData {
     private scaler: SmithScaler,
     private markerDragHandler?: (marker: SmithMarker, dragging: boolean) => void,
     private markerContainer: SmithGroup = fgContainer,
+    style: Partial<TraceStyle> = {},
   ) {
+    this.style = {
+      mode: style.mode ?? 'points',
+      lineWidth: style.lineWidth ?? 2,
+      pointRadius: style.pointRadius ?? 2,
+    };
     this.data = this.copySamples(data);
-    this.group = this.drawPoints(this.data);
+    this.group = this.drawTrace(this.data);
     this.group.attr('pointer-events', 'none');
     this.fgContainer.append(this.group);
     this.zoomDataPoints();
   }
 
-  private drawPoints(data: TraceSamples): SmithGroup {
+  private drawTrace(data: TraceSamples): SmithGroup {
     const group = new SmithGroup({
       stroke: 'none',
       strokeWidth: 'none',
       fill: this.color,
     });
     group.attr('data-role', 'samples');
-    data.forEach((dp) => {
-      const p = this.scaler.point(dp.reflectionCoefficient);
-      group.append(new SmithCircle({ p, r: this.pointRadius }));
-    });
+    group.attr('data-mode', this.style.mode);
+    if (this.style.mode !== 'points') {
+      const path = line<TraceSample>()
+        .x((sample) => this.scaler.x(sample.reflectionCoefficient[0]))
+        .y((sample) => this.scaler.y(sample.reflectionCoefficient[1]));
+      group.Element.append('path')
+        .attr('class', 'trace-line')
+        .attr('d', path(data))
+        .attr('fill', 'none')
+        .attr('stroke', this.color)
+        .attr('stroke-width', this.style.lineWidth)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linejoin', 'round')
+        .attr('stroke-linecap', 'round');
+    }
+    if (this.style.mode !== 'line') {
+      this.renderPoints(group, data);
+    }
     return group;
+  }
+
+  private renderPoints(group: SmithGroup, data: TraceSamples): void {
+    let visible = data;
+    if (data.length > 5000) {
+      const cells = new Set<string>();
+      const cellSize = Math.max(0.5, this.style.pointRadius);
+      const extent = this.scaler.x(1);
+      const margin = this.style.pointRadius;
+      visible = data.filter((sample) => {
+        const x =
+          this.scaler.x(sample.reflectionCoefficient[0]) * this.transform.k + this.transform.x;
+        const y =
+          this.scaler.y(sample.reflectionCoefficient[1]) * this.transform.k + this.transform.y;
+        if (x < -margin || y < -margin || x > extent + margin || y > extent + margin) {
+          return false;
+        }
+        const cell = `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
+        if (cells.has(cell)) {
+          return false;
+        }
+        cells.add(cell);
+        return true;
+      });
+    }
+    group.Element.selectAll('circle')
+      .data(visible)
+      .join('circle')
+      .attr('cx', (sample) => this.scaler.x(sample.reflectionCoefficient[0]))
+      .attr('cy', (sample) => this.scaler.y(sample.reflectionCoefficient[1]))
+      .attr('r', this.style.pointRadius / this.transform.k);
   }
 
   public zoom(transform: Transform): void {
@@ -72,7 +124,14 @@ export class SmithData {
 
   private zoomDataPoints(): void {
     const k = this.transform.k;
-    this.group.Element.selectAll('*').attr('r', this.pointRadius / k);
+    if (this.style.mode === 'line') {
+      return;
+    }
+    if (this.data.length > 5000) {
+      this.renderPoints(this.group, this.data);
+    } else {
+      this.group.Element.selectAll('circle').attr('r', this.style.pointRadius / k);
+    }
   }
 
   private zoomAllMarkers(): void {
@@ -196,7 +255,43 @@ export class SmithData {
   public setColor(color: string): void {
     this.color = color;
     this.group.attr('fill', color);
+    this.group.Element.select('.trace-line').attr('stroke', color);
     this.markers.forEach(({ marker }) => marker.setColor(color));
+  }
+
+  public get Style(): TraceStyle {
+    return { ...this.style };
+  }
+
+  public setStyle(options: Partial<TraceStyle>): void {
+    const next = {
+      mode: options.mode ?? this.style.mode,
+      lineWidth: options.lineWidth ?? this.style.lineWidth,
+      pointRadius: options.pointRadius ?? this.style.pointRadius,
+    };
+    if (
+      next.mode === this.style.mode &&
+      next.lineWidth === this.style.lineWidth &&
+      next.pointRadius === this.style.pointRadius
+    ) {
+      return;
+    }
+    const modeChanged = next.mode !== this.style.mode;
+    this.style = next;
+    if (modeChanged) {
+      this.redraw();
+    } else {
+      this.group.Element.select('.trace-line').attr('stroke-width', next.lineWidth);
+      this.zoomDataPoints();
+    }
+  }
+
+  private redraw(): void {
+    const group = this.drawTrace(this.data).attr('pointer-events', 'none');
+    // Replace in place to retain trace ordering beneath the separate marker layer.
+    this.group.Node!.replaceWith(group.Node!);
+    this.group = group;
+    this.group.Element.style('display', () => (this.visible ? null : 'none'));
   }
 
   public setVisible(visible: boolean): void {
@@ -255,7 +350,7 @@ export class SmithData {
     const selectedIndices = this.markers.map((entry) => this.data.indexOf(entry.selectedPoint));
     this.cancelEvents();
     this.data = samples;
-    const group = this.drawPoints(samples).attr('pointer-events', 'none');
+    const group = this.drawTrace(samples).attr('pointer-events', 'none');
     this.group.Element.remove();
     this.group = group;
     this.group.Element.style('display', () => (this.visible ? null : 'none'));

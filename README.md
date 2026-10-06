@@ -125,6 +125,25 @@ Hiding a trace hides its points and markers while retaining measurements for
 comparisons. Hiding or deleting a dragged marker/trace ends the drag. Mutations
 after destruction throw; trace/marker lookups return empty or missing results.
 
+## Trace appearance
+
+Pass `mode: 'points' | 'line' | 'both'`, `lineWidth`, and `pointRadius` to
+`addTrace` or `setTraceOptions`. Defaults are points, 2 px line width, and radius 2
+in chart units at zoom k = 1. Both sizes remain constant under chart zoom;
+line width uses SVG non-scaling stroke pixels, while point radius scales with
+the chart's outer SVG viewport. Widths and radii must be positive and finite.
+`getTraces()` includes the current style.
+
+Lines connect all samples in input order, without smoothing or frequency sorting.
+A line-only trace creates one SVG path and no sample circles, suitable for dense
+sweeps. Points/both render every sample for traces up to 5,000 samples. Larger traces
+render one representative per point-radius-sized display cell and skip points
+outside the viewport; representatives are recalculated during zoom/pan.
+This only simplifies the image: all original samples remain available to markers,
+snapping, readouts, and comparisons. Lines still connect every input sample.
+Styles do not change marker identity or layer ordering. Hidden traces retain their style after sample replacement.
+The demo exposes the same controls per trace.
+
 ## Events and readings
 
 `onEvent(listener)` supports multiple independent subscriptions and returns an

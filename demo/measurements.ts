@@ -1,4 +1,4 @@
-import type { Smith, TraceInfo } from '../src';
+import type { Smith, TraceInfo, TraceRenderMode } from '../src';
 
 function node<T extends HTMLElement>(id: string): T {
   return document.getElementById(id) as T;
@@ -152,7 +152,50 @@ export class Measurements {
         this.changed();
       }),
     );
-    section.append(header, actions);
+    const appearance = document.createElement('div');
+    appearance.className = 'trace-appearance';
+    const modeLabel = document.createElement('label');
+    modeLabel.textContent = 'Display ';
+    const mode = document.createElement('select');
+    mode.setAttribute('aria-label', 'Display');
+    for (const value of ['points', 'line', 'both'] as const) {
+      mode.add(
+        new Option(
+          value === 'both' ? 'Line and points' : value === 'line' ? 'Line' : 'Points',
+          value,
+        ),
+      );
+    }
+    mode.value = trace.mode;
+    mode.addEventListener('change', () => {
+      this.smith.setTraceOptions(trace.id, { mode: mode.value as TraceRenderMode });
+      this.changed();
+    });
+    modeLabel.append(mode);
+    appearance.append(modeLabel);
+    for (const [key, caption] of [
+      ['lineWidth', 'Line width (px)'],
+      ['pointRadius', 'Point radius'],
+    ] as const) {
+      const label = document.createElement('label');
+      label.textContent = caption + ' ';
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0.1';
+      input.step = 'any';
+      input.value = String(trace[key]);
+      input.addEventListener('change', () => {
+        if (!input.value || !input.checkValidity() || !Number.isFinite(Number(input.value))) {
+          input.value = String(trace[key]);
+          return;
+        }
+        this.smith.setTraceOptions(trace.id, { [key]: Number(input.value) });
+        this.changed();
+      });
+      label.append(input);
+      appearance.append(label);
+    }
+    section.append(header, appearance, actions);
     for (const marker of trace.markers) {
       const row = document.createElement('div');
       row.className = 'marker-controls';
