@@ -67,6 +67,8 @@ export class Smith {
   private scalers: Scalers;
 
   private transform = d3.zoomIdentity;
+  private zoomEnabled = true;
+  private applyingView = false;
   private zoomBehavior = d3.zoom<SVGElement, unknown>();
 
   private svg: SmithSvg;
@@ -315,21 +317,57 @@ export class Smith {
   private initializeZoom(): void {
     const zoom = this.zoomBehavior
       .scaleExtent([0.6, 1000])
+      .filter(
+        (event: MouseEvent | WheelEvent) =>
+          this.zoomEnabled && (!event.ctrlKey || event.type === 'wheel') && !event.button,
+      )
       .on('start', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
         if (event.sourceEvent) {
           this.mouseGesture.capture(event.sourceEvent, 'zoom');
         }
       })
-      .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => this.onZoom(event.transform));
+      .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
+        if (!this.zoomEnabled && !this.applyingView) {
+          // An already active mouse/touch gesture still needs its normal end event.
+          // Restore D3's view through its public API while that gesture finishes.
+          this.applyView(this.transform);
+          return;
+        }
+        this.onZoom(event.transform);
+      });
 
     this.svg.Element.call(zoom);
     this.resetView();
   }
 
+  /** Enable or disable wheel, double-click, and mouse/touch zoom/pan. Keeps the current view. */
+  public setZoomEnabled(enabled: boolean): void {
+    this.assertAlive();
+    if (typeof enabled !== 'boolean') {
+      throw new TypeError('Zoom enabled must be a boolean.');
+    }
+    if (this.zoomEnabled === enabled) {
+      return;
+    }
+    this.zoomEnabled = enabled;
+    if (!enabled) {
+      this.svg.Element.interrupt();
+    }
+  }
+
+  private applyView(transform: ZoomTransform): void {
+    this.applyingView = true;
+    try {
+      this.svg.Element.call(this.zoomBehavior.transform, transform);
+    } finally {
+      this.applyingView = false;
+    }
+  }
+
   public resetView(): void {
     this.assertAlive();
     const transform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
-    this.svg.Element.call(this.zoomBehavior.transform, transform);
+    this.applyView(transform);
   }
 
   private onZoom(transform: ZoomTransform): void {
