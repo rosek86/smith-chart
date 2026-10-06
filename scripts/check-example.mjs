@@ -27,21 +27,7 @@ try {
   manifest.dependencies.smithkit = `file:${archive}`;
   writeFileSync(join(app, 'package.json'), JSON.stringify(manifest));
   run('npm', ['install', '--prefer-offline', '--ignore-scripts', '--no-audit', '--no-fund'], app);
-  run(
-    join(repo, 'node_modules/.bin/tsc'),
-    [
-      '--strict',
-      '--noEmit',
-      '--target',
-      'ES2022',
-      '--module',
-      'ESNext',
-      '--moduleResolution',
-      'Bundler',
-      'main.ts',
-    ],
-    app,
-  );
+  run(join(repo, 'node_modules/.bin/tsc'), ['--project', 'tsconfig.json'], app);
   run('npm', ['run', 'build'], app);
 
   // Serve only files from the consumer's built output, never the repository sources.
