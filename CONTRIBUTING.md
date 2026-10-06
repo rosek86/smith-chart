@@ -73,7 +73,6 @@ src/
   samples.ts               trace input contract
   layers.ts                public layer controls
   SmithConstantCircle.ts   internal normalized RF calculations and circle geometry
-  SmithArcsDefs.ts          compatibility facade for grid definitions
   grid/                    normalized geometry, compact grid bands, and label rules
   complex/                 complex numbers, independent of the DOM
   shapes/                  geometry types

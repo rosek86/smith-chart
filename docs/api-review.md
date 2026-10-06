@@ -56,10 +56,15 @@ updates. The package check installs a tarball in a separate consumer, checks
 NodeNext/Bundler declarations, and imports calculation/parsing helpers without DOM
 globals. README TypeScript examples are checked against the packaged declarations.
 
+[Complex tests](../tests/complex.test.ts) compare supported operations against
+independent Python `cmath` reference values and check principal branches,
+signed zeros, poles, and non-finite inputs. Arithmetic tests also cover extreme
+finite magnitudes, subnormal values, product cancellation, and selected power
+identities. This is targeted regression coverage, not an exhaustive numerical
+certification of every operation and input.
+
 ## Remaining scope
 
-- Broader numerical coverage for historical `Complex` operations and extreme
-  finite magnitudes is separate work; this review is not a numerical certification.
 - Renormalization supports positive real reference impedances and preserves
   physical impedance and selected sample indices. Complex reference impedances
   and multiport support remain separate features.
