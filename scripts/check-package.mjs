@@ -11,7 +11,17 @@ const run = (command, args, cwd = temp) =>
   execFileSync(command, args, { cwd, encoding: 'utf8', timeout: 120_000 });
 
 try {
-  const [packed] = JSON.parse(run('npm', ['pack', '--json', '--pack-destination', temp], repo));
+  const providedArchive = process.argv[2] ? resolve(process.argv[2]) : undefined;
+  const [packed] = JSON.parse(
+    run(
+      'npm',
+      providedArchive
+        ? ['pack', providedArchive, '--dry-run', '--ignore-scripts', '--json']
+        : ['pack', '--json', '--pack-destination', temp],
+      repo,
+    ),
+  );
+  const archive = providedArchive ?? join(temp, packed.filename);
   assert.equal(packed.name, 'smithkit');
   assert.equal(packed.version, manifest.version);
   for (const file of packed.files) {
@@ -28,7 +38,7 @@ try {
     '--ignore-scripts',
     '--no-audit',
     '--no-fund',
-    join(temp, packed.filename),
+    archive,
   ]);
   writeFileSync(
     join(temp, 'consumer.ts'),
