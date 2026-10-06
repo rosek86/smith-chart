@@ -764,8 +764,7 @@ export class Complex {
     return [z.re, z.im];
   }
 
-  // TODO: format
-
+  /** Format Cartesian components with Number.toFixed(dp), defaulting to three decimal places. */
   public static toString(z: Complex, dp: number = 3): string {
     const re = z.re.toFixed(dp);
     const im = Math.abs(z.im).toFixed(dp);

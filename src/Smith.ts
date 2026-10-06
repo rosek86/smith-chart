@@ -24,7 +24,7 @@ import { SmithScaler } from './draw/SmithScaler.js';
 
 import { TraceSamples } from './samples.js';
 import { SmithConstantCircle } from './SmithConstantCircle.js';
-import { SmithArcsDefs } from './SmithArcsDefs.js';
+import { createGridDefinitions } from './grid/definitions.js';
 
 import { Complex } from './complex/Complex.js';
 import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
@@ -109,7 +109,7 @@ export class Smith {
       throw new RangeError('Reference impedance must be positive and finite.');
     }
     const viewBoxSize = 500;
-    const gridData = SmithArcsDefs.getData();
+    const gridData = createGridDefinitions();
     this.scalers = this.createScalers(viewBoxSize);
 
     this.svg = new SmithSvg(viewBoxSize);
