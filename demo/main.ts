@@ -1,14 +1,7 @@
 import './style.css';
-import {
-  Smith,
-  SmithScales,
-  SmithEventType,
-  formatNumber,
-  formatComplex,
-  reactanceToComponent,
-} from '../src';
+import { Smith, SmithScales, SmithEventType, SmithFormatter, RfCalculations } from '../src';
 import type { SmithEvent, SmithReading, MarkerSnapshot, TraceSamples } from '../src';
-import { parseTouchstone, renormalizeSamples } from '../src';
+import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
 
 function element<T extends HTMLElement>(id: string): T {
@@ -97,15 +90,17 @@ function renderReadout(): void {
   const data = source === 'cursor' ? cursorData : markerData;
   scales.update(data?.reflectionCoefficient ?? null);
   smith.peripheralScales.update(data?.reflectionCoefficient ?? null);
-  element('parameter-gamma').textContent = data ? formatComplex(data.reflectionCoefficient) : '—';
+  element('parameter-gamma').textContent = data
+    ? SmithFormatter.complex(data.reflectionCoefficient)
+    : '—';
   element('parameter-impedance').textContent = data
     ? data.impedanceOhms
-      ? formatComplex(data.impedanceOhms)
+      ? SmithFormatter.complex(data.impedanceOhms)
       : '∞'
     : '—';
   element('parameter-admittance').textContent = data
     ? data.admittanceSiemens
-      ? formatComplex(data.admittanceSiemens.mul(1000))
+      ? SmithFormatter.complex(data.admittanceSiemens.mul(1000))
       : '∞'
     : '—';
   element('parameter-q').textContent = data?.q?.toFixed(3) ?? '—';
@@ -121,16 +116,16 @@ function renderReadout(): void {
   swatch.style.backgroundColor = trace?.color ?? '';
   if (markerData && trace) {
     const summary = document.createElement('div');
-    summary.textContent = `${markerLabel(trace, markerData.markerNumber)} · Frequency: ${formatNumber(markerData.frequencyHz)}Hz`;
+    summary.textContent = `${markerLabel(trace, markerData.markerNumber)} · Frequency: ${SmithFormatter.number(markerData.frequencyHz)}Hz`;
     const component = document.createElement('div');
     const equivalent = markerData.impedanceOhms
-      ? reactanceToComponent(markerData.impedanceOhms.im, markerData.frequencyHz)
+      ? RfCalculations.reactanceToComponent(markerData.impedanceOhms.im, markerData.frequencyHz)
       : undefined;
     const componentValue =
       equivalent?.kind === 'inductor'
-        ? `${formatNumber(equivalent.inductanceHenries)}H`
+        ? `${SmithFormatter.number(equivalent.inductanceHenries)}H`
         : equivalent?.kind === 'capacitor'
-          ? `${formatNumber(equivalent.capacitanceFarads)}F`
+          ? `${SmithFormatter.number(equivalent.capacitanceFarads)}F`
           : '—';
     component.textContent = `Reactive component: ${componentValue} · Scales: ratios or dB.`;
     markerReadout.replaceChildren(summary, component);
@@ -236,7 +231,7 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
     return;
   }
   try {
-    const parsed = parseTouchstone(await file.text());
+    const parsed = Touchstone.parse(await file.text());
     const reference = smith.referenceImpedanceOhms;
     const mismatch = parsed.referenceImpedanceOhms !== reference;
     if (mismatch && !element<HTMLInputElement>('renormalize-import').checked) {
@@ -245,7 +240,7 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
       );
     }
     const samples = mismatch
-      ? renormalizeSamples(parsed.samples, parsed.referenceImpedanceOhms, reference)
+      ? RfCalculations.renormalizeSamples(parsed.samples, parsed.referenceImpedanceOhms, reference)
       : parsed.samples;
     smith.addTrace(samples, { name: file.name });
     refreshMarkerOptions();

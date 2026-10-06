@@ -1,4 +1,4 @@
-import { Smith, SmithEventType, formatComplex, formatNumber } from 'smithkit';
+import { Smith, SmithEventType, SmithFormatter } from 'smithkit';
 import './style.css';
 
 function element<T extends HTMLElement>(id: string): T {
@@ -53,8 +53,10 @@ function mount(): void {
   unsubscribe = chart.onEvent((event) => {
     if (event.type === SmithEventType.Marker) {
       const reading = event.data;
-      const impedance = reading.impedanceOhms ? formatComplex(reading.impedanceOhms).trim() : '∞';
-      output.value = `${formatNumber(reading.frequencyHz)}Hz · ${impedance} Ω`;
+      const impedance = reading.impedanceOhms
+        ? SmithFormatter.complex(reading.impedanceOhms).trim()
+        : '∞';
+      output.value = `${SmithFormatter.number(reading.frequencyHz)}Hz · ${impedance} Ω`;
     }
   });
   alternate = false;

@@ -64,20 +64,24 @@ release tag on the default branch to retry its publication with the current work
 
 ## Architecture
 
+See the [architecture diagram and component boundaries](docs/architecture.md) for
+a visual overview of the library.
+
 ```text
 src/
   index.ts                 public package exports
   Smith.ts                 chart composition, events, and public API
-  rf.ts                    public DOM-independent readings and physical conversions
-  measurements.ts          trace/marker types and comparisons
+  measurements.ts          trace/marker type contracts
+  MarkerMeasurements.ts    stateless marker comparisons
+  SmithFormatter.ts        stateless numeric and complex formatting
   samples.ts               trace input contract
-  layers.ts                public layer controls
-  SmithConstantCircle.ts   internal normalized RF calculations and circle geometry
-  grid/                    normalized geometry, compact grid bands, and label rules
-  complex/                 complex numbers, independent of the DOM
-  shapes/                  geometry types
-  arcs/                    tick definitions
-  draw/                    SVG elements and D3 layers
+  layers.ts                public layer contracts
+  math/                    complex arithmetic and geometry types, independent of the DOM
+  rf/                      readings, conversions, components, and renormalization
+  grid/                    grid definitions, labels, renderers, and layer controls
+  svg/                     reusable SVG primitives and coordinate scaling
+  traces/                  sample/marker state, trace rendering, and their coordinator
+  interaction/             mouse gestures and chart cursor
   scales/                  independent parameter-scale renderer and definitions
   io/                      Touchstone parser, independent of the UI
 demo/                      application UI, CSS, and file handling
@@ -91,11 +95,22 @@ application controls in the demo; parsers and calculations belong in the library
 
 `Smith` owns the square chart SVG and its zoom transform. `SmithScales` mounts
 its own responsive container; the demo connects it to cursor events. Keep scale
-rendering outside the chart transform and RF scale mappings in `radialScales.ts`.
+rendering outside the chart transform and RF scale mappings in `RadialScaleDefinitions.ts`.
 The demo throttles moving cursor/marker readouts to one update per 33 ms, using
 the latest position even during continuous movement. Clearing readouts and
 switching tabs cancel pending updates and render immediately. `SmithScales.update`
 remains synchronous for library consumers.
+
+`TraceModel` validates and copies samples and selects marker samples without a DOM.
+`TraceRenderer` draws lines and points, including viewport-based point reduction.
+`SmithData` connects the model to draggable SVG markers and coalesces marker events.
+Keep sample-selection rules in the model so they can be tested without a browser.
+Trace redraws replace their SVG group in place to preserve the order of overlapping traces.
+
+RF transformations reuse `Complex.div()` for division and reject non-finite results.
+Their analytic imaginary numerator remains in the RF layer to avoid cancellation in
+Smith-chart conversions. Internal folder paths are not package entry points;
+consumers continue to import from `smithkit`.
 
 The library build uses TypeScript to emit ESM JavaScript and declarations with
 matching paths. Relative source imports use `.js` extensions so consumers can
@@ -110,6 +125,17 @@ messages. Use descriptive private fields without a leading underscore. Keep publ
 names and units consistent. During 0.x development, document breaking changes in a
 minor release and fixes in a patch release. Update the demo, tests, and public
 examples together when changing API behavior.
+
+Organize library behavior in classes: instance methods own state and lifecycle;
+static methods group stateless domain operations. Keep helpers private to their
+owning class, use class names for their filenames, and leave types/interfaces as
+plain contracts. Local callbacks and closures remain appropriate for events,
+mapping, and rendering. ESLint rejects module-level function declarations and
+function-valued variables in `src/`.
+
+Public stateless operations are grouped under `RfCalculations`, `Touchstone`,
+`SmithFormatter`, and `MarkerMeasurements`. The class API replaces the 0.1.x
+standalone exports and must ship in a minor release; see [the migration guide](docs/migration-0.2.md).
 
 Always use braces for control-flow bodies, including single-line guards and loops.
 The ESLint `curly` rule enforces this; Prettier formats the resulting blocks.

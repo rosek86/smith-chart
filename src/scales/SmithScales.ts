@@ -1,10 +1,10 @@
 import { select, format } from 'd3';
-import type { Complex } from '../complex/Complex.js';
-import { radialScales } from './radialScales.js';
+import type { Complex } from '../math/Complex.js';
+import { RadialScaleDefinitions } from './RadialScaleDefinitions.js';
 
 /** Independent parameter scales. Connect update() to a chart's cursor events. */
 export class SmithScales {
-  private readonly scales = radialScales();
+  private readonly scales = RadialScaleDefinitions.create();
   private readonly container = select(document.createElement('div'))
     .attr('class', 'radial-scales')
     .style('display', 'grid')

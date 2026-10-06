@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
-import { Complex } from '../src/complex/Complex';
-import { SmithConstantCircle } from '../src/SmithConstantCircle';
-import { peripheralScales } from '../src/scales/peripheralScales';
-import { radialScales } from '../src/scales/radialScales';
+import { Complex } from '../src/math/Complex';
+import { SmithConstantCircle } from '../src/rf/SmithConstantCircle';
+import { PeripheralScaleDefinitions } from '../src/scales/PeripheralScaleDefinitions';
+import { RadialScaleDefinitions } from '../src/scales/RadialScaleDefinitions';
 
 it('maps passive-load RF values back to their radial positions', () => {
   for (const gamma of [
@@ -11,7 +11,7 @@ it('maps passive-load RF values back to their radial positions', () => {
     Complex.from(-0.6, 0.8),
     Complex.one(),
   ]) {
-    const scales = radialScales();
+    const scales = RadialScaleDefinitions.create();
     for (const scale of scales.slice(0, 10)) {
       expect(scale.position(scale.read(gamma)), scale.id).toBeCloseTo(
         Math.hypot(gamma.re, gamma.im),
@@ -45,7 +45,7 @@ it('distinguishes transmission magnitudes and one-way attenuation at physical li
 });
 
 it('calibrates peripheral rulers and projects transmission phase from the short-circuit origin', () => {
-  const [transmission, reflection, load, generator] = peripheralScales();
+  const [transmission, reflection, load, generator] = PeripheralScaleDefinitions.create();
   for (const [gamma, degrees, towardGenerator, towardLoad] of [
     [Complex.one(), 0, 0.25, 0.25],
     [Complex.from(0, 0.5), 90, 0.125, 0.375],
@@ -70,7 +70,9 @@ it('calibrates peripheral rulers and projects transmission phase from the short-
 
 it('reports the known RF quantities for a reflection coefficient of 0.5', () => {
   const gamma = Complex.from(0.5);
-  const values = Object.fromEntries(radialScales().map((scale) => [scale.id, scale.read(gamma)]));
+  const values = Object.fromEntries(
+    RadialScaleDefinitions.create().map((scale) => [scale.id, scale.read(gamma)]),
+  );
   expect(values.vswr).toBe(3);
   expect(values['vswr-db']).toBeCloseTo(9.5424250944);
   expect(values['return-loss']).toBeCloseTo(6.0205999133);

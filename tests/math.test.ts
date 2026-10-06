@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Complex } from '../src/complex/Complex';
-import { SmithConstantCircle } from '../src/SmithConstantCircle';
-import { radialScales } from '../src/scales/radialScales';
-import { SmithScaler } from '../src/draw/SmithScaler';
+import { Complex } from '../src/math/Complex';
+import { SmithConstantCircle } from '../src/rf/SmithConstantCircle';
+import { RadialScaleDefinitions } from '../src/scales/RadialScaleDefinitions';
+import { SmithScaler } from '../src/svg/SmithScaler';
 import { scaleLinear } from 'd3';
 
 const calcs = new SmithConstantCircle();
@@ -67,7 +67,7 @@ describe('Smith chart coordinates', () => {
     expect(calcs.rflCoeffToReturnLoss(Complex.from(0.5))).toBeCloseTo(6.0206);
   });
   it('keeps all radial labels finite, ordered and on the scale', () => {
-    for (const scale of radialScales()) {
+    for (const scale of RadialScaleDefinitions.create()) {
       const positions = scale.values.map(scale.position);
       expect(positions[0], scale.title).toBe(0);
       expect(positions.at(-1), scale.title).toBe(1);

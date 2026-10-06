@@ -1,4 +1,4 @@
-import type { Line } from '../shapes/Line.js';
+import type { Line } from '../math/geometry.js';
 
 export enum SmithArcEntry {
   circle,

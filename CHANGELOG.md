@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — next minor (0.2.0)
+
+- Preserve the stacking order of overlapping traces when replacing their samples.
+- Reorganize library internals by responsibility, separate trace selection state from SVG rendering, and share complex division between arithmetic and RF conversions.
+- **Breaking:** replace standalone calculation, parsing, formatting, and comparison exports with static methods on `RfCalculations`, `Touchstone`, `SmithFormatter`, and `MarkerMeasurements`. See [the migration guide](docs/migration-0.2.md).
+- Use classes for internal grid/scale definitions and layer adapters; enforce the library convention with ESLint.
+
 ## 0.1.1 — 2026-10-06
 
 - Render grid and scale labels above all chart lines, preserving label visibility and styling during zoom and layer changes.
