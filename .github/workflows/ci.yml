@@ -26,15 +26,17 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run check
-      - run: npm run check:package
       - run: npx playwright install --with-deps chromium webkit
-      - run: npm run test:e2e
-      - run: npm run test:e2e:webkit
+      - run: npm run prepare:release
       - uses: actions/upload-artifact@v7
         with:
           name: smith-app-site
           path: dist/demo/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: smithkit-package
+          path: artifacts/
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         if: failure()

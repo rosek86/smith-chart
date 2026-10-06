@@ -36,6 +36,10 @@ npm install /path/to/smithkit/smithkit-0.1.0.tgz
 Building requires Node.js 24 or later. Browser applications need SVG, ES2022,
 and an ESM-compatible build tool. No library stylesheet is required.
 
+For a complete application using the installed package, see the
+[standalone integration example](https://github.com/rosek86/smithkit/tree/main/examples/basic).
+It demonstrates mounting, replacing samples, event subscriptions, resizing, and cleanup.
+
 ## Quick start
 
 Give the container an explicit size and run the code after it is mounted:

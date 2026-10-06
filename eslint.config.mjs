@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   globalIgnores([
-    'node_modules/**',
+    '**/node_modules/**',
+    'examples/**/dist/**',
+    'artifacts/**',
     'dist/**',
     'build/**',
     'test-results/**',
@@ -43,7 +45,10 @@ export default defineConfig([
       ],
     },
   },
-  { files: ['src/**/*.ts', 'demo/**/*.ts'], languageOptions: { globals: globals.browser } },
+  {
+    files: ['src/**/*.ts', 'demo/**/*.ts', 'examples/**/*.ts'],
+    languageOptions: { globals: globals.browser },
+  },
   {
     files: ['*.config.{ts,mjs}', 'scripts/**/*.mjs', 'tests/**/*.ts'],
     languageOptions: { globals: globals.node },

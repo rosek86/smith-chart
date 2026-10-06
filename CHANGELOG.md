@@ -2,6 +2,10 @@
 
 ## 0.1.0 — Unreleased
 
+- Add an independently installed consumer example covering mounting, data updates, event subscriptions, resizing, and cleanup.
+- Prepare a tested npm archive and manifest through one release command, with Chromium/WebKit verification and repeat-publication integrity checks.
+- Add demo checkboxes for grouped peripheral scales and detailed impedance/admittance grids.
+
 - Preserve marker frequency by default on trace replacement; expose explicit frequency, sample-index, and reflection selection strategies.
 - Stabilize complex multiplication/division, logarithms, roots, reciprocals, and common power cases at extreme finite magnitudes.
 - Export standalone formatters and typed equivalent series-component calculations; remove duplicate complex component accessors.

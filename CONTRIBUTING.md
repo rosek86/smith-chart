@@ -40,6 +40,25 @@ first. To use an installed Chrome instead, run
 Chromium and WebKit. Native pointer assertions allow device-pixel rounding;
 SVG text bounds use DOM geometry so text anchors are included.
 
+### Release and consumer verification
+
+`npm run check:example` packs the library, installs it into a temporary copy of
+`examples/basic`, checks its types, builds it, and exercises the installed consumer
+in Chromium and WebKit. Both `check:package` and `check:example` accept an existing
+archive path after `--`, so release checks can reuse exactly the archive being shipped.
+
+From a clean committed checkout, run `npm run prepare:release` for all source checks,
+both demo browser suites, package-consumer checks, and the standalone example. It
+writes `artifacts/smithkit-0.1.0.tgz` and `artifacts/release-manifest.json`, containing
+the commit, SHA-256, npm integrity, and archive sizes. Nothing is published.
+Install Chromium and WebKit first with `npx playwright install chromium webkit`.
+`PLAYWRIGHT_CHANNEL=chrome` can select installed Chrome for local checks; the script
+clears that override when running WebKit.
+
+CI and the release workflow use this same command. The release workflow also has
+a manual, verification-only dispatch that uploads the verified archive without
+running its publication job.
+
 ## Architecture
 
 ```text

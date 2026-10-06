@@ -1,7 +1,7 @@
 {
   "name": "smithkit",
   "version": "0.1.0",
-  "description": "Framework-independent, interactive Smith chart library for JavaScript and TypeScript, powered by D3",
+  "description": "Framework-independent, interactive Smith chart library for JavaScript and TypeScript",
   "type": "module",
   "scripts": {
     "dev": "vite --open",
@@ -19,7 +19,9 @@
     "lint:fix": "eslint . --fix --max-warnings=0",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "check:package": "node scripts/check-package.mjs"
+    "check:package": "node scripts/check-package.mjs",
+    "check:example": "node scripts/check-example.mjs",
+    "prepare:release": "node scripts/prepare-release.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smithkit integration example</title>
+  </head>
+  <body>
+    <main>
+      <h1>Smithkit integration example</h1>
+      <p>Mount a chart, replace a measured sweep, resize its container, and release it.</p>
+      <div class="controls">
+        <button id="mount" type="button">Mount chart</button>
+        <button id="update" type="button">Replace sweep</button>
+        <button id="unmount" type="button">Unmount chart</button>
+        <label><input id="compact" type="checkbox" /> Compact chart</label>
+      </div>
+      <div id="chart" aria-label="Smith chart"></div>
+      <output id="reading" aria-live="polite">No chart mounted.</output>
+      <p>Drag the marker to select a sample. Replacing the sweep preserves its frequency.</p>
+    </main>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
