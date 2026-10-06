@@ -37,6 +37,20 @@ for (const [id, groups] of layers) {
   checkbox.addEventListener('change', update);
   update();
 }
+const detailedGrid = element<HTMLInputElement>('detailed-grid');
+const updateDetailedGrid = () => {
+  for (const layer of [
+    smith.layers.resistance,
+    smith.layers.reactance,
+    smith.layers.conductance,
+    smith.layers.susceptance,
+  ]) {
+    layer.setMinorVisible(detailedGrid.checked);
+  }
+};
+detailedGrid.addEventListener('change', updateDetailedGrid);
+updateDetailedGrid();
+
 element('reset-view').addEventListener('click', () => smith.resetView());
 
 type ReadoutSource = 'cursor' | 'marker';
