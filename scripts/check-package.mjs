@@ -87,6 +87,11 @@ chart.updateTrace(traceId, samples, { markerSelection: 'nearest' });
 chart.setMarkerSample(0, 1);
 chart.removeTrace(traceId);
 void [traces, chart.referenceImpedanceOhms];
+chart.setZoomEnabled(false);
+chart.resetView();
+chart.setZoomEnabled(true);
+// @ts-expect-error Zoom must be explicitly enabled/disabled with a boolean.
+chart.setZoomEnabled('false');
 chart.draw(document.createElement('div'));
 const scales = new SmithScales();
 scales.draw(document.createElement('div'));

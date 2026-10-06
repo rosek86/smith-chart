@@ -74,6 +74,23 @@ points. `chart.resetView()` restores the initial view, including peripheral rule
 
 Construct `Smith` only in a browser, such as your framework's mount hook. Importing
 the package and using its calculation or parsing functions does not require a DOM.
+
+Zoom is enabled by default. For a fixed view, call `chart.setZoomEnabled(false)` before or after mounting.
+It disables wheel/double-click zoom and mouse/touch panning and pinch zoom while
+preserving the current view. Set it back to `true` to restore gestures. This is a
+view control: cursor readings and marker dragging stay available. `resetView()`
+also remains available when zoom is disabled. New wheel gestures do not consume
+page scrolling. Disabling during an active gesture freezes the view while that
+gesture finishes normally.
+
+```ts
+import { Smith } from 'smithkit';
+
+const chart = new Smith(50);
+chart.setZoomEnabled(false);
+chart.draw('#smith');
+```
+
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
 event handlers, and cancels queued notifications. Repeated destruction is safe.
