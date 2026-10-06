@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Complex } from '../src/complex/Complex';
-import { SmithConstantCircle } from '../src/SmithConstantCircle';
+import { Complex } from '../src/math/Complex';
+import { SmithConstantCircle } from '../src/rf/SmithConstantCircle';
 import { radialScales } from '../src/scales/radialScales';
-import { SmithScaler } from '../src/draw/SmithScaler';
+import { SmithScaler } from '../src/svg/SmithScaler';
 import { scaleLinear } from 'd3';
 
 const calcs = new SmithConstantCircle();

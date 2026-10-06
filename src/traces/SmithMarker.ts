@@ -1,8 +1,8 @@
 import * as d3 from 'd3';
 
-import { MouseGesture } from './MouseGesture.js';
-import { SmithShape } from './SmithShape.js';
-import { Point } from '../shapes/Point.js';
+import { MouseGesture } from '../interaction/MouseGesture.js';
+import { SmithShape } from '../svg/SmithShape.js';
+import { Point } from '../math/geometry.js';
 
 export class SmithMarker extends SmithShape {
   private readonly size = 18;

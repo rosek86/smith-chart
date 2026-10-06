@@ -1,5 +1,5 @@
 import { select, format } from 'd3';
-import type { Complex } from '../complex/Complex.js';
+import type { Complex } from '../math/Complex.js';
 import { radialScales } from './radialScales.js';
 
 /** Independent parameter scales. Connect update() to a chart's cursor events. */

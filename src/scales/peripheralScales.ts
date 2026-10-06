@@ -1,4 +1,4 @@
-import type { Complex } from '../complex/Complex.js';
+import type { Complex } from '../math/Complex.js';
 
 export interface PeripheralScale {
   id: string;

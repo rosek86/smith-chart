@@ -68,16 +68,15 @@ release tag on the default branch to retry its publication with the current work
 src/
   index.ts                 public package exports
   Smith.ts                 chart composition, events, and public API
-  rf.ts                    public DOM-independent readings and physical conversions
   measurements.ts          trace/marker types and comparisons
   samples.ts               trace input contract
-  layers.ts                public layer controls
-  SmithConstantCircle.ts   internal normalized RF calculations and circle geometry
-  grid/                    normalized geometry, compact grid bands, and label rules
-  complex/                 complex numbers, independent of the DOM
-  shapes/                  geometry types
-  arcs/                    tick definitions
-  draw/                    SVG elements and D3 layers
+  layers.ts                public layer contracts
+  math/                    complex arithmetic and geometry types, independent of the DOM
+  rf/                      readings, conversions, components, and renormalization
+  grid/                    grid definitions, labels, renderers, and layer controls
+  svg/                     reusable SVG primitives and coordinate scaling
+  traces/                  sample/marker state, trace rendering, and their coordinator
+  interaction/             mouse gestures and chart cursor
   scales/                  independent parameter-scale renderer and definitions
   io/                      Touchstone parser, independent of the UI
 demo/                      application UI, CSS, and file handling
@@ -96,6 +95,17 @@ The demo throttles moving cursor/marker readouts to one update per 33 ms, using
 the latest position even during continuous movement. Clearing readouts and
 switching tabs cancel pending updates and render immediately. `SmithScales.update`
 remains synchronous for library consumers.
+
+`TraceModel` validates and copies samples and selects marker samples without a DOM.
+`TraceRenderer` draws lines and points, including viewport-based point reduction.
+`SmithData` connects the model to draggable SVG markers and coalesces marker events.
+Keep sample-selection rules in the model so they can be tested without a browser.
+Trace redraws replace their SVG group in place to preserve the order of overlapping traces.
+
+RF transformations reuse `Complex.div()` for division and reject non-finite results.
+Their analytic imaginary numerator remains in the RF layer to avoid cancellation in
+Smith-chart conversions. Internal folder paths are not package entry points;
+consumers continue to import from `smithkit`.
 
 The library build uses TypeScript to emit ESM JavaScript and declarations with
 matching paths. Relative source imports use `.js` extensions so consumers can

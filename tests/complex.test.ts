@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Complex } from '../src/complex/Complex';
+import { Complex } from '../src/math/Complex';
 
 const operations = [
   'sqrt',

@@ -1,7 +1,7 @@
-import { SmithGroup } from './SmithGroup.js';
-import { SmithArc } from './SmithArc.js';
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
-import { SmithScaler } from './SmithScaler.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
+import { SmithArc } from '../svg/SmithArc.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
+import { SmithScaler } from '../svg/SmithScaler.js';
 
 interface ConstQDrawOptions {
   stroke: string;

@@ -1,10 +1,10 @@
 import { ConstCircles } from './ConstCircles.js';
-import { SmithGroup } from './SmithGroup.js';
-import { SmithText } from './SmithText.js';
-import type { SmithScaler } from './SmithScaler.js';
-import type { SmithTicksData, SmithTicksShapes } from '../grid/types.js';
-import { gridGeometry, gridLabel, type GridKind } from '../grid/geometry.js';
-import { resistanceLabels, reactanceLabels } from '../grid/labels.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
+import { SmithText } from '../svg/SmithText.js';
+import type { SmithScaler } from '../svg/SmithScaler.js';
+import type { SmithTicksData, SmithTicksShapes } from './types.js';
+import { gridGeometry, gridLabel, type GridKind } from './geometry.js';
+import { resistanceLabels, reactanceLabels } from './labels.js';
 
 export interface GridLayerParams {
   scaler: SmithScaler;

@@ -1,5 +1,5 @@
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
-import type { Complex } from '../complex/Complex.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
+import type { Complex } from '../math/Complex.js';
 
 export interface RadialScale {
   id: string;

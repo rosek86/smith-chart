@@ -1,38 +1,38 @@
 import * as d3 from 'd3';
 import { ZoomTransform } from 'd3';
 
-import { Point } from './shapes/Point.js';
+import { Point } from './math/geometry.js';
 
-import { MouseGesture } from './draw/MouseGesture.js';
-import { SmithSvg } from './draw/SmithSvg.js';
-import { SmithGroup } from './draw/SmithGroup.js';
-import { SmithCircle } from './draw/SmithCircle.js';
+import { MouseGesture } from './interaction/MouseGesture.js';
+import { SmithSvg } from './svg/SmithSvg.js';
+import { SmithGroup } from './svg/SmithGroup.js';
+import { SmithCircle } from './svg/SmithCircle.js';
 
-import { SmithData } from './draw/SmithData.js';
-import type { SmithMarker } from './draw/SmithMarker.js';
-import { SmithCursor } from './draw/SmithCursor.js';
+import { SmithData } from './traces/SmithData.js';
+import type { SmithMarker } from './traces/SmithMarker.js';
+import { SmithCursor } from './interaction/SmithCursor.js';
 
-import { ConstResistance } from './draw/ConstResistance.js';
-import { ConstReactance } from './draw/ConstReactance.js';
-import { ConstConductance } from './draw/ConstConductance.js';
-import { ConstSusceptance } from './draw/ConstSusceptance.js';
-import { ConstQCircles } from './draw/ConstQCircles.js';
-import { ConstSwrCircles } from './draw/ConstSwrCircles.js';
+import { ConstResistance } from './grid/ConstResistance.js';
+import { ConstReactance } from './grid/ConstReactance.js';
+import { ConstConductance } from './grid/ConstConductance.js';
+import { ConstSusceptance } from './grid/ConstSusceptance.js';
+import { ConstQCircles } from './grid/ConstQCircles.js';
+import { ConstSwrCircles } from './grid/ConstSwrCircles.js';
 
-import { SmithDrawOptions } from './draw/SmithDrawOptions.js';
-import { SmithScaler } from './draw/SmithScaler.js';
+import { SmithDrawOptions } from './svg/SmithDrawOptions.js';
+import { SmithScaler } from './svg/SmithScaler.js';
 
 import { TraceSamples } from './samples.js';
-import { SmithConstantCircle } from './SmithConstantCircle.js';
+import { SmithConstantCircle } from './rf/SmithConstantCircle.js';
 import { createGridDefinitions } from './grid/definitions.js';
 
-import { Complex } from './complex/Complex.js';
+import { Complex } from './math/Complex.js';
 import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
-import { gridLayer, circleLayer } from './layers.js';
+import { gridLayer, circleLayer } from './grid/layerControls.js';
 import type { ChartLayers, PeripheralScales } from './layers.js';
-import { renormalizeSamples } from './renormalization.js';
-import { readReflection } from './rf.js';
-import type { SmithReading } from './rf.js';
+import { renormalizeSamples } from './rf/renormalization.js';
+import { readReflection } from './rf/conversions.js';
+import type { SmithReading } from './rf/conversions.js';
 import { compareMarkerReadings } from './measurements.js';
 import type {
   TraceOptions,

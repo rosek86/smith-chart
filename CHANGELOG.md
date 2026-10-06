@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Preserve the stacking order of overlapping traces when replacing their samples.
+- Reorganize library internals by responsibility, separate trace selection state from SVG rendering, and share complex division between arithmetic and RF conversions without changing public exports.
+
 ## 0.1.1 — 2026-10-06
 
 - Render grid and scale labels above all chart lines, preserving label visibility and styling during zoom and layer changes.

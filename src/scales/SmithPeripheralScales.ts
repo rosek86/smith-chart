@@ -1,6 +1,6 @@
 import { select, format } from 'd3';
-import type { Complex } from '../complex/Complex.js';
-import { SmithGroup } from '../draw/SmithGroup.js';
+import type { Complex } from '../math/Complex.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
 import { peripheralScales } from './peripheralScales.js';
 
 let nextScaleId = 0;

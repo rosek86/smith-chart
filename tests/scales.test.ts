@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { Complex } from '../src/complex/Complex';
-import { SmithConstantCircle } from '../src/SmithConstantCircle';
+import { Complex } from '../src/math/Complex';
+import { SmithConstantCircle } from '../src/rf/SmithConstantCircle';
 import { peripheralScales } from '../src/scales/peripheralScales';
 import { radialScales } from '../src/scales/radialScales';
 

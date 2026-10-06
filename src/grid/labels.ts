@@ -1,4 +1,4 @@
-import { Tick } from '../arcs/Tick.js';
+import { Tick } from './Tick.js';
 
 const values = [
   0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.4, 1.6, 1.8, 2, 3, 4, 5, 10, 20, 50,

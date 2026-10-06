@@ -179,3 +179,46 @@ test('20,000-sample sweeps retain full data in every rendering mode', async ({
   });
   console.log('20k trace timing:', JSON.stringify(result.timings));
 });
+
+test('updating an earlier trace preserves its stacking order and marker layer', async ({
+  page,
+}) => {
+  await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
+  await loadLibrary(page);
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    const samples: import('../../src').TraceSamples = [
+      { frequencyHz: 10, reflectionCoefficient: [0, 0] },
+      { frequencyHz: 20, reflectionCoefficient: [0.5, 0] },
+    ];
+    const first = chart.addTrace(samples, { color: 'red', mode: 'both' });
+    chart.addTrace(samples, { color: 'blue', mode: 'line' });
+    const marker = chart.getTraces()[0].markers[0].id;
+    const order = () =>
+      Array.from(document.querySelectorAll('[data-role=samples]'), (group) =>
+        group.getAttribute('fill'),
+      );
+    const before = order();
+    chart.updateTrace(first, samples.slice().reverse());
+    const after = order();
+    const selected = chart.getMarker(marker)!;
+    chart.setTraceOptions(first, { mode: 'points' });
+    const afterStyle = order();
+    const above = Array.from(document.querySelectorAll('[data-role=samples]')).every((group) =>
+      Boolean(
+        group.compareDocumentPosition(document.querySelector('[data-role=marker]')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    );
+    chart.destroy();
+    return { before, after, afterStyle, above, sampleIndex: selected.sampleIndex };
+  });
+  expect(result).toEqual({
+    before: ['red', 'blue'],
+    after: ['red', 'blue'],
+    afterStyle: ['red', 'blue'],
+    above: true,
+    sampleIndex: 1,
+  });
+});

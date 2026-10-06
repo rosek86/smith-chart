@@ -1,9 +1,6 @@
 import * as d3 from 'd3';
 
-import { Circle } from '../shapes/Circle.js';
-import { Point } from '../shapes/Point.js';
-import { Line } from '../shapes/Line.js';
-import { Arc } from '../shapes/Arc.js';
+import type { Circle, Point, Line, Arc } from '../math/geometry.js';
 
 export class SmithScaler {
   public constructor(

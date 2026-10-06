@@ -1,5 +1,5 @@
 import { format } from 'd3';
-import type { Complex } from './complex/Complex.js';
+import type { Complex } from './math/Complex.js';
 
 /** Format with three significant digits and an SI prefix; includes spacing before the unit. */
 export function formatNumber(value: number): string {

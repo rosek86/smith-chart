@@ -1,5 +1,5 @@
-import { Complex } from './complex/Complex.js';
-import type { TraceSamples } from './samples.js';
+import { Complex } from '../math/Complex.js';
+import type { TraceSamples } from '../samples.js';
 
 function validateReference(value: number): void {
   if (!Number.isFinite(value) || value <= 0) {

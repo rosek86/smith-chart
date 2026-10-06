@@ -1,7 +1,7 @@
-import { SmithGroup } from './SmithGroup.js';
-import { SmithCircle } from './SmithCircle.js';
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
-import { SmithScaler } from './SmithScaler.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
+import { SmithCircle } from '../svg/SmithCircle.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
+import { SmithScaler } from '../svg/SmithScaler.js';
 
 interface ConstSwrDrawOptions {
   stroke: string;

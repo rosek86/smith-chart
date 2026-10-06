@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { Point } from '../shapes/Point.js';
+import { Point } from '../math/geometry.js';
 import { SmithShape } from './SmithShape.js';
 
 interface TextOptions {

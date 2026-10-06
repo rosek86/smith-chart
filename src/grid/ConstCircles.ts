@@ -1,10 +1,8 @@
 import type * as d3 from 'd3';
-import { SmithGroup } from './SmithGroup.js';
-import { SmithScaler } from './SmithScaler.js';
-import { Line } from '../shapes/Line.js';
-import { Circle } from '../shapes/Circle.js';
-import { Point } from '../shapes/Point.js';
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
+import { SmithScaler } from '../svg/SmithScaler.js';
+import type { Line, Circle, Point } from '../math/geometry.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
 
 export interface ArcData {
   p1: Point;

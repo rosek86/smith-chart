@@ -1,6 +1,6 @@
 export { Smith, SmithEventType } from './Smith.js';
 export type { SmithEvent } from './Smith.js';
-export { Complex } from './complex/Complex.js';
+export { Complex } from './math/Complex.js';
 export type { TraceSamples, TraceSample } from './samples.js';
 export { parseTouchstone } from './io/touchstone.js';
 export type { TouchstoneData } from './io/touchstone.js';
@@ -23,8 +23,8 @@ export {
   impedanceToReflection,
   reflectionToAdmittance,
   admittanceToReflection,
-} from './rf.js';
-export type { SmithReading } from './rf.js';
+} from './rf/conversions.js';
+export type { SmithReading } from './rf/conversions.js';
 export type {
   GridStyle,
   CircleStyle,
@@ -33,7 +33,7 @@ export type {
   ChartLayers,
   PeripheralScales,
 } from './layers.js';
-export { renormalizeReflection, renormalizeSamples } from './renormalization.js';
+export { renormalizeReflection, renormalizeSamples } from './rf/renormalization.js';
 export { formatNumber, formatComplex, formatComplexPolar } from './formatting.js';
-export { reactanceToComponent } from './components.js';
-export type { ReactiveComponent } from './components.js';
+export { reactanceToComponent } from './rf/components.js';
+export type { ReactiveComponent } from './rf/components.js';

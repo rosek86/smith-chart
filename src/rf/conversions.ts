@@ -1,4 +1,4 @@
-import { Complex } from './complex/Complex.js';
+import { Complex } from '../math/Complex.js';
 import { SmithConstantCircle } from './SmithConstantCircle.js';
 
 /** Physical quantities derived from a voltage reflection coefficient Γ. */

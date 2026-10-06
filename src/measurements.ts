@@ -1,5 +1,5 @@
-import { Complex } from './complex/Complex.js';
-import type { SmithReading } from './rf.js';
+import { Complex } from './math/Complex.js';
+import type { SmithReading } from './rf/conversions.js';
 
 export type TraceRenderMode = 'points' | 'line' | 'both';
 

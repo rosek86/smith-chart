@@ -1,11 +1,11 @@
-import { SmithGroup } from './SmithGroup.js';
-import { SmithCircle } from './SmithCircle.js';
-import { SmithLine } from './SmithLine.js';
-import { SmithArc } from './SmithArc.js';
-import { SmithScaler } from './SmithScaler.js';
+import { SmithGroup } from '../svg/SmithGroup.js';
+import { SmithCircle } from '../svg/SmithCircle.js';
+import { SmithLine } from '../svg/SmithLine.js';
+import { SmithArc } from '../svg/SmithArc.js';
+import { SmithScaler } from '../svg/SmithScaler.js';
 
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
-import { Complex } from '../complex/Complex.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
+import { Complex } from '../math/Complex.js';
 
 interface DrawOptions {
   point: { radius: number; color: string };

@@ -1,8 +1,8 @@
-import { SmithConstantCircle } from '../SmithConstantCircle.js';
-import { Complex } from '../complex/Complex.js';
-import type { TickDefRequired } from '../arcs/Tick.js';
+import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
+import { Complex } from '../math/Complex.js';
+import type { TickDefRequired } from './Tick.js';
 import type { SmithTicksShapes } from './types.js';
-import type { Point } from '../shapes/Point.js';
+import type { Point } from '../math/geometry.js';
 
 export type GridKind = 'resistance' | 'reactance' | 'conductance' | 'susceptance';
 const calcs = new SmithConstantCircle();

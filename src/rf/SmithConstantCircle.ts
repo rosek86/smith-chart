@@ -1,7 +1,5 @@
-import { complexRatio } from './math/complexRatio.js';
-import { Circle } from './shapes/Circle.js';
-import { Point } from './shapes/Point.js';
-import { Complex } from './complex/Complex.js';
+import type { Circle, Point } from '../math/geometry.js';
+import { Complex } from '../math/Complex.js';
 
 export class SmithConstantCircle {
   public constructor(public Z0: number = 50) {}
@@ -30,8 +28,8 @@ export class SmithConstantCircle {
     di: number,
     determinant: number,
   ): Complex | undefined {
-    const quotient = complexRatio(nr, ni, dr, di);
-    if (!quotient) {
+    const quotient = Complex.div(Complex.from(nr, ni), Complex.from(dr, di));
+    if (!Number.isFinite(quotient.re) || !Number.isFinite(quotient.im)) {
       return;
     }
     // The analytic imaginary numerator avoids cancellation of nearly equal products.
