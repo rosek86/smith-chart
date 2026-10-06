@@ -34,7 +34,13 @@ import { renormalizeSamples } from './renormalization.js';
 import { readReflection } from './rf.js';
 import type { SmithReading } from './rf.js';
 import { compareMarkerReadings } from './measurements.js';
-import type { TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from './measurements.js';
+import type {
+  TraceOptions,
+  TraceUpdateOptions,
+  TraceInfo,
+  MarkerSnapshot,
+  MarkerComparison,
+} from './measurements.js';
 
 export enum SmithEventType {
   Cursor = 'cursor',
@@ -97,7 +103,7 @@ export class Smith {
 
   constructor(private referenceOhms: number = 50) {
     if (!Number.isFinite(referenceOhms) || referenceOhms <= 0) {
-      throw new Error('Reference impedance must be positive and finite.');
+      throw new RangeError('Reference impedance must be positive and finite.');
     }
     const viewBoxSize = 500;
     const gridData = SmithArcsDefs.getData();
@@ -477,13 +483,18 @@ export class Smith {
     return true;
   }
 
-  public updateTrace(id: string, values: TraceSamples): boolean {
+  /** Replace samples; by default each marker follows its nearest measured frequency. */
+  public updateTrace(id: string, values: TraceSamples, options: TraceUpdateOptions = {}): boolean {
     this.assertAlive();
     const data = this.data[this.traceIndex(id)];
     if (!data) {
       return false;
     }
-    data.update(values);
+    const strategy = options.markerSelection ?? 'frequency';
+    if (!['frequency', 'sample-index', 'reflection'].includes(strategy)) {
+      throw new TypeError('Marker selection must be frequency, sample-index, or reflection.');
+    }
+    data.update(values, strategy);
     return true;
   }
 
@@ -577,7 +588,7 @@ export class Smith {
     );
     this.data.forEach((data) => data.Markers.forEach((entry) => entry.marker.cancelDrag()));
     this.referenceOhms = referenceImpedanceOhms;
-    this.data.forEach((data, index) => data.update(samples[index], true));
+    this.data.forEach((data, index) => data.update(samples[index], 'sample-index'));
     this.cursor.hide();
     this.emit({ type: SmithEventType.Cursor, data: undefined });
   }

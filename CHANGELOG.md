@@ -2,6 +2,11 @@
 
 ## 0.1.0 — Unreleased
 
+- Preserve marker frequency by default on trace replacement; expose explicit frequency, sample-index, and reflection selection strategies.
+- Coalesce pending position notifications per marker while retaining synchronous drag lifecycle events.
+- Add nearest-frequency marker selection, configurable points/line/both trace rendering, and dense-point rendering optimization.
+- Add positive-real reference impedance renormalization for traces and imported measurements, preserving physical impedance and marker sample indices.
+
 - Replace the historical index-based API with stable trace/marker IDs, typed event subscriptions, and renderer-independent layer controls.
 - Use explicit units in `TraceSample`, `SmithReading`, marker snapshots, and Touchstone results; export physical RF conversion functions.
 - Remove legacy API aliases and internal drawing/math exports. Update the demo and validate README examples against the packaged API.

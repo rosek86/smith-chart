@@ -18,6 +18,14 @@ export interface TraceOptions extends Partial<TraceStyle> {
   visible?: boolean;
 }
 
+/** How markers select samples when a trace is replaced. */
+export type MarkerSelectionStrategy = 'frequency' | 'sample-index' | 'reflection';
+
+export interface TraceUpdateOptions {
+  /** Default: frequency. Ties select the earliest input sample; indices clamp to the new last sample. */
+  markerSelection?: MarkerSelectionStrategy;
+}
+
 export interface MarkerInfo {
   readonly id: string;
   /** Stable display number within the trace; removed numbers are not reused. */

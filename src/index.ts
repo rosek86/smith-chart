@@ -8,6 +8,8 @@ export { SmithScales } from './scales/SmithScales.js';
 export { compareMarkerReadings } from './measurements.js';
 export type {
   TraceOptions,
+  TraceUpdateOptions,
+  MarkerSelectionStrategy,
   TraceStyle,
   TraceRenderMode,
   TraceInfo,

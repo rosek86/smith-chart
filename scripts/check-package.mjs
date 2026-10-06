@@ -34,7 +34,7 @@ try {
     join(temp, 'consumer.ts'),
     `
 import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
-import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
+import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceUpdateOptions, MarkerSelectionStrategy, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
@@ -54,7 +54,16 @@ if (markerId) {
   void comparison;
 }
 chart.setTraceOptions(traceId, { visible: false });
-chart.updateTrace(traceId, samples);
+const strategy: MarkerSelectionStrategy = 'frequency';
+const updateOptions: TraceUpdateOptions = { markerSelection: strategy };
+const updated: boolean = chart.updateTrace(traceId, samples, updateOptions);
+void updated;
+chart.updateTrace(traceId, samples, { markerSelection: 'sample-index' });
+chart.updateTrace(traceId, samples, { markerSelection: 'reflection' });
+// @ts-expect-error Unknown marker selection strategies must not compile.
+chart.updateTrace(traceId, samples, { markerSelection: 'nearest' });
+// @ts-expect-error Marker IDs are required, not historical numeric indices.
+chart.setMarkerSample(0, 1);
 chart.removeTrace(traceId);
 void [traces, chart.referenceImpedanceOhms];
 chart.draw(document.createElement('div'));

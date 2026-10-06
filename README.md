@@ -101,7 +101,7 @@ chart.removeMarker(markerB);
 | `addTrace(samples, options?)`         | Returns a trace ID. Options: nonblank `name`, solid CSS `color`, and `visible`.                                          |
 | `getTraces()`                         | Detached `TraceInfo` snapshots: ID, name, color, visibility, sample count, and marker metadata.                          |
 | `setTraceOptions(id, options)`        | Updates the supplied options only. Invalid options throw before any change.                                              |
-| `updateTrace(id, samples)`            | Replaces samples and preserves identity, appearance, and markers. Empty/invalid input throws without changing the trace. |
+| `updateTrace(id, samples, options?)`  | Replaces samples and preserves identity, appearance, and markers. Empty/invalid input throws without changing the trace. |
 | `removeTrace(id)`                     | Removes the trace and its markers.                                                                                       |
 | `clearTraces()`                       | Removes all traces and their markers.                                                                                    |
 | `addMarker(traceId, sampleIndex = 0)` | Returns a marker ID, or `undefined` if the trace is missing.                                                             |
@@ -113,8 +113,28 @@ chart.removeMarker(markerB);
 
 Update/remove methods return a boolean: `false` means the ID was not found.
 Sample indices must be zero-based integers within the trace; invalid indices throw
-`RangeError`. Markers snap to the nearest Γ after sample replacement, choosing the
-earlier sample in a tie. No interpolation is performed.
+`RangeError`. Sample replacement follows the nearest measured frequency by default.
+Pass `{ markerSelection: 'sample-index' }` to retain indices (clamped to the new last
+sample if the trace shrinks), or `{ markerSelection: 'reflection' }` to select the
+nearest Γ. Frequency and Γ ties select the earlier sample in input order, including
+unsorted sweeps and duplicate frequencies. Selection uses the actual selected sample,
+not a previous requested frequency. No interpolation is performed.
+
+```ts
+chart.updateTrace(
+  traceId,
+  [
+    { frequencyHz: 1e9, reflectionCoefficient: [0.2, 0] },
+    { frequencyHz: 2e9, reflectionCoefficient: [0.3, 0] },
+  ],
+  { markerSelection: 'frequency' },
+);
+```
+
+Invalid strategies throw `TypeError`; empty or invalid samples throw `RangeError`
+before mutation. Unknown trace IDs return `false` without validating input.
+Renormalization always preserves sample indices because it transforms the existing
+sweep rather than replacing it.
 
 Trace snapshots contain `markers: { id, number, sampleIndex }[]`. `number` is the
 stable display number within that trace. A `MarkerSnapshot` includes the common
@@ -172,7 +192,10 @@ The event types are `Cursor` (`'cursor'`), `Marker` (`'marker'`),
 `MarkerDragStart` (`'marker-drag-start'`), and `MarkerDragEnd` (`'marker-drag-end'`).
 Cursor movement is suspended during marker dragging. Drag start/end events fire
 synchronously; marker position notifications are queued and report the latest
-snapshot at delivery. Removed markers cannot deliver queued position events.
+snapshot at delivery. Before delivery, repeated updates to the same marker coalesce
+into one notification; different markers have independent notifications. Creation
+queues an initial marker notification too. Removed markers cannot deliver queued
+position events.
 Trace metadata changes do not emit marker events; refresh metadata after mutations.
 Destruction suppresses application callbacks.
 

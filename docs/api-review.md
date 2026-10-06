@@ -29,6 +29,10 @@ measurement comparison. No npm publication is performed by this change.
   and update; deletion is explicit. Missing IDs return false/undefined as described
   in the README.
 
+- `updateTrace` defaults to nearest-frequency marker selection. Callers can opt
+  into sample-index selection (clamped on shrink) or nearest-reflection selection.
+  Ties select the earliest input sample; renormalization always retains indices.
+
 ## Numerical conventions
 
 - Open-circuit impedance, short-circuit admittance, and undefined phase/Q are
@@ -40,7 +44,7 @@ measurement comparison. No npm publication is performed by this change.
 - Comparisons use B − A. Phase is wrapped to [−180°, 180°); undefined phase or
   impedance does not suppress a valid frequency difference.
 - Marker position events are queued and resolve the latest snapshot. Multiple
-  queued events can report the same position. Metadata changes are read back
+  updates for one marker coalesce before delivery. Metadata changes are read back
   explicitly after management methods.
 
 ## Verification
@@ -60,3 +64,10 @@ globals. README TypeScript examples are checked against the packaged declaration
   physical impedance and selected sample indices. Complex reference impedances
   and multiport support remain separate features.
 - Cross-browser visual limitations are tracked in CONTRIBUTING.md.
+
+## Release contract checks
+
+The isolated package consumer compiles positive and negative API examples with
+NodeNext and Bundler resolution. Marker update tests verify all three strategies,
+atomic validation, ID/metadata retention, and independent/coalesced notifications.
+Release 0.1.0 remains unreleased until its tested archive is explicitly published.
