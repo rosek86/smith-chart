@@ -21,6 +21,7 @@ interface Transform {
 
 export class SmithData {
   private style: TraceStyle;
+  private viewportScale = 1;
   private destroyed = false;
   private visible = true;
   private pendingEvents = new Set<ReturnType<typeof setTimeout>>();
@@ -86,9 +87,9 @@ export class SmithData {
     let visible = data;
     if (data.length > 5000) {
       const cells = new Set<string>();
-      const cellSize = Math.max(0.5, this.style.pointRadius);
+      const cellSize = Math.max(0.5, this.style.pointRadius) / this.viewportScale;
       const extent = this.scaler.x(1);
-      const margin = this.style.pointRadius;
+      const margin = this.style.pointRadius / this.viewportScale;
       visible = data.filter((sample) => {
         const x =
           this.scaler.x(sample.reflectionCoefficient[0]) * this.transform.k + this.transform.x;
@@ -110,7 +111,15 @@ export class SmithData {
       .join('circle')
       .attr('cx', (sample) => this.scaler.x(sample.reflectionCoefficient[0]))
       .attr('cy', (sample) => this.scaler.y(sample.reflectionCoefficient[1]))
-      .attr('r', this.style.pointRadius / this.transform.k);
+      .attr('r', this.style.pointRadius / (this.transform.k * this.viewportScale));
+  }
+
+  public setViewportScale(scale: number): void {
+    if (scale === this.viewportScale || !Number.isFinite(scale) || scale <= 0) {
+      return;
+    }
+    this.viewportScale = scale;
+    this.zoomDataPoints();
   }
 
   public zoom(transform: Transform): void {
@@ -130,7 +139,10 @@ export class SmithData {
     if (this.data.length > 5000) {
       this.renderPoints(this.group, this.data);
     } else {
-      this.group.Element.selectAll('circle').attr('r', this.style.pointRadius / k);
+      this.group.Element.selectAll('circle').attr(
+        'r',
+        this.style.pointRadius / (k * this.viewportScale),
+      );
     }
   }
 
@@ -391,8 +403,8 @@ export class SmithData {
     this.handler = handler;
   }
 
-  private findClosestPointTo(p: Point): TraceSample {
-    const dist = (p1: Point, p2: Point) => {
+  private findClosestPointTo(p: Readonly<Point>): TraceSample {
+    const dist = (p1: Readonly<Point>, p2: Readonly<Point>) => {
       const xd = p1[0] - p2[0];
       const yd = p1[1] - p2[1];
       return Math.sqrt(xd * xd + yd * yd);

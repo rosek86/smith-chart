@@ -175,7 +175,7 @@ export class Measurements {
     appearance.append(modeLabel);
     for (const [key, caption] of [
       ['lineWidth', 'Line width (px)'],
-      ['pointRadius', 'Point radius'],
+      ['pointRadius', 'Point radius (px)'],
     ] as const) {
       const label = document.createElement('label');
       label.textContent = caption + ' ';

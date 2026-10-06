@@ -11,7 +11,7 @@ export class Complex {
   public static from(re: number, im?: number): Complex;
   public static from(rect: { re: number; im: number }): Complex;
   public static from(polar: { r: number; phi: number }): Complex;
-  public static from(arr: [number, number]): Complex;
+  public static from(arr: readonly [number, number]): Complex;
 
   public static from(...args: unknown[]): Complex {
     if (args.length === 1) {
@@ -74,14 +74,6 @@ export class Complex {
 
   public static get i(): Complex {
     return new Complex(0, 1);
-  }
-
-  public get real(): number {
-    return this.re;
-  }
-
-  public get imag(): number {
-    return this.im;
   }
 
   public get re(): number {
