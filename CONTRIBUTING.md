@@ -64,6 +64,9 @@ release tag on the default branch to retry its publication with the current work
 
 ## Architecture
 
+See the [architecture diagram and component boundaries](docs/architecture.md) for
+a visual overview of the library.
+
 ```text
 src/
   index.ts                 public package exports
