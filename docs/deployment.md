@@ -2,62 +2,63 @@
 
 This guide is for maintainers of the demo site. Library users do not need to configure GitHub Pages.
 
-Target URL: **https://rosek86.github.io/smith-app/**.
-Source code and the workflow live in `rosek86/smithkit`. The demo build output (`dist/demo/`) is
-published to the separate `gh-pages` branch of `rosek86/smith-app`. A workflow in that
-branch uploads and deploys the already tested site through the GitHub Pages API.
+Target URL: **https://rosek86.github.io/smithkit/**.
+The source, checks, and deployment workflow all live in `rosek86/smithkit`.
+GitHub Pages serves the built demo from `dist/demo/`, not the source files on `main`.
 
-Pipeline: push to the default `main` branch → `npm ci` → type checking → unit tests
-→ build → browser tests → artifact → commit and push to `smith-app/gh-pages`
-→ target repository Pages workflow → public site.
-Pull requests run checks without publishing. You can also select **Run workflow**
-on the default branch. Deployment follows the repository’s default branch.
+## Pipeline
 
-### One-time setup
+A push to `main` runs `.github/workflows/ci.yml`:
 
-1. Create a dedicated deployment key outside the repository:
+1. Install dependencies and Chromium/WebKit.
+2. Run `npm run prepare:release` to check the source, build the library and demo,
+   test both browsers, and verify the packed library and standalone consumer.
+3. Upload `dist/demo/` as the `github-pages` artifact.
+4. Deploy that exact artifact with `actions/deploy-pages` after checks pass.
 
-   ```sh
-   ssh-keygen -t ed25519 -C smith-chart-pages -f ~/.ssh/smith-app-pages -N ''
-   ```
+Pull requests run the same checks and upload artifacts without deploying.
+You can also select **Actions → Check and publish Smith chart → Run workflow**
+on `main` to retry a deployment. Runs on other branches cannot deploy.
+Preparing a release archive does not publish the npm package.
 
-2. In **smith-app → Settings → Deploy keys**, add the contents of
-   `~/.ssh/smith-app-pages.pub` and select **Allow write access**.
-3. In **smithkit → Settings → Secrets and variables → Actions → Secrets**,
-   add a secret named **`SMITH_APP_DEPLOY_KEY`** containing the private key from
-   `~/.ssh/smith-app-pages`.
-4. In the **Variables** tab of the same repository, add
-   **`SMITH_APP_DEPLOY_ENABLED` = `true`**. Without this variable, tests run
-   but deployment remains disabled.
-5. Push this repository's changes to GitHub and run the workflow. The first
-   deployment creates the `gh-pages` branch in `smith-app`.
-6. In **smith-app → Settings → Pages**, select **GitHub Actions** as the source.
-   Ensure its **github-pages** environment permits deployments from **gh-pages**.
-   The generated workflow runs on pushes to that branch and deploys the site.
+The deployment job uses the `github-pages` environment and a short-lived
+`GITHUB_TOKEN` with `pages: write` and `id-token: write`. No deployment key,
+personal access token, separate repository, or generated Git branch is needed.
+The check job retains read-only repository permissions.
 
-`deploy-pages.sh` installs `scripts/pages-workflow.yml` as
-`.github/workflows/pages.yml` alongside the generated site. Edit the template in
-this source repository; deployment overwrites the generated branch's copy.
+## Repository setup
 
-GitHub documents that deploy-key pushes may not trigger legacy branch-based Pages
-builds. The target workflow avoids that limitation and uses its own scoped
-`GITHUB_TOKEN` (`pages: write` and `id-token: write`) to deploy. Both repositories'
-Actions must be enabled. Verify both the source CI run and the target Pages run;
-a successful push alone does not prove the public site has updated.
+1. In **smithkit → Settings → Pages**, select **GitHub Actions** as the source.
+2. In **Settings → Environments → github-pages**, allow deployments from `main`.
+3. Merge the workflow into `main`. Its successful run publishes the demo.
+4. In the repository's **About** settings, enable **Use your GitHub Pages website**.
+   The generated link points to `/smithkit/`.
 
-The key is needed because the standard `GITHUB_TOKEN` cannot write to another
-repository. The workflow downloads the exact artifact that passed the tests,
-preserves `gh-pages` history, removes obsolete hashed assets, and adds `.nojekyll`.
-It does not overwrite `master` in `smith-app`, so the old Angular application remains
-available in its history and on the original branch. An existing `CNAME` on
-`gh-pages` is preserved. Vite generates relative asset URLs (`base: './'`) that
-support the `/smith-app/` path.
+## Verification
 
-To disable automatic deployment, set `SMITH_APP_DEPLOY_ENABLED` to `false`.
-To restore the old application, switch Pages to **Deploy from a branch** and
-select the original `master` branch.
+Check that both the `check` and `deploy` jobs succeed. The deployment job exposes
+its URL from the Pages action output; open it and verify the chart loads and the
+controls work. A successful build alone does not confirm publication.
 
-Documentation: [Pages publishing sources](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site),
-[checkout with an SSH key](https://github.com/actions/checkout),
-[Pages build triggers](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/about-jekyll-build-errors-for-github-pages-sites),
-[D3 event handling](https://d3js.org/d3-selection/events).
+Vite generates relative asset URLs (`base: './'`). Browser tests serve the built
+demo under `/smithkit/`, matching the public site path. The Pages artifact contains
+`index.html` at its root and the built assets alongside it.
+
+To stop automatic publication temporarily while retaining checks, disable the
+`deploy` job in `.github/workflows/ci.yml` through a pull request. To unpublish the
+site, use **Settings → Pages → Unpublish site**.
+
+## Migration from smith-app
+
+Previous workflows pushed generated files to `rosek86/smith-app` on `gh-pages`.
+This repository no longer updates that site. Its existing content and the legacy
+Angular source remain in the old repository; old links do not redirect automatically.
+
+After the first successful deployment to `/smithkit/`, remove the unused
+`SMITH_APP_DEPLOY_KEY` secret and `SMITH_APP_DEPLOY_ENABLED` variable from
+`smithkit`, and revoke the corresponding deployment key in `smith-app`.
+The old `smith-app-pages` environment can also be removed from `smithkit`.
+Keep these until the new deployment is verified if a rollback is needed.
+
+Documentation: [custom GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages),
+[Pages publishing sources](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).

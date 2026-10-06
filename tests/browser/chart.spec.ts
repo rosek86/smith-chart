@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('renders labels and supports cursor, zoom, layers and marker drag under /smith-app/', async ({
+test('renders labels and supports cursor, zoom, layers and marker drag under /smithkit/', async ({
   page,
 }) => {
   const errors: string[] = [];
