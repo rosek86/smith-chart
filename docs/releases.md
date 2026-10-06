@@ -40,8 +40,9 @@ together. A stable 1.0 release should follow validation in real consuming applic
 3. Inspect `artifacts/release-manifest.json`: package name/version, source commit,
    archive filename, SHA-256, npm integrity, packed and unpacked sizes. Keep it with
    `artifacts/smithkit-0.1.0.tgz`. Source changes require a new verification run.
-4. Review [the 0.1.0 release notes](releases/0.1.0.md), update the changelog's release
-   date when cutting the release, and verify the final committed state again.
+4. Review [the 0.1.0 release notes](releases/0.1.0.md) and the planned date in the
+   changelog. If publication moves to another day, update the date through a PR
+   before preparing the final archive. Verify the final committed state again.
 
 `prepare:release` does not publish, create tags, or create a GitHub Release.
 CI uploads the tested archive and manifest as `smithkit-package`. Manual dispatch
@@ -77,10 +78,16 @@ of `release.yml` performs verification only and uploads `npm-package`.
    owner **rosek86**, repository **smithkit**, workflow **release.yml**,
    environment **npm**, with direct `npm publish` allowed.
 4. Record the exact manifest commit with tag `v0.1.0` and create its GitHub Release
-   using the prepared notes. The workflow verifies the tag and rebuilds the archive.
+   using the prepared notes, changing their installation heading to `Installation`.
+   Attach the tested archive and its manifest. The workflow verifies the tag and rebuilds the archive.
    If the registry already contains the identical archive, publication is skipped.
    If the same version has different integrity, the workflow fails rather than
    attempting to overwrite it. Registry/network errors also stop publication.
+
+5. After verifying installation from the registry, open a documentation PR to remove
+   the pending-publication wording in the README and changelog and record the actual
+   publication date. Do not move the release tag or republish `0.1.0` to include these
+   follow-up documentation changes; it must continue to identify the tested archive.
 
 ## Subsequent releases
 

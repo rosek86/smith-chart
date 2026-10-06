@@ -20,7 +20,13 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 ## Installation
 
-To install the current source version before a registry release:
+The first npm release is planned as **0.1.0**. Once it is published, install it with:
+
+```sh
+npm install smithkit@0.1.0
+```
+
+Until publication, build and install an archive from source:
 
 ```sh
 git clone https://github.com/rosek86/smithkit.git
