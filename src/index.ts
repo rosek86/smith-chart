@@ -32,3 +32,6 @@ export type {
   PeripheralScales,
 } from './layers.js';
 export { renormalizeReflection, renormalizeSamples } from './renormalization.js';
+export { formatNumber, formatComplex, formatComplexPolar } from './formatting.js';
+export { reactanceToComponent } from './components.js';
+export type { ReactiveComponent } from './components.js';
