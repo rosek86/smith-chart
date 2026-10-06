@@ -64,7 +64,17 @@ if (markerId) {
   void comparison;
 }
 chart.setTraceOptions(traceId, { visible: false });
-chart.updateTrace(traceId, samples);
+import type { TraceUpdateOptions, MarkerSelectionStrategy } from 'smithkit';
+const strategy: MarkerSelectionStrategy = 'frequency';
+const updateOptions: TraceUpdateOptions = { markerSelection: strategy };
+const updated: boolean = chart.updateTrace(traceId, samples, updateOptions);
+void updated;
+chart.updateTrace(traceId, samples, { markerSelection: 'sample-index' });
+chart.updateTrace(traceId, samples, { markerSelection: 'reflection' });
+// @ts-expect-error Unknown marker selection strategies must not compile.
+chart.updateTrace(traceId, samples, { markerSelection: 'nearest' });
+// @ts-expect-error Marker IDs are required, not historical numeric indices.
+chart.setMarkerSample(0, 1);
 chart.removeTrace(traceId);
 void [traces, chart.referenceImpedanceOhms];
 chart.draw(document.createElement('div'));

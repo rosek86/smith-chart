@@ -1,6 +1,6 @@
 import { SmithGroup } from './SmithGroup.js';
 import { line } from 'd3';
-import type { TraceStyle } from '../measurements.js';
+import type { TraceStyle, MarkerSelectionStrategy } from '../measurements.js';
 import { SmithMarker } from './SmithMarker.js';
 import { SmithScaler } from './SmithScaler.js';
 
@@ -24,7 +24,7 @@ export class SmithData {
   private viewportScale = 1;
   private destroyed = false;
   private visible = true;
-  private pendingEvents = new Set<ReturnType<typeof setTimeout>>();
+  private pendingEvents = new Map<Marker, ReturnType<typeof setTimeout>>();
 
   private group: SmithGroup;
 
@@ -204,6 +204,8 @@ export class SmithData {
     if (!entry) {
       return false;
     }
+    clearTimeout(this.pendingEvents.get(entry));
+    this.pendingEvents.delete(entry);
     entry.marker.destroy();
     this.markers.splice(index, 1);
     return true;
@@ -228,6 +230,10 @@ export class SmithData {
     if (!Number.isFinite(frequencyHz) || frequencyHz < 0) {
       throw new RangeError('Marker frequency must be finite and non-negative.');
     }
+    return this.setMarkerSample(index, this.nearestFrequencyIndex(frequencyHz));
+  }
+
+  private nearestFrequencyIndex(frequencyHz: number): number {
     let closest = 0;
     let distance = Math.abs(this.data[0].frequencyHz - frequencyHz);
     for (let i = 1; i < this.data.length; i++) {
@@ -237,7 +243,7 @@ export class SmithData {
         distance = nextDistance;
       }
     }
-    return this.setMarkerSample(index, closest);
+    return closest;
   }
 
   private validateSampleIndex(index: number): void {
@@ -328,7 +334,7 @@ export class SmithData {
           !reflectionCoefficient.every(Number.isFinite),
       )
     ) {
-      throw new Error(
+      throw new RangeError(
         'A dataset requires samples with a non-negative finite frequency and two finite coordinates.',
       );
     }
@@ -339,14 +345,17 @@ export class SmithData {
   }
 
   private notifyMarker(entry: Marker): void {
+    if (this.pendingEvents.has(entry)) {
+      return;
+    }
     const timer = setTimeout(() => {
-      this.pendingEvents.delete(timer);
+      this.pendingEvents.delete(entry);
       const index = this.markers.indexOf(entry);
       if (!this.destroyed && index >= 0) {
         this.handler?.(index, entry.selectedPoint);
       }
     }, 0);
-    this.pendingEvents.add(timer);
+    this.pendingEvents.set(entry, timer);
   }
 
   private cancelEvents(): void {
@@ -354,7 +363,7 @@ export class SmithData {
     this.pendingEvents.clear();
   }
 
-  public update(values: TraceSamples, preserveMarkerIndices = false): void {
+  public update(values: TraceSamples, strategy: MarkerSelectionStrategy = 'frequency'): void {
     if (this.destroyed) {
       throw new Error('This dataset has been removed.');
     }
@@ -369,9 +378,13 @@ export class SmithData {
     this.fgContainer.append(group);
     this.zoomDataPoints();
     this.markers.forEach((entry, index) => {
-      entry.selectedPoint = preserveMarkerIndices
-        ? samples[selectedIndices[index]]
-        : this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
+      if (strategy === 'sample-index') {
+        entry.selectedPoint = samples[Math.min(selectedIndices[index], samples.length - 1)];
+      } else if (strategy === 'reflection') {
+        entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
+      } else {
+        entry.selectedPoint = samples[this.nearestFrequencyIndex(entry.selectedPoint.frequencyHz)];
+      }
       entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
       this.notifyMarker(entry);
     });
@@ -407,7 +420,7 @@ export class SmithData {
     const dist = (p1: Readonly<Point>, p2: Readonly<Point>) => {
       const xd = p1[0] - p2[0];
       const yd = p1[1] - p2[1];
-      return Math.sqrt(xd * xd + yd * yd);
+      return Math.hypot(xd, yd);
     };
 
     return this.data.reduce((prev, curr) => {

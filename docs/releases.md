@@ -21,6 +21,15 @@ During 0.x development, document breaking changes in a minor release and fixes i
 a patch release. Update the manifest, lockfile, changelog, and README archive example
 together. A stable 1.0 release should follow validation in real consuming applications.
 
+## Release candidate validation
+
+Before selecting the 0.1.0 release commit, merge and verify the API cleanup PRs
+for complex arithmetic, standalone formatting/component calculations, numeric styles
+and readonly inputs, and marker update/event contracts. Review the combined README
+and changelog, run the package consumer checks, and exercise a real consuming app
+through mount, update, resize, and destroy. No publication is triggered by opening
+or merging those PRs.
+
 ## First publication (one time)
 
 1. Sign in to npm as the intended package owner with `npm login`, then check
@@ -30,8 +39,9 @@ together. A stable 1.0 release should follow validation in real consuming applic
    ```sh
    npm ci
    npm run check
-   npx playwright install chromium
+   npx playwright install chromium webkit
    npm run test:e2e
+   npm run test:e2e:webkit
    npm run check:package
    npm pack
    npm publish ./smithkit-0.1.0.tgz --access public --ignore-scripts
