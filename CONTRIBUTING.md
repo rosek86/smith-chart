@@ -6,9 +6,12 @@ working rules live in [AGENTS.md](AGENTS.md).
 
 ## Local development
 
-Use Node.js 24 LTS, as specified in `.nvmrc`, and the committed npm lockfile:
+Clone the repository, then use Node.js 24 LTS, as specified in `.nvmrc`, and the
+committed npm lockfile:
 
 ```sh
+git clone https://github.com/rosek86/smithkit.git
+cd smithkit
 nvm use
 npm ci
 npm run dev
@@ -27,7 +30,7 @@ requirement, not a browser requirement for applications using the library.
 | `npm run build`         | Build ESM modules and TypeScript declarations in `dist/lib/`.                              |
 | `npm run build:demo`    | Build the demo site in `dist/demo/`.                                                       |
 | `npm run preview`       | Preview the built demo.                                                                    |
-| `npm test`              | Run calculation, parser, scale, and deployment tests.                                      |
+| `npm test`              | Run calculation, parser, scale, and release verification tests.                            |
 | `npm run check`         | Check formatting, lint, check types, run unit tests, and build both library and demo.      |
 | `npm run test:e2e`      | Run browser tests against the built demo under `/smithkit/`.                               |
 | `npm run check:package` | Pack and install the library in an isolated consumer; verify ESM imports and declarations. |
@@ -104,9 +107,10 @@ reference D3 types. Demo CSS is not part of the library, which renders SVG direc
 ## Conventions
 
 Use English for documentation, code comments, UI labels, descriptions, and error
-messages. Use descriptive private fields without a leading underscore. Before the first release, prioritize clear public names and consistent units over
-compatibility with historical APIs. Update the demo, tests, and public examples
-together when changing API behavior.
+messages. Use descriptive private fields without a leading underscore. Keep public
+names and units consistent. During 0.x development, document breaking changes in a
+minor release and fixes in a patch release. Update the demo, tests, and public
+examples together when changing API behavior.
 
 Always use braces for control-flow bodies, including single-line guards and loops.
 The ESLint `curly` rule enforces this; Prettier formats the resulting blocks.
@@ -178,7 +182,7 @@ Before publishing a release, verify the package name, ownership, version, API
 compatibility, and package contents. A local build or pack does not publish anything
 to npm. Run `npm run check:package` to automate isolated consumer verification. CI runs
 this check too. The release workflow publishes verified archives using npm trusted
-publishing; account setup and the first publication are described in
+publishing; publisher configuration and the release procedure are described in
 [docs/releases.md](docs/releases.md).
 
 ## Known technical debt

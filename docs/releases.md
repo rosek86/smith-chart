@@ -1,8 +1,9 @@
 # npm releases
 
-The first registry release is **smithkit 0.1.0**. Local package metadata
-is not evidence of a published version. Do not advertise `npm install smithkit`
-as available until the registry release succeeds.
+**smithkit 0.1.0** was published to npm on 2026-10-06. The
+[GitHub Release](https://github.com/rosek86/smithkit/releases/tag/v0.1.0) points to
+commit `663d8c55a7e06c572ce4c38bce53a79684d855f0` and includes the tested archive
+and its manifest. The archive was verified against the published npm package.
 
 ## API scope for 0.1.x
 
@@ -18,12 +19,12 @@ inverse branches and signed-zero handling. Their finite-input contract and pole 
 must pass before publishing numerical changes.
 
 During 0.x development, document breaking changes in a minor release and fixes in
-a patch release. Update the manifest, lockfile, changelog, and README archive example
+a patch release. Update the manifest, lockfile, changelog, and version-specific examples
 together. A stable 1.0 release should follow validation in real consuming applications.
 
 ## Release candidate validation
 
-1. Merge the intended feature PRs and release-preparation PR through the normal
+1. Merge the intended feature PRs and version/changelog updates through the normal
    review workflow. Use a clean checkout of the exact commit intended for release.
 2. Run:
 
@@ -39,8 +40,8 @@ together. A stable 1.0 release should follow validation in real consuming applic
 
 3. Inspect `artifacts/release-manifest.json`: package name/version, source commit,
    archive filename, SHA-256, npm integrity, packed and unpacked sizes. Keep it with
-   `artifacts/smithkit-0.1.0.tgz`. Source changes require a new verification run.
-4. Review [the 0.1.0 release notes](releases/0.1.0.md) and the release date in the
+   the matching archive in `artifacts/`. Source changes require a new verification run.
+4. Review the notes for the version being released and the release date in the
    changelog. If publication moves to another day, update the date through a PR
    before preparing the final archive. Verify the final committed state again.
 
@@ -48,55 +49,39 @@ together. A stable 1.0 release should follow validation in real consuming applic
 CI uploads the tested archive and manifest as `smithkit-package`. Manual dispatch
 of `release.yml` performs verification only and uploads `npm-package`.
 
-## Publication prerequisites
+## Trusted publisher configuration
 
-- The intended npm owner must be signed in locally for the first publication.
-  Verify with `npm whoami`; use `npm login` if needed.
-- Check `npm view smithkit name version maintainers --json`. A 404 means the registry
-  currently has no visible package; it does not reserve the name or guarantee that
-  npm will accept publication.
-- The GitHub repository uses an environment named `npm`. Its name must exactly
-  match the trusted-publisher configuration after the first package is published.
-- Trusted publishing is configured on npm for the package, not through a GitHub
-  secret. GitHub environment existence alone does not prove that trust is configured.
+The `smithkit` package has a GitHub Actions trusted publisher configured in its
+npm package settings:
 
-## First publication (one time)
+- Owner: `rosek86`
+- Repository: `smithkit`
+- Workflow: `release.yml`
+- Environment: `npm`
+- Direct publication: allowed (`npm publish`)
 
-1. Sign in to npm as the intended package owner with `npm login`, then check
-   `npm whoami` and verify that `smithkit` is still available or owned by that account.
-2. Prepare the archive using the steps above, then publish that exact tested file:
+The workflow uses the matching GitHub environment and `id-token: write` permission.
+No long-lived npm token or local npm login is required for automated releases.
+Changes to the repository, workflow filename, or environment must also be reflected
+in the npm trusted-publisher configuration.
 
-   ```sh
-   npm publish ./artifacts/smithkit-0.1.0.tgz --access public --ignore-scripts
-   ```
+## Creating a release
 
-   Complete npm's account/2FA prompts. This is the publication step; preparation
-   and a dry run cannot verify publishing authorization. Do not repack after the
-   consumer checks or publish an archive whose recorded commit is not the release commit.
-
-3. In npm package settings, configure a GitHub Actions trusted publisher:
-   owner **rosek86**, repository **smithkit**, workflow **release.yml**,
-   environment **npm**, with direct `npm publish` allowed.
-4. Record the exact manifest commit with tag `v0.1.0` and create its GitHub Release
-   using the prepared notes, changing their installation heading to `Installation`.
-   Attach the tested archive and its manifest. The workflow verifies the tag and rebuilds the archive.
-   If the registry already contains the identical archive, publication is skipped.
-   If the same version has different integrity, the workflow fails rather than
-   attempting to overwrite it. Registry/network errors also stop publication.
-
-5. After verifying installation from the registry, open a documentation PR to remove
-   the pending-publication wording in the README and changelog and record the actual
-   publication date. Do not move the release tag or republish `0.1.0` to include these
-   follow-up documentation changes; it must continue to identify the tested archive.
-
-## Subsequent releases
-
-1. Update the version and changelog, commit the tested changes, and push them.
-2. Create the matching tag (for example `v0.1.1`) and publish its GitHub Release.
+1. Update the version, lockfile, changelog, release notes, and version-specific
+   examples through a PR. Merge it, then validate the final release commit as above.
+2. Create the matching tag (for example `v0.1.1`) at that exact commit and publish
+   its GitHub Release with the reviewed notes.
 3. `release.yml` verifies the tag against `package.json`, runs `prepare:release`,
    and uploads the exact tested archive and manifest.
 4. A separate job publishes that exact archive using OIDC and provenance. It has
    no long-lived npm token and does not run package scripts during publication.
+5. Confirm the workflow succeeds and the version is available in npm. Check installation
+   in an independent project, and attach the workflow's tested archive and manifest
+   to the GitHub Release.
+
+Published versions and their tags must continue to identify the original archive.
+Documentation changes after a release belong in a new PR; do not move the tag or
+repack an existing version to include them.
 
 The workflow supports normal `x.y.z` versions. Prerelease versions and dist-tags
 need an explicit workflow change. Failed publication can be rerun after fixing

@@ -2,8 +2,6 @@
 
 ## 0.1.0 — 2026-10-06
 
-The release is prepared for publication; npm availability is not yet confirmed.
-
 - Publish the demo directly at https://rosek86.github.io/smithkit/.
 - Add an independently installed consumer example covering mounting, data updates, event subscriptions, resizing, and cleanup.
 - Prepare a tested npm archive and manifest through one release command, with Chromium/WebKit verification and repeat-publication integrity checks.
