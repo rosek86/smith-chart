@@ -35,7 +35,10 @@ requirement, not a browser requirement for applications using the library.
 
 For browser tests, run `npm run build:demo` and `npx playwright install chromium`
 first. To use an installed Chrome instead, run
-`PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`.
+`PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`. Run WebKit coverage with
+`npm run test:e2e:webkit` after `npx playwright install webkit`. CI runs both
+Chromium and WebKit. Native pointer assertions allow device-pixel rounding;
+SVG text bounds use DOM geometry so text anchors are included.
 
 ## Architecture
 
@@ -163,17 +166,12 @@ publishing; account setup and the first publication are described in
 
 ## Known technical debt
 
-- The WebKit browser suite has three failures also reproduced on `main`: two exact
-  cursor-value assertions differ because simulated mouse coordinates are rounded,
-  and a scale label extends about 1 px outside its container at a 390 px viewport.
-  Grid styling and geometry tests pass in WebKit; the standard CI browser is Chromium.
-
 - Dense grid labels can overlap at small sizes. Grid bands and label rules live in
   `src/grid/`; SVG rendering is shared by `SmithGridLayer`. Changes need visual checks,
   especially near chart edges and on narrow screens.
-- The demo currently uses a fixed 50 Ω reference and rejects files with another
-  reference impedance. The library accepts a reference impedance in `new Smith(Z0)`.
-- Touchstone renormalization, multiport data, and Touchstone 2.x are not supported.
+- Reference impedances are positive real ohm values. Complex reference impedances,
+  multiport data, and Touchstone 2.x are not supported. The demo can renormalize
+  imported data and existing traces using the public library helpers.
 - The separate legacy `smith-app-ng` application needs its own Angular, D3, and
   TypeScript migration before consuming this library version.
 

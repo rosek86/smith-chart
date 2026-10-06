@@ -30,6 +30,7 @@ import { Complex } from './complex/Complex.js';
 import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
 import { gridLayer, circleLayer } from './layers.js';
 import type { ChartLayers, PeripheralScales } from './layers.js';
+import { renormalizeSamples } from './renormalization.js';
 import { readReflection } from './rf.js';
 import type { SmithReading } from './rf.js';
 import { compareMarkerReadings } from './measurements.js';
@@ -94,8 +95,8 @@ export class Smith {
   public readonly layers: ChartLayers;
   public readonly peripheralScales: PeripheralScales;
 
-  constructor(public readonly referenceImpedanceOhms: number = 50) {
-    if (!Number.isFinite(referenceImpedanceOhms) || referenceImpedanceOhms <= 0) {
+  constructor(private referenceOhms: number = 50) {
+    if (!Number.isFinite(referenceOhms) || referenceOhms <= 0) {
       throw new Error('Reference impedance must be positive and finite.');
     }
     const viewBoxSize = 500;
@@ -522,6 +523,15 @@ export class Smith {
       : false;
   }
 
+  /** Select the nearest measured frequency; ties choose the earliest input sample. */
+  public setMarkerFrequency(id: string, frequencyHz: number): boolean {
+    this.assertAlive();
+    const location = this.findMarker(id);
+    return location
+      ? this.data[location.datasetNo].setMarkerFrequency(location.markerNo, frequencyHz)
+      : false;
+  }
+
   public getMarker(id: string): MarkerSnapshot | undefined {
     const location = this.findMarker(id);
     if (!location) {
@@ -547,6 +557,29 @@ export class Smith {
     const first = this.getMarker(a);
     const second = this.getMarker(b);
     return first && second ? compareMarkerReadings(first, second) : undefined;
+  }
+
+  /** Current positive real reference impedance, in ohms. */
+  public get referenceImpedanceOhms(): number {
+    return this.referenceOhms;
+  }
+
+  /** Renormalize all traces while retaining physical impedance, IDs, and selected sample indices. */
+  public renormalize(referenceImpedanceOhms: number): void {
+    this.assertAlive();
+    // Validate even with no traces, and prepare every result before changing any state.
+    renormalizeSamples([], this.referenceOhms, referenceImpedanceOhms);
+    if (referenceImpedanceOhms === this.referenceOhms) {
+      return;
+    }
+    const samples = this.data.map((data) =>
+      renormalizeSamples(data.Samples, this.referenceOhms, referenceImpedanceOhms),
+    );
+    this.data.forEach((data) => data.Markers.forEach((entry) => entry.marker.cancelDrag()));
+    this.referenceOhms = referenceImpedanceOhms;
+    this.data.forEach((data, index) => data.update(samples[index], true));
+    this.cursor.hide();
+    this.emit({ type: SmithEventType.Cursor, data: undefined });
   }
 
   public clearTraces(): void {

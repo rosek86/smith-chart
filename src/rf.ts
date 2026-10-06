@@ -100,7 +100,7 @@ export function readReflection(gamma: Complex, referenceImpedanceOhms = 50): Smi
     vswr,
     standingWaveRatioDb: vswr === undefined ? undefined : 20 * Math.log10(vswr),
     returnLossDb,
-    reflectionLossDb: passive ? -10 * Math.log10(1 - magnitude ** 2) : undefined,
+    reflectionLossDb: passive ? (-10 / Math.LN10) * Math.log1p(-(magnitude ** 2)) : undefined,
     attenuationDb: passive ? returnLossDb / 2 : undefined,
     q:
       impedanceOhms && (impedanceOhms.re !== 0 || impedanceOhms.im !== 0)

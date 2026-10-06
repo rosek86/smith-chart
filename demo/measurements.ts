@@ -75,6 +75,18 @@ export class Measurements {
         input.value = String(marker.sampleIndex + 1);
       }
     }
+    for (const input of document.querySelectorAll<HTMLInputElement>('[data-marker-frequency]')) {
+      const marker = this.smith.getMarker(input.dataset.markerFrequency!);
+      if (marker && document.activeElement !== input) {
+        input.value = String(marker.frequencyHz / 1e6);
+      }
+    }
+    for (const output of document.querySelectorAll<HTMLOutputElement>(
+      '[data-marker-frequency-readout]',
+    )) {
+      const marker = this.smith.getMarker(output.dataset.markerFrequencyReadout!);
+      output.value = marker ? `Selected: ${this.smith.formatNumber(marker.frequencyHz)}Hz` : '—';
+    }
   }
 
   private button(label: string, action: () => void): HTMLButtonElement {
@@ -206,8 +218,32 @@ export class Measurements {
         this.changed();
       });
       label.append(sample);
+      const frequencyLabel = document.createElement('label');
+      frequencyLabel.textContent = 'Frequency (MHz) ';
+      const frequency = document.createElement('input');
+      frequency.type = 'number';
+      frequency.min = '0';
+      frequency.step = 'any';
+      frequency.dataset.markerFrequency = marker.id;
+      frequency.value = String(this.smith.getMarker(marker.id)!.frequencyHz / 1e6);
+      frequency.title = 'Select the nearest measured frequency; no interpolation.';
+      frequency.addEventListener('change', () => {
+        const hz = Number(frequency.value) * 1e6;
+        if (!frequency.value || !frequency.checkValidity() || !Number.isFinite(hz)) {
+          frequency.value = String(this.smith.getMarker(marker.id)!.frequencyHz / 1e6);
+          return;
+        }
+        this.smith.setMarkerFrequency(marker.id, hz);
+        this.changed();
+      });
+      frequencyLabel.append(frequency);
+      const selectedFrequency = document.createElement('output');
+      selectedFrequency.dataset.markerFrequencyReadout = marker.id;
+      selectedFrequency.setAttribute('aria-live', 'polite');
       row.append(
         label,
+        frequencyLabel,
+        selectedFrequency,
         this.button('Select', () => this.selectMarker(marker.id)),
         this.button('Remove marker', () => {
           this.smith.removeMarker(marker.id);

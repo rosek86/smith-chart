@@ -1,3 +1,4 @@
+import { complexRatio } from './math/complexRatio.js';
 import { Circle } from './shapes/Circle.js';
 import { Point } from './shapes/Point.js';
 import { Complex } from './complex/Complex.js';
@@ -6,51 +7,38 @@ export class SmithConstantCircle {
   public constructor(public Z0: number = 50) {}
 
   public rflCoeffToImpedance(c: Complex): Complex | undefined {
-    const gr = c.real;
-    const gi = c.imag;
-    const d = (1 - gr) * (1 - gr) + gi * gi;
-    if (d === 0 || !Number.isFinite(d)) {
-      return undefined;
-    }
-    const zr = (1 - gr * gr - gi * gi) / d;
-    const zi = (2 * gi) / d;
-    return Complex.from(zr, zi);
+    return this.transform(c, 1 + c.re, c.im, 1 - c.re, -c.im, 2);
   }
 
   public impedanceToRflCoeff(c: Complex): Complex | undefined {
-    const zr = c.real;
-    const zi = c.imag;
-    const d = (zr + 1) * (zr + 1) + zi * zi;
-    if (d === 0 || !Number.isFinite(d)) {
-      return undefined;
-    }
-    const gr = (zr * zr + zi * zi - 1) / d;
-    const gi = (2 * zi) / d;
-    return Complex.from(gr, gi);
+    return this.transform(c, c.re - 1, c.im, c.re + 1, c.im, 2);
   }
 
   public rflCoeffToAdmittance(c: Complex): Complex | undefined {
-    const gr = c.real;
-    const gi = c.imag;
-    const d = (gr + 1) * (gr + 1) + gi * gi;
-    if (d === 0 || !Number.isFinite(d)) {
-      return undefined;
-    }
-    const yr = (1 - gr * gr - gi * gi) / d;
-    const yi = (-2 * gi) / d;
-    return Complex.from(yr, yi);
+    return this.transform(c, 1 - c.re, -c.im, 1 + c.re, c.im, -2);
   }
 
   public admittanceToRflCoeff(c: Complex): Complex | undefined {
-    const yr = c.real;
-    const yi = c.imag;
-    const d = (yr + 1) * (yr + 1) + yi * yi;
-    if (d === 0 || !Number.isFinite(d)) {
-      return undefined;
+    return this.transform(c, 1 - c.re, -c.im, 1 + c.re, c.im, -2);
+  }
+
+  private transform(
+    value: Complex,
+    nr: number,
+    ni: number,
+    dr: number,
+    di: number,
+    determinant: number,
+  ): Complex | undefined {
+    const quotient = complexRatio(nr, ni, dr, di);
+    if (!quotient) {
+      return;
     }
-    const gr = (1 - yr * yr - yi * yi) / d;
-    const gi = (-2 * yi) / d;
-    return Complex.from(gr, gi);
+    // The analytic imaginary numerator avoids cancellation of nearly equal products.
+    const scale = Math.max(Math.abs(dr), Math.abs(di));
+    const denominator = (dr / scale) ** 2 + (di / scale) ** 2;
+    const im = (determinant * (value.im / scale)) / denominator / scale;
+    return Number.isFinite(im) ? Complex.from(quotient.re, im) : undefined;
   }
 
   public resistanceCircle(n: number): Circle {
@@ -120,7 +108,7 @@ export class SmithConstantCircle {
   public rflCoeffToMismatchLoss(rc: Complex): number {
     // mismatch loss is reflection loss
     const abs = this.rflCoeffEOrI(rc);
-    return -10.0 * Math.log10(1 - abs ** 2);
+    return (-10 / Math.LN10) * Math.log1p(-(abs ** 2));
   }
 
   public mismatchLossToRflCoeffEOrI(ml: number): number {

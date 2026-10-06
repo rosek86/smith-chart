@@ -209,10 +209,33 @@ export class SmithData {
     return true;
   }
 
+  public setMarkerFrequency(index: number, frequencyHz: number): boolean {
+    if (!this.markers[index]) {
+      return false;
+    }
+    if (!Number.isFinite(frequencyHz) || frequencyHz < 0) {
+      throw new RangeError('Marker frequency must be finite and non-negative.');
+    }
+    let closest = 0;
+    let distance = Math.abs(this.data[0].frequencyHz - frequencyHz);
+    for (let i = 1; i < this.data.length; i++) {
+      const nextDistance = Math.abs(this.data[i].frequencyHz - frequencyHz);
+      if (nextDistance < distance) {
+        closest = i;
+        distance = nextDistance;
+      }
+    }
+    return this.setMarkerSample(index, closest);
+  }
+
   private validateSampleIndex(index: number): void {
     if (!Number.isInteger(index) || index < 0 || index >= this.data.length) {
       throw new RangeError('Sample index is outside this trace.');
     }
+  }
+
+  public get Samples(): TraceSamples {
+    return this.data;
   }
 
   public get SampleCount(): number {
@@ -319,11 +342,12 @@ export class SmithData {
     this.pendingEvents.clear();
   }
 
-  public update(values: TraceSamples): void {
+  public update(values: TraceSamples, preserveMarkerIndices = false): void {
     if (this.destroyed) {
       throw new Error('This dataset has been removed.');
     }
     const samples = this.copySamples(values);
+    const selectedIndices = this.markers.map((entry) => this.data.indexOf(entry.selectedPoint));
     this.cancelEvents();
     this.data = samples;
     const group = this.drawTrace(samples).attr('pointer-events', 'none');
@@ -332,8 +356,10 @@ export class SmithData {
     this.group.Element.style('display', () => (this.visible ? null : 'none'));
     this.fgContainer.append(group);
     this.zoomDataPoints();
-    this.markers.forEach((entry) => {
-      entry.selectedPoint = this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
+    this.markers.forEach((entry, index) => {
+      entry.selectedPoint = preserveMarkerIndices
+        ? samples[selectedIndices[index]]
+        : this.findClosestPointTo(entry.selectedPoint.reflectionCoefficient);
       entry.marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
       this.notifyMarker(entry);
     });
