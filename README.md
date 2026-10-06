@@ -388,3 +388,20 @@ Multiport data and Touchstone 2.x are not supported.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, release, and demo
 hosting instructions. Licensed under [MIT](LICENSE).
+
+## Numerical limits
+
+`Complex` uses JavaScript binary64 numbers. Multiplication and division scale
+intermediate products to avoid premature overflow and underflow; logarithms,
+square roots, and reciprocals also handle extreme finite components. Results still
+round to binary64: unrepresentable magnitudes become infinity and tiny results
+can underflow to signed zero. Division by zero and reciprocals at zero return
+`[NaN, NaN]`. These operations reject non-finite operands with NaN components.
+The principal logarithm of zero retains its `-Infinity` real limit, and signed
+zeros select the side of square-root and logarithm branch cuts. `pow(z, 0)` is one,
+including zero to the zeroth power; negative powers of zero are undefined.
+
+RF helpers validate finite inputs and use `undefined` for unrepresentable complex
+readings, including an overflowing impedance difference between markers. These
+conventions do not imply arbitrary precision or numerical certification of every
+transcendental operation.

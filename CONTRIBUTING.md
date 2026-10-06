@@ -128,7 +128,7 @@ only after changes reach the default branch.
 
 ## Complex-number validation
 
-`tests/complex.test.ts` covers the newly implemented hyperbolic and reciprocal
+`tests/complex.test.ts` covers arithmetic at extreme finite magnitudes, logarithms, roots, hyperbolic and reciprocal
 operations, their principal branches, signed zeros, poles, and large/small finite
 arguments. Independent expected values are stored in
 `tests/fixtures/complex-reference.json` and generated with Python's standard
@@ -144,9 +144,7 @@ npm test -- tests/complex.test.ts
 The generator explicitly preserves signed zeros when forming `1/z` for inverse
 reciprocal functions, because Python's complex division can discard them. Reference
 comparisons use relative error for nonzero components, so tiny values are tested
-rather than hidden by a blanket absolute tolerance. Existing unrelated complex
-operations retain their legacy implementations; extending their numerical coverage
-is a separate task.
+rather than hidden by a blanket absolute tolerance. Other transcendental operations still need broader numerical coverage.
 
 ## Packaging and releases
 

@@ -69,12 +69,13 @@ export function compareMarkerReadings(
     hasPhase(a.reflectionCoefficient) && hasPhase(b.reflectionCoefficient)
       ? ((b.reflectionCoefficient.arg() - a.reflectionCoefficient.arg()) * 180) / Math.PI
       : undefined;
+  const impedanceDelta =
+    a.impedanceOhms && b.impedanceOhms && isFinite(a.impedanceOhms) && isFinite(b.impedanceOhms)
+      ? b.impedanceOhms.sub(a.impedanceOhms)
+      : undefined;
   return {
     frequencyDeltaHz: b.frequencyHz - a.frequencyHz,
-    impedanceDeltaOhms:
-      a.impedanceOhms && b.impedanceOhms && isFinite(a.impedanceOhms) && isFinite(b.impedanceOhms)
-        ? b.impedanceOhms.sub(a.impedanceOhms)
-        : undefined,
+    impedanceDeltaOhms: impedanceDelta && isFinite(impedanceDelta) ? impedanceDelta : undefined,
     phaseDeltaDegrees: phaseDelta === undefined ? undefined : ((phaseDelta + 540) % 360) - 180,
   };
 }
