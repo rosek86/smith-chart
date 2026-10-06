@@ -29,7 +29,7 @@ requirement, not a browser requirement for applications using the library.
 | `npm run preview`       | Preview the built demo.                                                                    |
 | `npm test`              | Run calculation, parser, scale, and deployment tests.                                      |
 | `npm run check`         | Check formatting, lint, check types, run unit tests, and build both library and demo.      |
-| `npm run test:e2e`      | Run browser tests against the built demo under `/smith-app/`.                              |
+| `npm run test:e2e`      | Run browser tests against the built demo under `/smithkit/`.                               |
 | `npm run check:package` | Pack and install the library in an isolated consumer; verify ESM imports and declarations. |
 | `npm pack`              | Rebuild the library and create an installable `.tgz` archive.                              |
 
@@ -194,6 +194,6 @@ publishing; account setup and the first publication are described in
 
 ## Demo hosting
 
-The demo is deployed separately to `rosek86/smith-app` using GitHub Pages.
-See [docs/deployment.md](docs/deployment.md) for credentials, workflow setup,
-disabling deployments, and restoring the old site.
+The demo is published from this repository to https://rosek86.github.io/smithkit/
+using GitHub Pages. See [docs/deployment.md](docs/deployment.md) for workflow setup,
+verification, and migration from the previous hosting repository.

@@ -3,6 +3,8 @@
 **`smithkit`** is a framework-independent JavaScript and TypeScript library for
 interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
+[Try the interactive demo](https://rosek86.github.io/smithkit/).
+
 ## Features
 
 - Labeled resistance, reactance, conductance, and susceptance grids.
