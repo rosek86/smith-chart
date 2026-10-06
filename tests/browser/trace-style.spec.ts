@@ -4,7 +4,7 @@ import { loadLibrary } from './library';
 test('trace styles preserve samples, markers, visibility, and ordering across changes', async ({
   page,
 }) => {
-  await page.setContent('<div id="chart" style="width:500px"></div>');
+  await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith();
@@ -94,8 +94,8 @@ test('demo exposes appearance controls and keeps line width constant during zoom
   await trace.getByLabel('Display', { exact: true }).selectOption('both');
   await trace.getByLabel('Line width (px)', { exact: true }).fill('4');
   await trace.getByLabel('Line width (px)', { exact: true }).press('Tab');
-  await trace.getByLabel('Point radius', { exact: true }).fill('3');
-  await trace.getByLabel('Point radius', { exact: true }).press('Tab');
+  await trace.getByLabel('Point radius (px)', { exact: true }).fill('3');
+  await trace.getByLabel('Point radius (px)', { exact: true }).press('Tab');
   const path = page.locator('.trace-line');
   await expect(path).toHaveAttribute('stroke-width', '4');
   await expect(path).toHaveAttribute('vector-effect', 'non-scaling-stroke');
@@ -107,6 +107,10 @@ test('demo exposes appearance controls and keeps line width constant during zoom
     expect((await point.boundingBox())!.width).toBeCloseTo(before, 1);
   }).toPass();
   await expect(path).toHaveAttribute('stroke-width', '4');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(async () => {
+    expect((await point.boundingBox())!.width).toBeCloseTo(6, 1);
+  }).toPass();
   await trace.getByLabel('Display', { exact: true }).selectOption('line');
   await expect(point).toHaveCount(0);
   await expect(page.locator('[data-role=marker]')).toHaveCount(1);
@@ -117,7 +121,7 @@ test('demo exposes appearance controls and keeps line width constant during zoom
 test('20,000-sample sweeps retain full data in every rendering mode', async ({
   page,
 }, testInfo) => {
-  await page.setContent('<div id="chart" style="width:500px"></div>');
+  await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith();

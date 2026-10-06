@@ -43,6 +43,10 @@ formatComplexPolar(Complex.i);
 Complex.one().real;
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
+const immutableSamples = [{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }] as const;
+const readonlySamples: TraceSamples = immutableSamples;
+Complex.from(immutableSamples[0].reflectionCoefficient);
+void readonlySamples;
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
 const chart = new Smith(parsed.referenceImpedanceOhms);
 const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true, mode: 'both', lineWidth: 2, pointRadius: 3 };
@@ -80,6 +84,8 @@ const unsubscribe = chart.onEvent((event: SmithEvent) => {
   }
 });
 chart.renormalize(75);
+chart.layers.resistance.setStyle({ majorWidth: 2 });
+// @ts-expect-error Public lengths are numeric CSS pixels, not SVG strings.
 chart.layers.resistance.setStyle({ majorWidth: '2' });
 chart.peripheralScales.update(Complex.zero());
 unsubscribe();

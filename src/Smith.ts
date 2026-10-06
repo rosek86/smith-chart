@@ -64,6 +64,7 @@ export class Smith {
   private zoomBehavior = d3.zoom<SVGElement, unknown>();
 
   private svg: SmithSvg;
+  private resizeObserver: ResizeObserver;
   private container: SmithGroup;
   private dataContainer: SmithGroup;
   private markerContainer: SmithGroup;
@@ -191,6 +192,8 @@ export class Smith {
       },
     };
     this.initializeZoom();
+    this.resizeObserver = new ResizeObserver(() => this.updateViewportScale());
+    this.resizeObserver.observe(this.svg.Node!);
   }
 
   public draw(target: string | HTMLElement): void {
@@ -200,6 +203,7 @@ export class Smith {
       throw new Error('Chart container was not found.');
     }
     host.appendChild(this.svg.Node!);
+    this.updateViewportScale();
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */
@@ -207,6 +211,7 @@ export class Smith {
     if (this.destroyed) {
       return;
     }
+    this.resizeObserver.disconnect();
     this.listeners.clear();
     this.clearTraces();
     this.destroyed = true;
@@ -216,6 +221,17 @@ export class Smith {
     this.svg.Element.interrupt().on('.zoom', null);
     this.svg.Element.selectAll('*').interrupt().on('.smithkit', null).on('.drag', null);
     this.svg.Element.remove();
+  }
+
+  private updateViewportScale(): void {
+    if (this.destroyed) {
+      return;
+    }
+    const matrix = (this.svg.Node as SVGSVGElement).getScreenCTM();
+    if (matrix) {
+      const scale = Math.hypot(matrix.a, matrix.b);
+      this.data.forEach((trace) => trace.setViewportScale(scale));
+    }
   }
 
   private assertAlive(): void {
@@ -352,6 +368,7 @@ export class Smith {
     const data = this.createSmithData(values, this.nextDatasetColor, options);
     this.nextDatasetColor++;
     this.data.push(data);
+    this.updateViewportScale();
     const id = this.traceMetadata.get(data)!.id;
     this.setTraceOptions(id, options);
     return id;

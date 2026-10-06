@@ -7,7 +7,7 @@ export interface TraceStyle {
   mode: TraceRenderMode;
   /** Non-scaling SVG stroke width in CSS pixels. Default: 2. */
   lineWidth: number;
-  /** Point radius in chart units at zoom k = 1; remains constant under chart zoom. Default: 2. */
+  /** Point radius in CSS pixels; remains constant under chart zoom and container resize. Default: 2. */
   pointRadius: number;
 }
 

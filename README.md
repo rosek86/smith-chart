@@ -60,7 +60,7 @@ const traceId = chart.addTrace(
 ```
 
 Each `TraceSample` contains `frequencyHz` and the dimensionless voltage reflection
-coefficient Γ as `[real, imaginary]`. Samples are copied and validated. Frequencies
+coefficient Γ as `[real, imaginary]`. Samples are copied and validated; readonly tuples and arrays (`as const`) are accepted. Frequencies
 must be finite and non-negative; both coordinates must be finite. A trace must
 contain at least one sample.
 
@@ -128,10 +128,8 @@ after destruction throw; trace/marker lookups return empty or missing results.
 ## Trace appearance
 
 Pass `mode: 'points' | 'line' | 'both'`, `lineWidth`, and `pointRadius` to
-`addTrace` or `setTraceOptions`. Defaults are points, 2 px line width, and radius 2
-in chart units at zoom k = 1. Both sizes remain constant under chart zoom;
-line width uses SVG non-scaling stroke pixels, while point radius scales with
-the chart's outer SVG viewport. Widths and radii must be positive and finite.
+`addTrace` or `setTraceOptions`. Defaults are points, 2 px line width, and 2 px point radius. Both sizes are
+CSS pixels and remain constant under chart zoom and container resize. Widths and radii must be positive and finite.
 `getTraces()` includes the current style.
 
 Lines connect all samples in input order, without smoothing or frequency sorting.
@@ -296,10 +294,14 @@ chart.layers.vswr.setVisible(true);
 
 The four grid layers support `setVisible`, `setMinorVisible`, and
 `setStyle(Partial<GridStyle>)`. Style fields: `stroke`, `majorWidth`, `minorWidth`,
-`textColor`, `textFontFamily`, `textFontSize`. Partial updates retain other settings.
+`textColor`, `textFontFamily`, `textFontSize`. Widths are positive finite numbers
+in CSS pixels. Font size is a positive finite number in chart units because labels
+scale with the grid geometry. Partial updates retain other settings. Invalid numeric
+styles throw before any property is changed.
 
 `layers.q` and `layers.vswr` support `setVisible`,
 `setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.
+Circle stroke widths are positive finite numbers in CSS pixels.
 Q values must be positive and finite; VSWR values must be finite and at least 1.
 Duplicate additions and removal of absent values have no effect.
 

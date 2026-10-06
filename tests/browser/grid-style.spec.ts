@@ -35,19 +35,19 @@ test('grid setters and drawing options update the rendered geometry of all four 
         };
       };
       const initial = snapshot();
-      layer.setStyle({ stroke: '#123456', majorWidth: '2', minorWidth: '0.5' });
+      layer.setStyle({ stroke: '#123456', majorWidth: 2, minorWidth: 0.5 });
       const updated = snapshot();
       layer.setStyle({
         stroke: '#654321',
-        majorWidth: '3',
-        minorWidth: '0.75',
+        majorWidth: 3,
+        minorWidth: 0.75,
         textColor: '#abcdef',
         textFontFamily: 'sans-serif',
-        textFontSize: '9',
+        textFontSize: 9,
       });
       const options = snapshot();
       // Individual setters must still work after applying a complete options object.
-      layer.setStyle({ stroke: '#123456', majorWidth: '2', minorWidth: '0.5' });
+      layer.setStyle({ stroke: '#123456', majorWidth: 2, minorWidth: 0.5 });
       return { initial, updated, options, updatedAgain: snapshot() };
     });
   });
@@ -132,3 +132,34 @@ for (const width of [340, 900]) {
     await page.screenshot({ path: `test-results/admittance-${width}.png`, fullPage: true });
   });
 }
+
+test('numeric layer styles reject invalid lengths before changing any style', async ({ page }) => {
+  await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
+  await loadLibrary(page);
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    chart.layers.resistance.setStyle({ stroke: 'blue', majorWidth: 2 });
+    chart.layers.q.setStyle({ stroke: 'blue', strokeWidth: 2 });
+    const before = document.querySelector('svg')!.outerHTML;
+    let rejected = 0;
+    for (const width of [0, -1, NaN, Infinity, '3']) {
+      for (const apply of [
+        () => chart.layers.resistance.setStyle({ stroke: 'red', majorWidth: width as number }),
+        () => chart.layers.q.setStyle({ stroke: 'red', strokeWidth: width as number }),
+      ]) {
+        try {
+          apply();
+        } catch (error) {
+          if (error instanceof RangeError) {
+            rejected++;
+          }
+        }
+      }
+    }
+    const unchanged = document.querySelector('svg')!.outerHTML === before;
+    chart.destroy();
+    return { rejected, unchanged };
+  });
+  expect(result).toEqual({ rejected: 10, unchanged: true });
+});

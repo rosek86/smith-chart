@@ -1,12 +1,23 @@
-import type { ConstCircles, ConstCirclesDrawOptions } from './draw/ConstCircles.js';
+import type { ConstCircles } from './draw/ConstCircles.js';
 import type { ConstQCircles } from './draw/ConstQCircles.js';
 import type { ConstSwrCircles } from './draw/ConstSwrCircles.js';
 import type { Complex } from './complex/Complex.js';
 
-export type GridStyle = ConstCirclesDrawOptions;
+export interface GridStyle {
+  stroke: string;
+  /** Non-scaling stroke width in CSS pixels. */
+  majorWidth: number;
+  /** Non-scaling stroke width in CSS pixels. */
+  minorWidth: number;
+  textColor: string;
+  textFontFamily: string;
+  /** Font size in SVG chart units; labels scale with chart geometry. */
+  textFontSize: number;
+}
 export interface CircleStyle {
   stroke: string;
-  strokeWidth: string;
+  /** Non-scaling stroke width in CSS pixels. */
+  strokeWidth: number;
 }
 
 /** Grid styling uses SVG user units, except non-scaling stroke widths in screen pixels. */
@@ -51,6 +62,7 @@ export function gridLayer(layer: ConstCircles, assertAlive: () => void): GridLay
     },
     setStyle(style) {
       assertAlive();
+      validateLengths(style, ['majorWidth', 'minorWidth', 'textFontSize']);
       const properties = {
         stroke: 'Stroke',
         majorWidth: 'MajorWidth',
@@ -62,7 +74,7 @@ export function gridLayer(layer: ConstCircles, assertAlive: () => void): GridLay
       for (const key of Object.keys(properties) as (keyof GridStyle)[]) {
         const value = style[key];
         if (value !== undefined) {
-          layer[properties[key]] = value;
+          layer[properties[key]] = String(value);
         }
       }
     },
@@ -86,11 +98,12 @@ export function circleLayer(
     },
     setStyle(style) {
       assertAlive();
+      validateLengths(style, ['strokeWidth']);
       if (style.stroke !== undefined) {
         layer.Stroke = style.stroke;
       }
       if (style.strokeWidth !== undefined) {
-        layer.StrokeWidth = style.strokeWidth;
+        layer.StrokeWidth = String(style.strokeWidth);
       }
     },
     addValue(value) {
@@ -104,4 +117,16 @@ export function circleLayer(
       layer.remove(value);
     },
   };
+}
+
+function validateLengths<T>(style: T, keys: readonly (keyof T)[]): void {
+  for (const key of keys) {
+    const value = style[key];
+    if (
+      value !== undefined &&
+      (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)
+    ) {
+      throw new RangeError(`${String(key)} must be a positive finite number.`);
+    }
+  }
 }

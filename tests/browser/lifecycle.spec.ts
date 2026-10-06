@@ -48,9 +48,7 @@ test('updates samples and markers, keeps colors, and retains stable IDs after re
         events.push(event.data);
       }
     });
-    const sample: import('../../src/index').TraceSamples = [
-      { frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] },
-    ];
+    const sample = [{ frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] as [number, number] }];
     const first = chart.addTrace(sample);
     const second = chart.addTrace([{ frequencyHz: 2e9, reflectionCoefficient: [0, 0] }]);
     chart.addMarker(second);

@@ -12,11 +12,11 @@ export class SmithScaler {
     public readonly r: d3.ScaleLinear<number, number>,
   ) {}
 
-  public point(p: Point): Point {
+  public point(p: Readonly<Point>): Point {
     return [this.x(p[0]), this.y(p[1])];
   }
 
-  public pointInvert(p: Point): Point {
+  public pointInvert(p: Readonly<Point>): Point {
     return [this.x.invert(p[0]), this.y.invert(p[1])];
   }
 
