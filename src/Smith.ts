@@ -175,6 +175,17 @@ export class Smith {
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
     this.container.append(this.markerContainer);
+    const labels = new SmithGroup().attr('data-layer', 'labels').attr('pointer-events', 'none');
+    for (const [name, layer] of [
+      ['conductance', this.constConductance],
+      ['susceptance', this.constSusceptance],
+      ['resistance', this.constResistance],
+      ['reactance', this.constReactance],
+    ] as const) {
+      labels.append(layer.labels.attr('data-label-layer', name));
+    }
+    labels.append(this.peripheralScaleRenderer.labels);
+    this.container.append(labels);
 
     const assertAlive = () => this.assertAlive();
     this.layers = {

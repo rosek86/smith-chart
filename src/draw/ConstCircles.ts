@@ -46,18 +46,20 @@ export abstract class ConstCircles {
 
   public visibility(visible: boolean): void {
     if (visible) {
-      this.container.show();
+      this.show();
     } else {
-      this.container.hide();
+      this.hide();
     }
   }
 
   public show(): void {
     this.container.show();
+    this.texts.show();
   }
 
   public hide(): void {
     this.container.hide();
+    this.texts.hide();
   }
 
   public displayMinor(display: boolean): void {
@@ -77,7 +79,13 @@ export abstract class ConstCircles {
   }
 
   protected build(): SmithGroup {
-    return this.container.append(this.minor).append(this.major).append(this.texts).hide();
+    this.texts.hide();
+    return this.container.append(this.minor).append(this.major).hide();
+  }
+
+  /** Mount labels separately so every grid line is painted before any label. */
+  public get labels(): SmithGroup {
+    return this.texts;
   }
 
   public draw(): SmithGroup {

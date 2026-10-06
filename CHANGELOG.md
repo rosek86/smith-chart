@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Render grid and scale labels above all chart lines, preserving label visibility and styling during zoom and layer changes.
+
 ## 0.1.0 — 2026-10-06
 
 - Publish the demo directly at https://rosek86.github.io/smithkit/.

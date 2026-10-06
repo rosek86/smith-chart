@@ -14,6 +14,9 @@ function point(radius: number, degrees: number): [number, number] {
 
 /** Peripheral rulers in the chart's 500-unit coordinate system. */
 export class SmithPeripheralScales extends SmithGroup {
+  public readonly labels = new SmithGroup()
+    .attr('data-label-layer', 'peripheral-scales')
+    .attr('pointer-events', 'none');
   private readonly scales = peripheralScales();
   private readonly axes = this.Element.attr('data-layer', 'peripheral-scales')
     .attr('pointer-events', 'none')
@@ -26,7 +29,13 @@ export class SmithPeripheralScales extends SmithGroup {
 
   public constructor() {
     super();
+    const labelAxes = this.labels.Element.selectAll<SVGGElement, (typeof this.scales)[number]>('g')
+      .data(this.scales)
+      .join('g')
+      .attr('data-label-scale', (scale) => scale.id)
+      .nodes();
     this.axes.each(function (scale, index) {
+      const labelAxis = select(labelAxes[index]);
       const axis = select(this);
       const radius = firstRadius + index * ringSpacing;
       const captionAngle = scale.unit === 'λ' ? 180 : 0;
@@ -58,7 +67,7 @@ export class SmithPeripheralScales extends SmithGroup {
         if (major && captionDistance > 25) {
           const [x, y] = point(radius + 8, angle);
           const rotation = angle >= 0 ? 90 - angle : -90 - angle;
-          axis
+          labelAxis
             .append('text')
             .attr('x', x)
             .attr('y', y)
@@ -87,7 +96,7 @@ export class SmithPeripheralScales extends SmithGroup {
             ? 'WAVELENGTHS TOWARD GENERATOR →'
             : '← WAVELENGTHS TOWARD LOAD'
           : scale.title.toUpperCase();
-      axis
+      labelAxis
         .append('text')
         .attr('class', 'peripheral-caption')
         .attr('text-anchor', 'middle')
@@ -109,6 +118,16 @@ export class SmithPeripheralScales extends SmithGroup {
         .attr('stroke', 'white')
         .attr('stroke-width', 1);
     });
+  }
+
+  public override show(): SmithGroup {
+    this.labels.show();
+    return super.show();
+  }
+
+  public override hide(): SmithGroup {
+    this.labels.hide();
+    return super.hide();
   }
 
   /** Connect to the same cursor or marker data as the independent parameter scales. */

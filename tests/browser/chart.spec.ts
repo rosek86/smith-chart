@@ -12,7 +12,7 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   await expect(page.locator('#smith-scales [data-scale]')).toHaveCount(12);
   for (const layer of ['resistance', 'reactance']) {
     expect(await svg.locator(`[data-layer=${layer}]`).getAttribute('opacity')).not.toBe('0');
-    expect(await svg.locator(`[data-layer=${layer}] text`).count()).toBeGreaterThan(20);
+    expect(await svg.locator(`[data-label-layer=${layer}] text`).count()).toBeGreaterThan(20);
   }
   expect(await svg.evaluate((node) => /NaN|Infinity/.test(node.outerHTML))).toBe(false);
   const box = (await svg.boundingBox())!;
