@@ -3,6 +3,9 @@
 ## 0.1.0 — Unreleased
 
 - Preserve marker frequency by default on trace replacement; expose explicit frequency, sample-index, and reflection selection strategies.
+- Stabilize complex multiplication/division, logarithms, roots, reciprocals, and common power cases at extreme finite magnitudes.
+- Export standalone formatters and typed equivalent series-component calculations; remove duplicate complex component accessors.
+- Accept readonly trace samples and numeric style lengths; keep point radii fixed in CSS pixels across container resize.
 - Coalesce pending position notifications per marker while retaining synchronous drag lifecycle events.
 - Add nearest-frequency marker selection, configurable points/line/both trace rendering, and dense-point rendering optimization.
 - Add positive-real reference impedance renormalization for traces and imported measurements, preserving physical impedance and marker sample indices.
