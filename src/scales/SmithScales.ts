@@ -27,7 +27,8 @@ export class SmithScales {
     .style('height', 'auto');
 
   public constructor() {
-    this.axes
+    const labels = this.axes.append('g').attr('data-role', 'labels').attr('pointer-events', 'none');
+    labels
       .append('text')
       .attr('x', this.start)
       .attr('y', 12)
@@ -35,7 +36,7 @@ export class SmithScales {
       .attr('font-size', 12)
       .attr('fill', '#334155')
       .text((scale) => scale.title);
-    this.axes
+    labels
       .append('text')
       .attr('class', 'scale-value')
       .attr('x', this.start)
@@ -58,12 +59,18 @@ export class SmithScales {
     const length = this.length;
     this.axes.each(function (scale) {
       const ticks = select(this)
+        .selectAll('g.scale-tick')
+        .data(scale.values)
+        .join('g')
+        .attr('class', 'scale-tick')
+        .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`);
+      ticks.append('line').attr('y2', 5).attr('stroke', '#64748b').attr('stroke-width', 1);
+      select(this)
+        .select('[data-role=labels]')
         .selectAll('g')
         .data(scale.values)
         .join('g')
-        .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`);
-      ticks.append('line').attr('y2', 5).attr('stroke', '#64748b').attr('stroke-width', 1);
-      ticks
+        .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`)
         .append('text')
         .attr('y', 17)
         .attr('font-size', 10)
@@ -84,6 +91,7 @@ export class SmithScales {
       .attr('fill', '#dc2626')
       .attr('stroke', 'white')
       .attr('stroke-width', 1);
+    labels.raise();
     this.axes.append('title').text((scale) => scale.description ?? scale.title);
   }
 

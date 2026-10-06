@@ -14,7 +14,8 @@ test('grid setters and drawing options update the rendered geometry of all four 
     return (['resistance', 'reactance', 'conductance', 'susceptance'] as const).map((name) => {
       const layer = chart.layers[name];
       layer.setVisible(true);
-      const [minor, major, labels] = document.querySelector(`[data-layer=${name}]`)!.children;
+      const [minor, major] = document.querySelector(`[data-layer=${name}]`)!.children;
+      const labels = document.querySelector(`[data-label-layer=${name}]`)!;
       const geometryStyles = (group: Element) =>
         Array.from(group.querySelectorAll('line, circle, path'), (shape) => {
           const style = getComputedStyle(shape);
@@ -103,7 +104,7 @@ for (const width of [340, 900]) {
         const layer = name === 'peripheral-scales' ? chart.peripheralScales : chart.layers[name];
         layer.setVisible(true);
         const labels = [
-          ...document.querySelectorAll<SVGTextElement>(`[data-layer=${name}] text`),
+          ...document.querySelectorAll<SVGTextElement>(`[data-label-layer=${name}] text`),
         ].map((label) => {
           const rect = label.getBoundingClientRect();
           return {
