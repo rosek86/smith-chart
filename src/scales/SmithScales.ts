@@ -1,6 +1,7 @@
 import { select, format } from 'd3';
 import type { Complex } from '../math/Complex.js';
 import { RadialScaleDefinitions } from './RadialScaleDefinitions.js';
+import { SvgExporter } from '../svg/SvgExporter.js';
 
 /** Independent parameter scales. Connect update() to a chart's cursor events. */
 export class SmithScales {
@@ -133,6 +134,12 @@ export class SmithScales {
         .attr('data-position', position)
         .attr('visibility', null);
     });
+  }
+
+  /** Export all mounted scales in their current layout as a standalone SVG. */
+  public toSvg(): string {
+    this.assertAlive();
+    return SvgExporter.scales(this.container.node()!, this.axes.nodes());
   }
 
   public destroy(): void {

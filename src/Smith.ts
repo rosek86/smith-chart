@@ -5,6 +5,7 @@ import { Point } from './math/geometry.js';
 
 import { MouseGesture } from './interaction/MouseGesture.js';
 import { SmithSvg } from './svg/SmithSvg.js';
+import { SvgExporter } from './svg/SvgExporter.js';
 import { SmithGroup } from './svg/SmithGroup.js';
 import { SmithCircle } from './svg/SmithCircle.js';
 
@@ -224,6 +225,12 @@ export class Smith {
     }
     host.appendChild(this.svg.Node!);
     this.updateViewportScale();
+  }
+
+  /** Export the current mounted view as standalone SVG with a transparent background. */
+  public toSvg(): string {
+    this.assertAlive();
+    return SvgExporter.chart(this.svg.Node!);
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */

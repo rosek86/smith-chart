@@ -3,6 +3,7 @@ import { Smith, SmithScales, SmithEventType, SmithFormatter, RfCalculations } fr
 import type { SmithEvent, SmithReading, MarkerSnapshot, TraceSamples } from '../src';
 import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
+import { SvgDownload } from './download';
 
 function element<T extends HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -45,6 +46,12 @@ detailedGrid.addEventListener('change', updateDetailedGrid);
 updateDetailedGrid();
 
 element('reset-view').addEventListener('click', () => smith.resetView());
+element('export-chart').addEventListener('click', () => {
+  SvgDownload.save(smith.toSvg(), 'smith-chart.svg');
+});
+element('export-scales').addEventListener('click', () => {
+  SvgDownload.save(scales.toSvg(), 'smith-scales.svg');
+});
 
 type ReadoutSource = 'cursor' | 'marker';
 let source: ReadoutSource = 'cursor';

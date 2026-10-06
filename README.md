@@ -20,6 +20,7 @@ See the [migration guide](docs/migration-0.2.md) for the changed imports.
 - Twelve parameter scales mounted independently of chart zoom.
 - Four peripheral rulers for phase and electrical length.
 - One-port Touchstone 1.x import with RI, MA, and DB representations.
+- Standalone SVG export of the current chart and radial scales.
 - ESM modules and TypeScript declarations.
 
 ## Installation
@@ -448,6 +449,39 @@ Omitted options use Touchstone defaults: GHz, S, MA, 50 Ω. For an existing char
 use `RfCalculations.renormalizeSamples` when the file reference differs from
 `chart.referenceImpedanceOhms`. The parser itself does not renormalize data.
 Multiport data and Touchstone 2.x are not supported.
+
+## SVG export
+
+`chart.toSvg()` and `scales.toSvg()` return SVG strings. Call them after `draw()`
+while the component is mounted and has a non-zero rendered size; exporting before
+mounting, from a `display: none` container, or after destruction throws an error.
+
+```ts
+const svg = chart.toSvg();
+const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url;
+link.download = 'smith-chart.svg';
+document.body.appendChild(link);
+link.click();
+link.remove();
+setTimeout(() => URL.revokeObjectURL(url), 1000);
+```
+
+The chart export preserves the current zoom/pan, layer visibility, labels, traces,
+markers, and visible indicators. It captures the rendered points, including dense
+trace point reduction; it is an image export, not a measurement-data export.
+The scale export combines all twelve axes into one SVG using their current layout
+and displayed readings. To export a marker reading, call `scales.update()` with
+that marker's reflection coefficient before `scales.toSvg()`.
+
+Files have explicit pixel dimensions and a transparent background. Presentation
+styles are inlined so the application's stylesheet is not required. Text remains
+editable, and curved captions retain their internal path references. Font files
+and surrounding HTML controls/backgrounds are not embedded. Downloading is the
+consumer's responsibility; the library does not create files or modify live nodes.
+The demo provides separate **Export chart SVG** and **Export scales SVG** buttons.
 
 ## Development and license
 
