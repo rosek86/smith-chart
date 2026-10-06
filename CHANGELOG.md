@@ -2,6 +2,8 @@
 
 ## Unreleased — next minor (0.2.0)
 
+- Add `Smith.toSvg()` and `SmithScales.toSvg()` to export standalone SVG snapshots with resolved styles, current view/layout, and separate download buttons in the demo.
+
 - Preserve the stacking order of overlapping traces when replacing their samples.
 - Reorganize library internals by responsibility, separate trace selection state from SVG rendering, and share complex division between arithmetic and RF conversions.
 - **Breaking:** replace standalone calculation, parsing, formatting, and comparison exports with static methods on `RfCalculations`, `Touchstone`, `SmithFormatter`, and `MarkerMeasurements`. See [the migration guide](docs/migration-0.2.md).

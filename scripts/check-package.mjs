@@ -119,6 +119,9 @@ chart.layers.resistance.setStyle({ majorWidth: '2' });
 chart.peripheralScales.update(Complex.zero());
 unsubscribe();
 chart.clearTraces();
+const chartSvg: string = chart.toSvg();
+const scalesSvg: string = new SmithScales().toSvg();
+void [chartSvg, scalesSvg];
 chart.destroy();
 const events: (SmithReading | MarkerSnapshot)[] = [];
 void [Complex, RfCalculations.readReflection, SmithEventType, events];
@@ -170,6 +173,8 @@ const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), im
 assert.equal(MarkerMeasurements.compare(reading, reading).phaseDeltaDegrees, 0);
 assert.equal(typeof SmithScales.prototype.update, 'function');
 assert.equal(typeof Smith.prototype.destroy, 'function');
+assert.equal(typeof Smith.prototype.toSvg, 'function');
+assert.equal(typeof SmithScales.prototype.toSvg, 'function');
 assert.equal(typeof Smith.prototype.updateTrace, 'function');
 assert.equal(Complex.from(3, 4).abs(), 5);
 assert.ok(Math.abs(RfCalculations.renormalizeReflection(Complex.zero(), 75, 50).re - 0.2) < 1e-14);
