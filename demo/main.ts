@@ -29,6 +29,7 @@ const layers = [
   ['admittance', [smith.layers.conductance, smith.layers.susceptance]],
   ['constantQ', [smith.layers.q]],
   ['constantSwr', [smith.layers.vswr]],
+  ['peripheral-scales', [smith.peripheralScales]],
 ] as const;
 for (const [id, groups] of layers) {
   const checkbox = element<HTMLInputElement>(id);
