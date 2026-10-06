@@ -247,15 +247,36 @@ either Γ is zero or non-finite. Impedance differences are undefined if either Z
 is singular or non-finite. Frequencies must be finite and non-negative. This is
 a point comparison, not sweep phase unwrapping or group delay.
 
-`Complex.from(re, im)` constructs complex numbers. Arithmetic (`add`, `sub`,
+`Complex.from(re, im)` constructs complex numbers. Read components through `re` and `im`. Arithmetic (`add`, `sub`,
 `mul`, `div`, `pow`) returns new values. The class also provides `abs`, `arg`
 (radians), and static functions such as `Complex.conj`, `Complex.sqrt`,
 `Complex.exp`, `Complex.log`, and trigonometric/hyperbolic functions and inverses. `toVector()` returns `[real, imaginary]`; `toString(dp)` formats
 a Cartesian value. See the exported declarations for all operations.
 
-Chart formatting helpers are `formatNumber(value)` (SI prefixes),
-`formatComplex(value, unit?, dp?)`, `formatComplexPolar(value, unit?, dp?)`, and
-`getReactanceComponentValue(gamma, frequencyHz)` (equivalent series L/C).
+Formatting helpers are independent exports: `formatNumber(value)` (three significant
+digits and SI prefixes), `formatComplex(value, unit?, decimalPlaces?)`, and
+`formatComplexPolar(value, unit?, decimalPlaces?)` (phase in degrees). They work
+without a chart or DOM. Complex formatters default to three fractional digits.
+`formatNumber` includes spacing so you can append a unit, e.g. `formatNumber(1e9) + 'Hz'`.
+
+`reactanceToComponent(reactanceOhms, frequencyHz)` calculates an ideal equivalent
+series component without formatting or constructing a chart:
+
+```ts
+import { reactanceToComponent, formatNumber } from 'smithkit';
+
+const component = reactanceToComponent(-50, 1e9);
+if (component?.kind === 'capacitor') {
+  console.log(formatNumber(component.capacitanceFarads) + 'F'); // 3.18 pF
+} else if (component?.kind === 'inductor') {
+  console.log(formatNumber(component.inductanceHenries) + 'H');
+}
+```
+
+Use `reading.impedanceOhms.im` for the reactance when impedance is defined.
+Zero frequency, zero reactance, and unrepresentable results return `undefined`.
+Non-finite reactance or negative/non-finite frequency throws `RangeError`.
+This is a single-frequency equivalence, not a fitted circuit model.
 
 ## Grid layers
 

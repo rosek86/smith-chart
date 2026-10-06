@@ -1,5 +1,12 @@
 import './style.css';
-import { Smith, SmithScales, SmithEventType } from '../src';
+import {
+  Smith,
+  SmithScales,
+  SmithEventType,
+  formatNumber,
+  formatComplex,
+  reactanceToComponent,
+} from '../src';
 import type { SmithEvent, SmithReading, MarkerSnapshot, TraceSamples } from '../src';
 import { parseTouchstone, renormalizeSamples } from '../src';
 import { Measurements, markerLabel } from './measurements';
@@ -75,17 +82,15 @@ function renderReadout(): void {
   const data = source === 'cursor' ? cursorData : markerData;
   scales.update(data?.reflectionCoefficient ?? null);
   smith.peripheralScales.update(data?.reflectionCoefficient ?? null);
-  element('parameter-gamma').textContent = data
-    ? smith.formatComplex(data.reflectionCoefficient)
-    : '—';
+  element('parameter-gamma').textContent = data ? formatComplex(data.reflectionCoefficient) : '—';
   element('parameter-impedance').textContent = data
     ? data.impedanceOhms
-      ? smith.formatComplex(data.impedanceOhms)
+      ? formatComplex(data.impedanceOhms)
       : '∞'
     : '—';
   element('parameter-admittance').textContent = data
     ? data.admittanceSiemens
-      ? smith.formatComplex(data.admittanceSiemens.mul(1000))
+      ? formatComplex(data.admittanceSiemens.mul(1000))
       : '∞'
     : '—';
   element('parameter-q').textContent = data?.q?.toFixed(3) ?? '—';
@@ -101,9 +106,18 @@ function renderReadout(): void {
   swatch.style.backgroundColor = trace?.color ?? '';
   if (markerData && trace) {
     const summary = document.createElement('div');
-    summary.textContent = `${markerLabel(trace, markerData.markerNumber)} · Frequency: ${smith.formatNumber(markerData.frequencyHz)}Hz`;
+    summary.textContent = `${markerLabel(trace, markerData.markerNumber)} · Frequency: ${formatNumber(markerData.frequencyHz)}Hz`;
     const component = document.createElement('div');
-    component.textContent = `Reactive component: ${smith.getReactanceComponentValue(markerData.reflectionCoefficient, markerData.frequencyHz)} · Scales: ratios or dB.`;
+    const equivalent = markerData.impedanceOhms
+      ? reactanceToComponent(markerData.impedanceOhms.im, markerData.frequencyHz)
+      : undefined;
+    const componentValue =
+      equivalent?.kind === 'inductor'
+        ? `${formatNumber(equivalent.inductanceHenries)}H`
+        : equivalent?.kind === 'capacitor'
+          ? `${formatNumber(equivalent.capacitanceFarads)}F`
+          : '—';
+    component.textContent = `Reactive component: ${componentValue} · Scales: ratios or dB.`;
     markerReadout.replaceChildren(summary, component);
   } else {
     markerReadout.textContent = smith.getTraces().length

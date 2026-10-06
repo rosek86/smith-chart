@@ -58,7 +58,7 @@ test('updates samples and markers, keeps colors, and retains stable IDs after re
     const color = document.querySelectorAll('[data-role=samples]')[1].getAttribute('fill');
     sample[0].reflectionCoefficient[0] = -1;
     const copied =
-      chart.getMarker(chart.getTraces()[0].markers[0].id)?.reflectionCoefficient.real === 0.5;
+      chart.getMarker(chart.getTraces()[0].markers[0].id)?.reflectionCoefficient.re === 0.5;
     chart.getTraces().pop();
     const defensive = chart.getTraces().length === 2;
     chart.removeTrace(first);

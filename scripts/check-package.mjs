@@ -33,8 +33,14 @@ try {
   writeFileSync(
     join(temp, 'consumer.ts'),
     `
-import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
+import { formatNumber, formatComplex, formatComplexPolar, reactanceToComponent, Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
 import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
+const component = reactanceToComponent(-50, 1e9);
+if (component?.kind === 'capacitor') { formatNumber(component.capacitanceFarads); }
+formatComplex(Complex.one());
+formatComplexPolar(Complex.i);
+// @ts-expect-error Complex exposes only re/im component names.
+Complex.one().real;
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
@@ -118,7 +124,10 @@ void [Complex, readReflection, SmithEventType, events];
     '-e',
     `
 import assert from 'node:assert/strict';
-import { Smith, SmithScales, Complex, readReflection, parseTouchstone, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
+import { formatNumber, formatComplex, formatComplexPolar, reactanceToComponent, Smith, SmithScales, Complex, readReflection, parseTouchstone, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
+assert.equal(formatNumber(1e9) + 'Hz', '1 GHz');
+assert.equal(reactanceToComponent(-50, 1e9).kind, 'capacitor');
+assert.equal(typeof Smith.prototype.formatNumber, 'undefined');
 const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), impedanceOhms: Complex.from(150) };
 assert.equal(compareMarkerReadings(reading, reading).phaseDeltaDegrees, 0);
 assert.equal(typeof SmithScales.prototype.update, 'function');

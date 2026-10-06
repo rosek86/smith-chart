@@ -1,3 +1,4 @@
+import { formatNumber, formatComplex } from '../src';
 import type { Smith, TraceInfo, TraceRenderMode } from '../src';
 
 function node<T extends HTMLElement>(id: string): T {
@@ -56,10 +57,10 @@ export class Measurements {
         ? undefined
         : this.smith.compareMarkers(this.a.value, this.b.value);
     node('comparison-frequency').textContent = comparison
-      ? `${this.smith.formatNumber(comparison.frequencyDeltaHz)}Hz`
+      ? `${formatNumber(comparison.frequencyDeltaHz)}Hz`
       : '—';
     node('comparison-impedance').textContent = comparison?.impedanceDeltaOhms
-      ? `${this.smith.formatComplex(comparison.impedanceDeltaOhms).trim()} Ω`
+      ? `${formatComplex(comparison.impedanceDeltaOhms).trim()} Ω`
       : '—';
     node('comparison-phase').textContent =
       comparison?.phaseDeltaDegrees !== undefined
@@ -85,7 +86,7 @@ export class Measurements {
       '[data-marker-frequency-readout]',
     )) {
       const marker = this.smith.getMarker(output.dataset.markerFrequencyReadout!);
-      output.value = marker ? `Selected: ${this.smith.formatNumber(marker.frequencyHz)}Hz` : '—';
+      output.value = marker ? `Selected: ${formatNumber(marker.frequencyHz)}Hz` : '—';
     }
   }
 

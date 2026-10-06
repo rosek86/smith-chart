@@ -342,43 +342,6 @@ export class Smith {
     return new SmithCircle(c, opts);
   }
 
-  public getReactanceComponentValue(p: Complex, f: number): string {
-    const z = this.calcs.rflCoeffToImpedance(p);
-    if (!z) {
-      return 'Undefined';
-    }
-
-    const x = z.imag * this.referenceImpedanceOhms;
-
-    if (x < 0) {
-      const cap = 1 / (2 * Math.PI * f * -x);
-      return this.formatNumber(cap) + 'F';
-    }
-
-    const ind = x / (2 * Math.PI * f);
-    return this.formatNumber(ind) + 'H';
-  }
-
-  public formatComplex(c: Complex, unit: string = '', dp: number = 3): string {
-    if (unit !== '') {
-      unit = `[${unit}]`;
-    }
-    return `${c.toString(dp)} ${unit}`;
-  }
-
-  public formatComplexPolar(c: Complex, unit: string = '', dp: number = 3): string {
-    const m = c.abs();
-    const a = this.calcs.rad2deg(c.arg());
-    return `${m.toFixed(dp)} ${unit} ∠${a.toFixed(dp)}°`;
-  }
-
-  public formatNumber(val: number): string {
-    const formatted = d3.format('.3~s')(val);
-    return Number.isFinite(val) && /[a-zA-Zµ]$/.test(formatted)
-      ? formatted.replace(/([a-zA-Zµ])$/, ' $1')
-      : formatted + ' ';
-  }
-
   /** Add a named trace with one initial marker. Returns a chart-local, stable ID. */
   public addTrace(values: TraceSamples, options: TraceOptions = {}): string {
     this.assertAlive();
