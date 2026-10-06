@@ -39,6 +39,8 @@ const component = reactanceToComponent(-50, 1e9);
 if (component?.kind === 'capacitor') { formatNumber(component.capacitanceFarads); }
 formatComplex(Complex.one());
 formatComplexPolar(Complex.i);
+// @ts-expect-error Complex exposes only re/im component names.
+Complex.one().real;
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
