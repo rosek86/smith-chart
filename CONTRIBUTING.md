@@ -59,8 +59,8 @@ Install Chromium and WebKit first with `npx playwright install chromium webkit`.
 clears that override when running WebKit.
 
 CI and the release workflow use this same command. The release workflow also has
-a manual, verification-only dispatch that uploads the verified archive without
-running its publication job.
+a manual dispatch: leave `release_tag` empty to verify only, or set an existing
+release tag on the default branch to retry its publication with the current workflow.
 
 ## Architecture
 
