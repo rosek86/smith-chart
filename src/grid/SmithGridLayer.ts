@@ -33,20 +33,38 @@ export class SmithGridLayer extends ConstCircles {
       .attr('font-family', 'Verdana');
     for (const tick of real ? GridLabels.resistance() : GridLabels.reactance()) {
       const label = GridGeometry.label(kind, tick.definition);
-      this.texts.append(
-        new SmithText(this.scaler.point(label.point), label.text, {
-          rotate: label.rotate,
-          dx: this.scaler.r(label.dx).toString(),
-          dy: this.scaler.r(label.dy).toString(),
-          textAnchor: label.textAnchor,
-          dominantBaseline: label.dominantBaseline,
-        }),
+      const text = new SmithText(this.scaler.point(label.point), label.text, {
+        rotate: label.rotate,
+        dx: this.scaler.r(label.dx).toString(),
+        dy: this.scaler.r(label.dy).toString(),
+        textAnchor: label.textAnchor,
+        dominantBaseline: label.dominantBaseline,
+      });
+      text.Element.attr(
+        'data-label-priority',
+        SmithGridLayer.labelPriority(tick.definition.point.r, tick.definition.point.i),
       );
+      this.texts.append(text);
     }
     this.build();
     if (!params.showMinor) {
       this.minor.hide();
     }
+  }
+
+  private static labelPriority(real: number, imaginary: number): number {
+    const value = Math.abs(imaginary === 0 ? real : imaginary);
+    const importance =
+      value === 1
+        ? 100
+        : value === 0
+          ? 95
+          : [0.5, 2].includes(value)
+            ? 80
+            : [0.2, 5, 10].includes(value)
+              ? 70
+              : 40;
+    return importance + (imaginary === 0 ? 20 : real === 0 ? 10 : 0);
   }
 
   private drawGrid(definitions: SmithTicksShapes, width: string): SmithGroup {

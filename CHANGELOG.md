@@ -2,6 +2,8 @@
 
 ## Unreleased — next minor (0.2.0)
 
+- Adapt grid and peripheral-scale labels to the available space, preserving a minimum readable font size, prioritizing key values, and hiding collisions on small charts while keeping labels stable during zoom.
+
 - Add `Smith.toSvg()` and `SmithScales.toSvg()` to export standalone SVG snapshots with resolved styles, current view/layout, and separate download buttons in the demo.
 
 - Preserve the stacking order of overlapping traces when replacing their samples.

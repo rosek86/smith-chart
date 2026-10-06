@@ -5,6 +5,7 @@ import { Point } from './math/geometry.js';
 
 import { MouseGesture } from './interaction/MouseGesture.js';
 import { SmithSvg } from './svg/SmithSvg.js';
+import { LabelLayout } from './svg/LabelLayout.js';
 import { SvgExporter } from './svg/SvgExporter.js';
 import { SmithGroup } from './svg/SmithGroup.js';
 import { SmithCircle } from './svg/SmithCircle.js';
@@ -68,6 +69,7 @@ export class Smith {
   private calcs: SmithConstantCircle = new SmithConstantCircle();
   private scalers: Scalers;
 
+  private readonly defaultTransform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
   private transform = d3.zoomIdentity;
   private zoomEnabled = true;
   private applyingView = false;
@@ -75,6 +77,7 @@ export class Smith {
 
   private svg: SmithSvg;
   private resizeObserver: ResizeObserver;
+  private readonly labelLayout: LabelLayout;
   private container: SmithGroup;
   private dataContainer: SmithGroup;
   private markerContainer: SmithGroup;
@@ -188,13 +191,26 @@ export class Smith {
     }
     labels.append(this.peripheralScaleRenderer.labels);
     this.container.append(labels);
+    this.labelLayout = new LabelLayout(
+      this.svg.Node as SVGSVGElement,
+      labels.Node as SVGGElement,
+      this.defaultTransform,
+    );
 
     const assertAlive = () => this.assertAlive();
     this.layers = {
-      resistance: new GridLayerControl(this.constResistance, assertAlive),
-      reactance: new GridLayerControl(this.constReactance, assertAlive),
-      conductance: new GridLayerControl(this.constConductance, assertAlive),
-      susceptance: new GridLayerControl(this.constSusceptance, assertAlive),
+      resistance: new GridLayerControl(this.constResistance, assertAlive, () =>
+        this.labelLayout.update(true),
+      ),
+      reactance: new GridLayerControl(this.constReactance, assertAlive, () =>
+        this.labelLayout.update(true),
+      ),
+      conductance: new GridLayerControl(this.constConductance, assertAlive, () =>
+        this.labelLayout.update(true),
+      ),
+      susceptance: new GridLayerControl(this.constSusceptance, assertAlive, () =>
+        this.labelLayout.update(true),
+      ),
       q: new CircleLayerControl(this.constQCircles, 0, assertAlive),
       vswr: new CircleLayerControl(this.constSwrCircles, 1, assertAlive),
     };
@@ -206,6 +222,7 @@ export class Smith {
         } else {
           this.peripheralScaleRenderer.hide();
         }
+        this.labelLayout.update(true);
       },
       update: (gamma) => {
         assertAlive();
@@ -259,6 +276,7 @@ export class Smith {
       const scale = Math.hypot(matrix.a, matrix.b);
       this.data.forEach((trace) => trace.setViewportScale(scale));
     }
+    this.labelLayout.update();
   }
 
   private assertAlive(): void {
@@ -385,7 +403,7 @@ export class Smith {
 
   public resetView(): void {
     this.assertAlive();
-    const transform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
+    const transform = this.defaultTransform;
     this.applyView(transform);
   }
 

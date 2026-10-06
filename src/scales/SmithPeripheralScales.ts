@@ -71,6 +71,18 @@ export class SmithPeripheralScales extends SmithGroup {
             .append('text')
             .attr('x', x)
             .attr('y', y)
+            .attr(
+              'data-label-priority',
+              scale.unit === 'λ'
+                ? Math.round(value * 100) % 5 === 0
+                  ? 85
+                  : 20
+                : value % 90 === 0
+                  ? 90
+                  : value % 30 === 0
+                    ? 75
+                    : 30,
+            )
             .attr('transform', `rotate(${rotation},${x},${y})`)
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
@@ -99,6 +111,7 @@ export class SmithPeripheralScales extends SmithGroup {
       labelAxis
         .append('text')
         .attr('class', 'peripheral-caption')
+        .attr('data-label-priority', 200)
         .attr('text-anchor', 'middle')
         .attr('font-family', 'system-ui, sans-serif')
         .attr('font-size', 10.5)
@@ -108,6 +121,17 @@ export class SmithPeripheralScales extends SmithGroup {
         .append('textPath')
         .attr('href', `#${pathId}`)
         .attr('startOffset', '50%')
+        .attr('data-full-caption', caption)
+        .attr(
+          'data-compact-caption',
+          scale.unit === 'λ'
+            ? scale.id === 'wavelengths-generator'
+              ? 'TO GENERATOR →'
+              : '← TO LOAD'
+            : scale.id === 'transmission-phase'
+              ? 'TRANSMISSION · °'
+              : 'REFLECTION · °',
+        )
         .text(caption);
       axis
         .append('circle')
