@@ -34,7 +34,7 @@ try {
     join(temp, 'consumer.ts'),
     `
 import { Smith, SmithScales, Complex, readReflection, parseTouchstone, SmithEventType, compareMarkerReadings, renormalizeReflection, renormalizeSamples } from 'smithkit';
-import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceUpdateOptions, MarkerSelectionStrategy, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
+import type { TraceSamples, TraceSample, TouchstoneData, SmithEvent, SmithReading, TraceOptions, TraceInfo, MarkerSnapshot, MarkerComparison } from 'smithkit';
 const entry: TraceSample = { frequencyHz: 1e9, reflectionCoefficient: [0, 0] };
 const samples: TraceSamples = [entry];
 const parsed: TouchstoneData = parseTouchstone('# GHz S RI R 50\\n1 0 0');
@@ -54,6 +54,7 @@ if (markerId) {
   void comparison;
 }
 chart.setTraceOptions(traceId, { visible: false });
+import type { TraceUpdateOptions, MarkerSelectionStrategy } from 'smithkit';
 const strategy: MarkerSelectionStrategy = 'frequency';
 const updateOptions: TraceUpdateOptions = { markerSelection: strategy };
 const updated: boolean = chart.updateTrace(traceId, samples, updateOptions);
