@@ -17,6 +17,11 @@ def reciprocal(z):
 
 
 functions = {
+    "sqrt": cmath.sqrt,
+    "log": cmath.log,
+    "log2": lambda z: cmath.log(z) / math.log(2),
+    "log10": cmath.log10,
+    "inv": reciprocal,
     "sinh": cmath.sinh,
     "cosh": cmath.cosh,
     "tanh": cmath.tanh,
@@ -42,6 +47,9 @@ extra = {
     for name in ['asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch']
 }
 extra.update({
+    **{name: [complex(1e-300, 1e-300), complex(1e300, -1e300),
+               complex(1.7e308, 1.7e308), complex(-2, -0.0)]
+       for name in ["sqrt", "log", "log2", "log10", "inv"]},
     'sinh': [complex(710, .5), complex(-710, .5), complex(1e-300, 1e-300)],
     'cosh': [complex(710, .5), complex(-710, .5), complex(1e-300, 1e-300)],
     'tanh': [complex(700, .5), complex(-700, .5), complex(20, .5), complex(1e-300, 1e-300)],
@@ -54,6 +62,8 @@ extra.update({
 rows = []
 for name, function in functions.items():
     for z in common + extra.get(name, []):
+        if name == "inv" and abs(z.real) > 1e308:
+            continue
         result = function(z)
         assert math.isfinite(result.real) and math.isfinite(result.imag), (name, z)
         rows.append({'operation': name, 'input': [z.real, z.imag],

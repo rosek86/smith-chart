@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { Complex } from '../src/complex/Complex';
 
 const operations = [
+  'sqrt',
+  'log',
+  'log2',
+  'log10',
+  'inv',
   'sinh',
   'asinh',
   'cosh',
@@ -150,4 +155,49 @@ describe('identities and exceptional values', () => {
     close(Complex.from(Number.MIN_VALUE).acsch().re, Math.LN2 - Math.log(Number.MIN_VALUE));
     close(Complex.from(1, 1e-300).atanh().re, (Math.LN2 - Math.log(1e-300)) / 2);
   });
+});
+
+describe('finite arithmetic across the binary64 range', () => {
+  it('divides identical large, small, and subnormal values without overflow', () => {
+    for (const magnitude of [1e200, 1e-200, Number.MAX_VALUE, Number.MIN_VALUE]) {
+      const z = Complex.from(magnitude, magnitude);
+      expect(z.div(z).toVector()).toEqual([1, 0]);
+      expect(z.div(z.conj()).toVector()).toEqual([0, 1]);
+    }
+    expect(Complex.from(1e308, 1e-308).div(Complex.one()).toVector()).toEqual([1e308, 1e-308]);
+    expect(
+      Complex.from(1, 1).div(Complex.from(Number.MIN_VALUE, Number.MIN_VALUE)).toVector(),
+    ).toEqual([Infinity, 0]);
+  });
+  it('keeps product cancellation and representable subnormal products', () => {
+    const product = Complex.from(1e200, 1e200).mul(Complex.from(1e200, -1e200));
+    expect(product.toVector()).toEqual([Infinity, 0]);
+    closeComplex(Complex.from(1e-160, 1e-160).mul(Complex.from(1e-160, -1e-160)), [2e-320, 0]);
+  });
+  it('preserves signed-zero roots and reciprocal branch sides', () => {
+    expect(Complex.from(-4, -0).sqrt().toVector()).toEqual([0, -2]);
+    expect(Complex.from(4, -0).sqrt().toVector()).toEqual([2, -0]);
+    expect(Complex.from(2, 0).inv().toVector()).toEqual([0.5, -0]);
+    expect(Complex.from(2, -0).inv().toVector()).toEqual([0.5, 0]);
+    expect(Complex.from(0, -0).sqrt().toVector()).toEqual([0, -0]);
+  });
+  it('uses NaN pairs for undefined division and preserves logarithmic zero limits', () => {
+    for (const divisor of [0, Complex.zero(), Infinity, Complex.from(NaN)]) {
+      expect(Complex.one().div(divisor).toVector()).toEqual([NaN, NaN]);
+    }
+    expect(Complex.zero().inv().toVector()).toEqual([NaN, NaN]);
+    expect(Complex.from(0, -0).log().toVector()).toEqual([-Infinity, -0]);
+  });
+});
+
+it('keeps powers consistent with roots, reciprocals, and exact identity cases', () => {
+  const z = Complex.from(1.7e308, 1.7e308);
+  expect(z.pow(0.5).toVector()).toEqual(z.sqrt().toVector());
+  expect(z.pow(-1).toVector()).toEqual(z.inv().toVector());
+  expect(z.pow(1).toVector()).toEqual(z.toVector());
+  expect(z.pow(0).toVector()).toEqual([1, 0]);
+  expect(Complex.from(-2).pow(2).toVector()).toEqual([4, -0]);
+  expect(Complex.zero().pow(-2).toVector()).toEqual([NaN, NaN]);
+  expect(Complex.zero().pow(2).toVector()).toEqual([0, 0]);
+  expect(Complex.one().pow(Infinity).toVector()).toEqual([NaN, NaN]);
 });

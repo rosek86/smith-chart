@@ -38,3 +38,12 @@ it('keeps singular readings undefined without losing the frequency difference', 
   expect(compareMarkerReadings(invalid, a).impedanceDeltaOhms).toBeUndefined();
   expect(() => compareMarkerReadings(reading(0, NaN), a)).toThrow(RangeError);
 });
+
+it('does not expose an overflowing impedance difference as a finite reading', () => {
+  const result = compareMarkerReadings(
+    reading(0, 1, Complex.from(-1e308)),
+    reading(0, 2, Complex.from(1e308)),
+  );
+  expect(result.impedanceDeltaOhms).toBeUndefined();
+  expect(result.frequencyDeltaHz).toBe(1);
+});

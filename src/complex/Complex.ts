@@ -283,11 +283,7 @@ export class Complex {
   }
 
   public static inv(z: Complex): Complex {
-    const [r, phi] = z.toPolar();
-    return Complex.from({
-      r: 1 / r,
-      phi: -phi,
-    });
+    return Complex.reciprocal(z);
   }
 
   public static add(z: Complex, v: number | Complex): Complex {
@@ -307,21 +303,41 @@ export class Complex {
   }
 
   public static mul(z: Complex, v: number | Complex): Complex {
+    if (
+      !Complex.isFinite(z) ||
+      (typeof v === 'number' ? !Number.isFinite(v) : !Complex.isFinite(v))
+    ) {
+      return Complex.nan();
+    }
     if (typeof v === 'number') {
       return Complex.from(z.re * v, z.im * v);
-    } else {
-      // (a + bi)(c + di) = (ac - bd) + (ad + bc)i
-      return Complex.from(z.re * v.re - z.im * v.im, z.re * v.im + z.im * v.re);
     }
+    const real = Complex.productSum(z.re, v.re, -z.im, v.im);
+    const imaginary = Complex.productSum(z.re, v.im, z.im, v.re);
+    return Complex.from(Complex.scalePowerOfTwo(...real), Complex.scalePowerOfTwo(...imaginary));
   }
 
   public static div(z: Complex, v: number | Complex): Complex {
-    if (typeof v === 'number') {
-      return Complex.from(z.re / v, z.im / v);
-    } else {
-      const d = v.re ** 2 + v.im ** 2;
-      return Complex.from((z.re * v.re + z.im * v.im) / d, (z.im * v.re - z.re * v.im) / d);
+    if (
+      !Complex.isFinite(z) ||
+      (typeof v === 'number' ? !Number.isFinite(v) : !Complex.isFinite(v))
+    ) {
+      return Complex.nan();
     }
+    if (typeof v === 'number') {
+      return v === 0 ? Complex.nan() : Complex.from(z.re / v, z.im / v);
+    }
+    if (v.re === 0 && v.im === 0) {
+      return Complex.nan();
+    }
+    // Keep products as mantissa/exponent pairs, including subnormal inputs.
+    // Neither squaring the denominator nor cancellation requires an infinite intermediate.
+    const [denominator, exponent] = Complex.productSum(v.re, v.re, v.im, v.im);
+    const quotient = (a: number, b: number, c: number, d: number) => {
+      const [numerator, power] = Complex.productSum(a, b, c, d);
+      return Complex.scalePowerOfTwo(numerator / denominator, power - exponent);
+    };
+    return Complex.from(quotient(z.re, v.re, z.im, v.im), quotient(z.im, v.re, -z.re, v.im));
   }
 
   public static exp(z: Complex): Complex {
@@ -334,39 +350,67 @@ export class Complex {
   }
 
   public static log(z: Complex): Complex {
-    const [r, phi] = z.toPolar();
-    return Complex.from({
-      re: Math.log(r),
-      im: phi,
-    });
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
+    return Complex.from(Complex.logHypot(z.re, z.im), z.arg());
   }
 
   public static log2(z: Complex): Complex {
-    const [r, phi] = z.toPolar();
-    return Complex.from({
-      re: Math.log2(r),
-      im: Math.LOG2E * phi,
-    });
+    const value = Complex.log(z);
+    return Complex.from(value.re * Math.LOG2E, value.im * Math.LOG2E);
   }
 
   public static log10(z: Complex): Complex {
-    const [r, phi] = z.toPolar();
-    return Complex.from({
-      re: Math.log10(r),
-      im: Math.LOG10E * phi,
-    });
+    const value = Complex.log(z);
+    return Complex.from(value.re * Math.LOG10E, value.im * Math.LOG10E);
   }
 
   public static pow(z: Complex, exponent: number): Complex {
-    const [r, phi] = z.toPolar();
-    return Complex.from({
-      r: Math.pow(r, exponent),
-      phi: phi * exponent,
-    });
+    if (!Complex.isFinite(z) || !Number.isFinite(exponent)) {
+      return Complex.nan();
+    }
+    if (exponent === 0) {
+      return Complex.one();
+    }
+    if (exponent === 1) {
+      return Complex.from(z.re, z.im);
+    }
+    if (exponent === -1) {
+      return Complex.inv(z);
+    }
+    if (exponent === 0.5) {
+      return Complex.sqrt(z);
+    }
+    if (exponent === 2) {
+      return Complex.mul(z, z);
+    }
+    if (z.re === 0 && z.im === 0) {
+      return exponent > 0 ? Complex.zero() : Complex.nan();
+    }
+    const logRadius = Complex.logHypot(z.re, z.im) * exponent;
+    const angle = z.arg() * exponent;
+    const component = (factor: number) =>
+      factor === 0
+        ? factor
+        : Complex.copySign(Math.exp(logRadius + Math.log(Math.abs(factor))), factor);
+    return Complex.from(component(Math.cos(angle)), component(Math.sin(angle)));
   }
 
   public static sqrt(z: Complex): Complex {
-    return Complex.pow(z, 1 / 2);
+    if (!Complex.isFinite(z)) {
+      return Complex.nan();
+    }
+    const scale = Math.max(Math.abs(z.re), Math.abs(z.im));
+    if (scale === 0) {
+      return Complex.from(0, z.im);
+    }
+    const x = z.re / scale;
+    const y = z.im / scale;
+    const root = Math.sqrt(scale) * Math.sqrt((Math.hypot(x, y) + Math.abs(x)) / 2);
+    return z.re >= 0
+      ? Complex.from(root, z.im / (2 * root))
+      : Complex.from(Math.abs(z.im) / (2 * root), Complex.copySign(root, z.im));
   }
 
   public static sin(z: Complex): Complex {
@@ -617,16 +661,55 @@ export class Complex {
     return scale === 0 ? -Infinity : Math.log(scale) + Math.log(Math.hypot(x / scale, y / scale));
   }
 
-  /** Scaled Cartesian reciprocal, preserving signed zeros on branch cuts. */
-  private static reciprocal(z: Complex): Complex {
-    const scale = Math.max(Math.abs(z.re), Math.abs(z.im));
-    if (scale === 0 || !Number.isFinite(scale)) {
-      return Complex.nan();
+  /** Sum two products without premature overflow/underflow. Result is mantissa × 2^exponent. */
+  private static productSum(a: number, b: number, c: number, d: number): [number, number] {
+    const product = (x: number, y: number): [number, number] => {
+      if (x === 0 || y === 0) {
+        return [x * y, 0];
+      }
+      const ex = Math.min(1023, Math.floor(Math.log2(Math.abs(x))));
+      const ey = Math.min(1023, Math.floor(Math.log2(Math.abs(y))));
+      return [(x / 2 ** ex) * (y / 2 ** ey), ex + ey];
+    };
+    const [first, ef] = product(a, b);
+    const [second, es] = product(c, d);
+    if (first === 0) {
+      return second === 0 ? [first + second, 0] : [second, es];
     }
-    const x = z.re / scale;
-    const y = z.im / scale;
-    const denominator = x * x + y * y;
-    return Complex.from(x / denominator / scale, -y / denominator / scale);
+    if (second === 0) {
+      return [first, ef];
+    }
+    const exponent = Math.max(ef, es);
+    return [first * 2 ** (ef - exponent) + second * 2 ** (es - exponent), exponent];
+  }
+
+  private static scalePowerOfTwo(value: number, exponent: number): number {
+    if (value === 0) {
+      return value;
+    }
+    // Normalize after cancellation before splitting the final exponent.
+    const shift = Math.min(1023, Math.floor(Math.log2(Math.abs(value))));
+    value /= 2 ** shift;
+    exponent += shift;
+    if (exponent > 1023) {
+      return value * 2 ** (exponent - 1023) * 2 ** 1023;
+    }
+    if (exponent < -1022) {
+      return value * 2 ** (exponent + 1022) * 2 ** -1022;
+    }
+    return value * 2 ** exponent;
+  }
+
+  /** Cartesian reciprocal, preserving signed zeros on branch cuts. */
+  private static reciprocal(z: Complex): Complex {
+    const value = Complex.div(Complex.one(), z);
+    if (Number.isNaN(value.re)) {
+      return value;
+    }
+    return Complex.from(
+      z.re === 0 ? Complex.copySign(0, z.re) : value.re,
+      z.im === 0 ? Complex.copySign(0, -z.im) : value.im,
+    );
   }
 
   private static hyperbolicProduct(x: number, factor: number, odd: boolean): number {
