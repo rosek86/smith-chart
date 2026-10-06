@@ -81,8 +81,6 @@ chart.renormalize(75);
 chart.layers.resistance.setStyle({ majorWidth: 2 });
 // @ts-expect-error Public lengths are numeric CSS pixels, not SVG strings.
 chart.layers.resistance.setStyle({ majorWidth: '2' });
-// @ts-expect-error Complex exposes only re/im component names.
-Complex.one().real;
 chart.peripheralScales.update(Complex.zero());
 unsubscribe();
 chart.clearTraces();

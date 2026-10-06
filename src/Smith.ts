@@ -364,7 +364,7 @@ export class Smith {
       return 'Undefined';
     }
 
-    const x = z.im * this.referenceImpedanceOhms;
+    const x = z.imag * this.referenceImpedanceOhms;
 
     if (x < 0) {
       const cap = 1 / (2 * Math.PI * f * -x);

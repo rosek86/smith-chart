@@ -76,6 +76,14 @@ export class Complex {
     return new Complex(0, 1);
   }
 
+  public get real(): number {
+    return this.re;
+  }
+
+  public get imag(): number {
+    return this.im;
+  }
+
   public get re(): number {
     return this.realPart;
   }

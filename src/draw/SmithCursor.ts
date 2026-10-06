@@ -143,7 +143,7 @@ export class SmithCursor {
   }
 
   private isWithinPlot(p: Complex): boolean {
-    return this.calcs.isPointWithinCircle([p.re, p.im], this.zClipCircle);
+    return this.calcs.isPointWithinCircle([p.real, p.imag], this.zClipCircle);
   }
 
   private movePoint(rc: Complex): void {
@@ -158,12 +158,12 @@ export class SmithCursor {
     }
     this.impedance.resistance.circle.show();
 
-    const c = this.scaler.circle(this.calcs.resistanceCircle(z.re));
+    const c = this.scaler.circle(this.calcs.resistanceCircle(z.real));
     this.impedance.resistance.circle.move(c);
   }
 
   private moveReactance(z: Complex | undefined): void {
-    if (z === undefined || Math.abs(z.im) < this.epsilon) {
+    if (z === undefined || Math.abs(z.imag) < this.epsilon) {
       this.impedance.reactance.line.move(this.scaler.point([-1, 0]), this.scaler.point([1, 0]));
       this.impedance.reactance.line.show();
       this.impedance.reactance.arc.hide();
@@ -172,7 +172,7 @@ export class SmithCursor {
     this.impedance.reactance.line.hide();
     this.impedance.reactance.arc.show();
 
-    const c = this.calcs.reactanceCircle(z.im);
+    const c = this.calcs.reactanceCircle(z.imag);
     const p = this.calcs.circleCircleIntersection(c, this.zClipCircle);
 
     p[0] = this.scaler.point(p[0]);
@@ -189,12 +189,12 @@ export class SmithCursor {
     }
     this.admittance.conductance.circle.show();
 
-    const c = this.scaler.circle(this.calcs.conductanceCircle(y.re));
+    const c = this.scaler.circle(this.calcs.conductanceCircle(y.real));
     this.admittance.conductance.circle.move(c);
   }
 
   private moveSusceptance(y: Complex | undefined) {
-    if (y === undefined || Math.abs(y.im) < this.epsilon) {
+    if (y === undefined || Math.abs(y.imag) < this.epsilon) {
       this.admittance.susceptance.line.move(this.scaler.point([-1, 0]), this.scaler.point([1, 0]));
       this.admittance.susceptance.line.show();
       this.admittance.susceptance.arc.hide();
@@ -203,7 +203,7 @@ export class SmithCursor {
     this.admittance.susceptance.line.hide();
     this.admittance.susceptance.arc.show();
 
-    const c = this.calcs.susceptanceCircle(y.im);
+    const c = this.calcs.susceptanceCircle(y.imag);
     const p = this.calcs.circleCircleIntersection(c, this.yClipCircle);
 
     p[0] = this.scaler.point(p[0]);

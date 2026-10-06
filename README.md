@@ -245,7 +245,7 @@ either Γ is zero or non-finite. Impedance differences are undefined if either Z
 is singular or non-finite. Frequencies must be finite and non-negative. This is
 a point comparison, not sweep phase unwrapping or group delay.
 
-`Complex.from(re, im)` constructs complex numbers. Read components through `re` and `im`. Arithmetic (`add`, `sub`,
+`Complex.from(re, im)` constructs complex numbers. Arithmetic (`add`, `sub`,
 `mul`, `div`, `pow`) returns new values. The class also provides `abs`, `arg`
 (radians), and static functions such as `Complex.conj`, `Complex.sqrt`,
 `Complex.exp`, `Complex.log`, and trigonometric/hyperbolic functions and inverses. `toVector()` returns `[real, imaginary]`; `toString(dp)` formats

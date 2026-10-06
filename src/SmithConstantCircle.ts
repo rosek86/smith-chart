@@ -129,10 +129,10 @@ export class SmithConstantCircle {
 
   public rflCoeffToQ(rc: Complex): number | undefined {
     const impedance = this.rflCoeffToImpedance(rc);
-    if (!impedance || (impedance.re === 0 && impedance.im === 0)) {
+    if (!impedance || (impedance.real === 0 && impedance.imag === 0)) {
       return;
     }
-    return Math.abs(impedance.im / impedance.re);
+    return Math.abs(impedance.imag / impedance.real);
   }
 
   public rflCoeffToTransmCoeffP(rc: Complex): number {
