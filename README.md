@@ -20,7 +20,7 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 ## Installation
 
-The first npm release is planned as **0.1.0**. Once it is published, install it with:
+After publication, install the first release, **0.1.0**, with:
 
 ```sh
 npm install smithkit@0.1.0

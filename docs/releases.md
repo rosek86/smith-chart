@@ -1,6 +1,6 @@
 # npm releases
 
-The first planned registry release is **smithkit 0.1.0**. Local package metadata
+The first registry release is **smithkit 0.1.0**. Local package metadata
 is not evidence of a published version. Do not advertise `npm install smithkit`
 as available until the registry release succeeds.
 
@@ -40,7 +40,7 @@ together. A stable 1.0 release should follow validation in real consuming applic
 3. Inspect `artifacts/release-manifest.json`: package name/version, source commit,
    archive filename, SHA-256, npm integrity, packed and unpacked sizes. Keep it with
    `artifacts/smithkit-0.1.0.tgz`. Source changes require a new verification run.
-4. Review [the 0.1.0 release notes](releases/0.1.0.md) and the planned date in the
+4. Review [the 0.1.0 release notes](releases/0.1.0.md) and the release date in the
    changelog. If publication moves to another day, update the date through a PR
    before preparing the final archive. Verify the final committed state again.
 

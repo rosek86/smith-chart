@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — 2026-10-06 (planned)
+## 0.1.0 — 2026-10-06
 
 The release is prepared for publication; npm availability is not yet confirmed.
 
