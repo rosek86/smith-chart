@@ -2,6 +2,7 @@
 
 - Work on a feature branch and open a pull request targeting `main`. Do not commit or push directly to `main`, and do not merge without an explicit request.
 - Treat this repository as a reusable library. Keep the demo as a consumer of its public API.
+- Organize library behavior in classes. Use instance methods for stateful behavior and static methods for stateless operations; do not introduce module-level functions in `src/`. Keep types/interfaces separate where useful and name class modules after their primary class. Local callbacks and closures are allowed.
 - Keep documentation, comments, UI labels, descriptions, and error messages in English.
 - Always use braces for control-flow bodies, including single-line `if` guards and loops; ESLint enforces this.
 - Use descriptive private field names without a leading underscore; ESLint enforces this.

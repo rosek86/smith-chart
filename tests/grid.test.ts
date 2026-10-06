@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { createGridDefinitions } from '../src/grid/definitions';
-import { gridGeometry, gridLabel, type GridKind } from '../src/grid/geometry';
-import { resistanceLabels, reactanceLabels } from '../src/grid/labels';
+import { GridDefinitions } from '../src/grid/GridDefinitions';
+import { GridGeometry, type GridKind } from '../src/grid/GridGeometry';
+import { GridLabels } from '../src/grid/GridLabels';
 
 const kinds: GridKind[] = ['resistance', 'reactance', 'conductance', 'susceptance'];
 
 describe('normalized grid geometry', () => {
   it.each(kinds)('%s has finite endpoints inside the unit circle and positive radii', (kind) => {
-    const grid = createGridDefinitions();
+    const grid = GridDefinitions.create();
     const real = kind === 'resistance' || kind === 'conductance';
     for (const definitions of Object.values(grid[real ? 'resistance' : 'reactance'])) {
-      const geometry = gridGeometry(kind, definitions);
+      const geometry = GridGeometry.shapes(kind, definitions);
       expect(geometry.arcs.length).toBeGreaterThan(0);
       for (const [a, b, radius] of geometry.arcs) {
         expect(radius).toBeGreaterThan(0);
@@ -22,9 +22,9 @@ describe('normalized grid geometry', () => {
     }
   });
   it('mirrors impedance geometry through the origin for admittance', () => {
-    const grid = createGridDefinitions();
-    const z = gridGeometry('resistance', grid.resistance.major);
-    const y = gridGeometry('conductance', grid.resistance.major);
+    const grid = GridDefinitions.create();
+    const z = GridGeometry.shapes('resistance', grid.resistance.major);
+    const y = GridGeometry.shapes('conductance', grid.resistance.major);
     z.arcs.forEach((arc, i) => {
       for (const endpoint of [0, 1] as const) {
         for (const axis of [0, 1]) {
@@ -35,8 +35,8 @@ describe('normalized grid geometry', () => {
   });
   it.each(kinds)('%s has finite labels and preserves signed reactive values', (kind) => {
     const real = kind === 'resistance' || kind === 'conductance';
-    const labels = (real ? resistanceLabels() : reactanceLabels()).map((tick) =>
-      gridLabel(kind, tick.definition),
+    const labels = (real ? GridLabels.resistance() : GridLabels.reactance()).map((tick) =>
+      GridGeometry.label(kind, tick.definition),
     );
     for (const label of labels) {
       expect([...label.point, label.rotate, label.dx, label.dy].every(Number.isFinite)).toBe(true);

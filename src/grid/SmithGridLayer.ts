@@ -3,8 +3,8 @@ import { SmithGroup } from '../svg/SmithGroup.js';
 import { SmithText } from '../svg/SmithText.js';
 import type { SmithScaler } from '../svg/SmithScaler.js';
 import type { SmithTicksData, SmithTicksShapes } from './types.js';
-import { gridGeometry, gridLabel, type GridKind } from './geometry.js';
-import { resistanceLabels, reactanceLabels } from './labels.js';
+import { GridGeometry, type GridKind } from './GridGeometry.js';
+import { GridLabels } from './GridLabels.js';
 
 export interface GridLayerParams {
   scaler: SmithScaler;
@@ -31,8 +31,8 @@ export class SmithGridLayer extends ConstCircles {
       .attr('stroke', 'none')
       .attr('font-size', '7')
       .attr('font-family', 'Verdana');
-    for (const tick of real ? resistanceLabels() : reactanceLabels()) {
-      const label = gridLabel(kind, tick.definition);
+    for (const tick of real ? GridLabels.resistance() : GridLabels.reactance()) {
+      const label = GridGeometry.label(kind, tick.definition);
       this.texts.append(
         new SmithText(this.scaler.point(label.point), label.text, {
           rotate: label.rotate,
@@ -50,7 +50,7 @@ export class SmithGridLayer extends ConstCircles {
   }
 
   private drawGrid(definitions: SmithTicksShapes, width: string): SmithGroup {
-    const geometry = gridGeometry(this.kind, definitions);
+    const geometry = GridGeometry.shapes(this.kind, definitions);
     const group = new SmithGroup();
     this.drawShapes(group.Element, this.opts.stroke, width, {
       lines: geometry.lines.map((line) => this.scaler.line(line)),

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Complex, compareMarkerReadings } from '../src';
+import { Complex, MarkerMeasurements } from '../src';
 
 const reading = (
   degrees: number,
@@ -14,18 +14,18 @@ const reading = (
 it('compares B minus A and wraps phase differences across ±180 degrees', () => {
   const a = reading(179, 1e9, Complex.from(50, 20));
   const b = reading(-179, 1.5e9, Complex.from(75, -10));
-  const comparison = compareMarkerReadings(a, b);
+  const comparison = MarkerMeasurements.compare(a, b);
   expect(comparison.frequencyDeltaHz).toBe(5e8);
   expect(comparison.impedanceDeltaOhms?.toVector()).toEqual([25, -30]);
   expect(comparison.phaseDeltaDegrees).toBeCloseTo(2);
-  expect(compareMarkerReadings(b, a).phaseDeltaDegrees).toBeCloseTo(-2);
-  expect(compareMarkerReadings(reading(0), reading(180)).phaseDeltaDegrees).toBe(-180);
-  expect(compareMarkerReadings(a, a).phaseDeltaDegrees).toBe(0);
+  expect(MarkerMeasurements.compare(b, a).phaseDeltaDegrees).toBeCloseTo(-2);
+  expect(MarkerMeasurements.compare(reading(0), reading(180)).phaseDeltaDegrees).toBe(-180);
+  expect(MarkerMeasurements.compare(a, a).phaseDeltaDegrees).toBe(0);
 });
 
 it('keeps singular readings undefined without losing the frequency difference', () => {
   const a = { ...reading(0), reflectionCoefficient: Complex.zero(), impedanceOhms: undefined };
-  const comparison = compareMarkerReadings(a, reading(90, 2e9));
+  const comparison = MarkerMeasurements.compare(a, reading(90, 2e9));
   expect(comparison.frequencyDeltaHz).toBe(1e9);
   expect(comparison.impedanceDeltaOhms).toBeUndefined();
   expect(comparison.phaseDeltaDegrees).toBeUndefined();
@@ -34,13 +34,13 @@ it('keeps singular readings undefined without losing the frequency difference', 
     reflectionCoefficient: Complex.from(NaN),
     impedanceOhms: Complex.from(Infinity),
   };
-  expect(compareMarkerReadings(invalid, a).phaseDeltaDegrees).toBeUndefined();
-  expect(compareMarkerReadings(invalid, a).impedanceDeltaOhms).toBeUndefined();
-  expect(() => compareMarkerReadings(reading(0, NaN), a)).toThrow(RangeError);
+  expect(MarkerMeasurements.compare(invalid, a).phaseDeltaDegrees).toBeUndefined();
+  expect(MarkerMeasurements.compare(invalid, a).impedanceDeltaOhms).toBeUndefined();
+  expect(() => MarkerMeasurements.compare(reading(0, NaN), a)).toThrow(RangeError);
 });
 
 it('does not expose an overflowing impedance difference as a finite reading', () => {
-  const result = compareMarkerReadings(
+  const result = MarkerMeasurements.compare(
     reading(0, 1, Complex.from(-1e308)),
     reading(0, 2, Complex.from(1e308)),
   );

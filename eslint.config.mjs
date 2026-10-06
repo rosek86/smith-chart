@@ -50,6 +50,24 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   {
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'Program > FunctionDeclaration, ExportNamedDeclaration > FunctionDeclaration, ExportDefaultDeclaration > FunctionDeclaration',
+          message: 'Organize library behavior as instance or static class methods.',
+        },
+        {
+          selector:
+            'Program > VariableDeclaration > VariableDeclarator > :matches(ArrowFunctionExpression, FunctionExpression), ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > :matches(ArrowFunctionExpression, FunctionExpression)',
+          message: 'Use class methods for library operations; local callbacks remain allowed.',
+        },
+      ],
+    },
+  },
+  {
     files: ['*.config.{ts,mjs}', 'scripts/**/*.mjs', 'tests/**/*.ts'],
     languageOptions: { globals: globals.node },
   },

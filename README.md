@@ -5,6 +5,10 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 [Try the interactive demo](https://rosek86.github.io/smithkit/).
 
+This branch documents the upcoming 0.2.0 class API. For the published 0.1.x API,
+see the [0.1.1 README](https://github.com/rosek86/smithkit/blob/v0.1.1/README.md).
+See the [migration guide](docs/migration-0.2.md) for the changed imports.
+
 ## Features
 
 - Labeled resistance, reactance, conductance, and susceptance grids.
@@ -67,7 +71,7 @@ samples, scroll to zoom, and drag the chart to pan. Markers stay above all sampl
 points. `chart.resetView()` restores the initial view, including peripheral rulers.
 
 Construct `Smith` only in a browser, such as your framework's mount hook. Importing
-the package and using its calculation or parsing functions does not require a DOM.
+the package and using its calculation or parsing methods does not require a DOM.
 
 Zoom is enabled by default. For a fixed view, call `chart.setZoomEnabled(false)` before or after mounting.
 It disables wheel/double-click zoom and mouse/touch panning and pinch zoom while
@@ -213,7 +217,7 @@ Trace metadata changes do not emit marker events; refresh metadata after mutatio
 Destruction suppresses application callbacks.
 
 `chart.cursorReading` returns the last cursor position. Cursor and marker readings
-share `SmithReading`; `readReflection(gamma, referenceImpedanceOhms = 50)` produces
+share `SmithReading`; `RfCalculations.readReflection(gamma, referenceImpedanceOhms = 50)` produces
 the same reading without constructing a chart.
 
 | Fields                                                                               | Units / meaning                                                        |
@@ -239,7 +243,7 @@ infinite scalar limit is preserved: perfect match gives infinite return loss;
 For active loads (\|Γ\| > 1), VSWR, standing-wave quantities, reflection loss,
 attenuation, and power transmission are `undefined`. Other quantities remain
 available. Non-finite complex inputs or invalid reference impedances throw
-`RangeError` in the public RF functions. Unrepresentable complex conversion
+`RangeError` in the public RF methods. Unrepresentable complex conversion
 results are `undefined`.
 
 ## Selecting a marker by frequency
@@ -259,22 +263,22 @@ measurement frequency; dragging and sample selection keep that field synchronize
 ## Calculations without a chart
 
 ```ts
-import { Complex, readReflection, impedanceToReflection } from 'smithkit';
+import { Complex, RfCalculations } from 'smithkit';
 
-const gamma = impedanceToReflection(Complex.from(75, 25), 50)!;
-const reading = readReflection(gamma, 50);
+const gamma = RfCalculations.impedanceToReflection(Complex.from(75, 25), 50)!;
+const reading = RfCalculations.readReflection(gamma, 50);
 console.log(reading.impedanceOhms?.toVector()); // Approximately [75, 25].
 console.log(reading.admittanceSiemens?.toVector());
 ```
 
-| Function                                                                 | Input and output                                                                                                |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `reflectionToImpedance(gamma, referenceImpedanceOhms = 50)`              | Γ → physical Z in Ω.                                                                                            |
-| `impedanceToReflection(impedanceOhms, referenceImpedanceOhms = 50)`      | Physical Z in Ω → Γ.                                                                                            |
-| `reflectionToAdmittance(gamma, referenceImpedanceOhms = 50)`             | Γ → physical Y in S.                                                                                            |
-| `admittanceToReflection(admittanceSiemens, referenceImpedanceOhms = 50)` | Physical Y in S → Γ.                                                                                            |
-| `readReflection(gamma, referenceImpedanceOhms = 50)`                     | Complete `SmithReading`.                                                                                        |
-| `compareMarkerReadings(a, b)`                                            | Compare readings without a chart. Each input needs `frequencyHz`, `reflectionCoefficient`, and `impedanceOhms`. |
+| Static method                                                                           | Input and output                                                                                                |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `RfCalculations.reflectionToImpedance(gamma, referenceImpedanceOhms = 50)`              | Γ → physical Z in Ω.                                                                                            |
+| `RfCalculations.impedanceToReflection(impedanceOhms, referenceImpedanceOhms = 50)`      | Physical Z in Ω → Γ.                                                                                            |
+| `RfCalculations.reflectionToAdmittance(gamma, referenceImpedanceOhms = 50)`             | Γ → physical Y in S.                                                                                            |
+| `RfCalculations.admittanceToReflection(admittanceSiemens, referenceImpedanceOhms = 50)` | Physical Y in S → Γ.                                                                                            |
+| `RfCalculations.readReflection(gamma, referenceImpedanceOhms = 50)`                     | Complete `SmithReading`.                                                                                        |
+| `MarkerMeasurements.compare(a, b)`                                                      | Compare readings without a chart. Each input needs `frequencyHz`, `reflectionCoefficient`, and `impedanceOhms`. |
 
 Comparison results contain `frequencyDeltaHz`, `impedanceDeltaOhms`, and
 `phaseDeltaDegrees`. Phase differences use B − A wrapped to **[−180°, 180°)**:
@@ -285,27 +289,27 @@ a point comparison, not sweep phase unwrapping or group delay.
 
 `Complex.from(re, im)` constructs complex numbers. Read components through `re` and `im`. Arithmetic (`add`, `sub`,
 `mul`, `div`, `pow`) returns new values. The class also provides `abs`, `arg`
-(radians), and static functions such as `Complex.conj`, `Complex.sqrt`,
+(radians), and static methods such as `Complex.conj`, `Complex.sqrt`,
 `Complex.exp`, `Complex.log`, and trigonometric/hyperbolic functions and inverses. `toVector()` returns `[real, imaginary]`; `toString(dp)` formats
 a Cartesian value. See the exported declarations for all operations.
 
-Formatting helpers are independent exports: `formatNumber(value)` (three significant
-digits and SI prefixes), `formatComplex(value, unit?, decimalPlaces?)`, and
-`formatComplexPolar(value, unit?, decimalPlaces?)` (phase in degrees). They work
+The `SmithFormatter` class provides static methods: `SmithFormatter.number(value)` (three significant
+digits and SI prefixes), `SmithFormatter.complex(value, unit?, decimalPlaces?)`, and
+`SmithFormatter.polar(value, unit?, decimalPlaces?)` (phase in degrees). They work
 without a chart or DOM. Complex formatters default to three fractional digits.
-`formatNumber` includes spacing so you can append a unit, e.g. `formatNumber(1e9) + 'Hz'`.
+`SmithFormatter.number` includes spacing so you can append a unit, e.g. `SmithFormatter.number(1e9) + 'Hz'`.
 
-`reactanceToComponent(reactanceOhms, frequencyHz)` calculates an ideal equivalent
+`RfCalculations.reactanceToComponent(reactanceOhms, frequencyHz)` calculates an ideal equivalent
 series component without formatting or constructing a chart:
 
 ```ts
-import { reactanceToComponent, formatNumber } from 'smithkit';
+import { RfCalculations, SmithFormatter } from 'smithkit';
 
-const component = reactanceToComponent(-50, 1e9);
+const component = RfCalculations.reactanceToComponent(-50, 1e9);
 if (component?.kind === 'capacitor') {
-  console.log(formatNumber(component.capacitanceFarads) + 'F'); // 3.18 pF
+  console.log(SmithFormatter.number(component.capacitanceFarads) + 'F'); // 3.18 pF
 } else if (component?.kind === 'inductor') {
-  console.log(formatNumber(component.inductanceHenries) + 'H');
+  console.log(SmithFormatter.number(component.inductanceHenries) + 'H');
 }
 ```
 
@@ -404,12 +408,12 @@ result rejects the operation without changing Z₀ or data. Active marker drags 
 cursor indicators are cleared, and marker readings are queued with the new values.
 Changing to the current Z₀ has no effect. Mutations after destruction throw.
 
-Two DOM-independent helpers are also exported:
+Two DOM-independent methods are available on `RfCalculations`:
 
-- `renormalizeReflection(gamma, fromOhms, toOhms)` returns the new complex Γ or
+- `RfCalculations.renormalizeReflection(gamma, fromOhms, toOhms)` returns the new complex Γ or
   `undefined` for a singular/unrepresentable result. Exact open and short limits
   remain Γ = +1 and −1. References must be positive, finite, real ohm values.
-- `renormalizeSamples(samples, fromOhms, toOhms)` returns a new sample array in
+- `RfCalculations.renormalizeSamples(samples, fromOhms, toOhms)` returns a new sample array in
   the same order, preserving frequencies. Invalid samples or a singular result
   throw `RangeError`; the input is never modified.
 
@@ -424,15 +428,15 @@ multiport renormalization are outside the supported scope.
 
 ## Touchstone import
 
-`parseTouchstone(text)` returns `{ samples, referenceImpedanceOhms }`. It accepts
+`Touchstone.parse(text)` returns `{ samples, referenceImpedanceOhms }`. It accepts
 one-port Touchstone 1.x, converts RI/MA/DB into Cartesian Γ and all frequencies
 into Hz, and throws for unsupported or invalid input.
 
 ```ts
-import { Smith, parseTouchstone } from 'smithkit';
+import { Smith, Touchstone } from 'smithkit';
 
 async function showMeasurement(file: File): Promise<Smith> {
-  const { samples, referenceImpedanceOhms } = parseTouchstone(await file.text());
+  const { samples, referenceImpedanceOhms } = Touchstone.parse(await file.text());
   const chart = new Smith(referenceImpedanceOhms);
   chart.draw('#smith');
   chart.addTrace(samples, { name: file.name });
@@ -441,7 +445,7 @@ async function showMeasurement(file: File): Promise<Smith> {
 ```
 
 Omitted options use Touchstone defaults: GHz, S, MA, 50 Ω. For an existing chart,
-use `renormalizeSamples` when the file reference differs from
+use `RfCalculations.renormalizeSamples` when the file reference differs from
 `chart.referenceImpedanceOhms`. The parser itself does not renormalize data.
 Multiport data and Touchstone 2.x are not supported.
 

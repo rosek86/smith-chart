@@ -24,16 +24,17 @@ import { SmithScaler } from './svg/SmithScaler.js';
 
 import { TraceSamples } from './samples.js';
 import { SmithConstantCircle } from './rf/SmithConstantCircle.js';
-import { createGridDefinitions } from './grid/definitions.js';
+import { GridDefinitions } from './grid/GridDefinitions.js';
 
 import { Complex } from './math/Complex.js';
 import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
-import { gridLayer, circleLayer } from './grid/layerControls.js';
+import { GridLayerControl } from './grid/GridLayerControl.js';
+import { CircleLayerControl } from './grid/CircleLayerControl.js';
 import type { ChartLayers, PeripheralScales } from './layers.js';
-import { renormalizeSamples } from './rf/renormalization.js';
-import { readReflection } from './rf/conversions.js';
-import type { SmithReading } from './rf/conversions.js';
-import { compareMarkerReadings } from './measurements.js';
+import { RfCalculations } from './rf/RfCalculations.js';
+
+import type { SmithReading } from './rf/RfCalculations.js';
+import { MarkerMeasurements } from './MarkerMeasurements.js';
 import type {
   TraceOptions,
   TraceUpdateOptions,
@@ -109,7 +110,7 @@ export class Smith {
       throw new RangeError('Reference impedance must be positive and finite.');
     }
     const viewBoxSize = 500;
-    const gridData = createGridDefinitions();
+    const gridData = GridDefinitions.create();
     this.scalers = this.createScalers(viewBoxSize);
 
     this.svg = new SmithSvg(viewBoxSize);
@@ -189,12 +190,12 @@ export class Smith {
 
     const assertAlive = () => this.assertAlive();
     this.layers = {
-      resistance: gridLayer(this.constResistance, assertAlive),
-      reactance: gridLayer(this.constReactance, assertAlive),
-      conductance: gridLayer(this.constConductance, assertAlive),
-      susceptance: gridLayer(this.constSusceptance, assertAlive),
-      q: circleLayer(this.constQCircles, 0, assertAlive),
-      vswr: circleLayer(this.constSwrCircles, 1, assertAlive),
+      resistance: new GridLayerControl(this.constResistance, assertAlive),
+      reactance: new GridLayerControl(this.constReactance, assertAlive),
+      conductance: new GridLayerControl(this.constConductance, assertAlive),
+      susceptance: new GridLayerControl(this.constSusceptance, assertAlive),
+      q: new CircleLayerControl(this.constQCircles, 0, assertAlive),
+      vswr: new CircleLayerControl(this.constSwrCircles, 1, assertAlive),
     };
     this.peripheralScales = {
       setVisible: (visible) => {
@@ -322,7 +323,7 @@ export class Smith {
 
   /** Last cursor position. Use cursor events to detect pointer leave. */
   public get cursorReading(): SmithReading {
-    return readReflection(this.cursor.Position, this.referenceImpedanceOhms);
+    return RfCalculations.readReflection(this.cursor.Position, this.referenceImpedanceOhms);
   }
 
   private initializeZoom(): void {
@@ -580,7 +581,7 @@ export class Smith {
     const data = this.data[location.datasetNo];
     const marker = data.Markers[location.markerNo];
     return {
-      ...readReflection(
+      ...RfCalculations.readReflection(
         Complex.from(...marker.selectedPoint.reflectionCoefficient),
         this.referenceImpedanceOhms,
       ),
@@ -596,7 +597,7 @@ export class Smith {
   public compareMarkers(a: string, b: string): MarkerComparison | undefined {
     const first = this.getMarker(a);
     const second = this.getMarker(b);
-    return first && second ? compareMarkerReadings(first, second) : undefined;
+    return first && second ? MarkerMeasurements.compare(first, second) : undefined;
   }
 
   /** Current positive real reference impedance, in ohms. */
@@ -608,12 +609,12 @@ export class Smith {
   public renormalize(referenceImpedanceOhms: number): void {
     this.assertAlive();
     // Validate even with no traces, and prepare every result before changing any state.
-    renormalizeSamples([], this.referenceOhms, referenceImpedanceOhms);
+    RfCalculations.renormalizeSamples([], this.referenceOhms, referenceImpedanceOhms);
     if (referenceImpedanceOhms === this.referenceOhms) {
       return;
     }
     const samples = this.data.map((data) =>
-      renormalizeSamples(data.Samples, this.referenceOhms, referenceImpedanceOhms),
+      RfCalculations.renormalizeSamples(data.Samples, this.referenceOhms, referenceImpedanceOhms),
     );
     this.data.forEach((data) => data.Markers.forEach((entry) => entry.marker.cancelDrag()));
     this.referenceOhms = referenceImpedanceOhms;
