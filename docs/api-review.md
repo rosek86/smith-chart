@@ -1,7 +1,7 @@
 # Public API review for 0.1.0
 
-This review covers the pre-release API cleanup, trace/marker management, and
-measurement comparison. No npm publication is performed by this change.
+This review records the API decisions for version 0.1.0, including trace/marker
+management and measurement comparison.
 
 ## Decisions
 
@@ -70,4 +70,5 @@ globals. README TypeScript examples are checked against the packaged declaration
 The isolated package consumer compiles positive and negative API examples with
 NodeNext and Bundler resolution. Marker update tests verify all three strategies,
 atomic validation, ID/metadata retention, and independent/coalesced notifications.
-Release 0.1.0 remains unreleased until its tested archive is explicitly published.
+Version 0.1.0 was published to npm on 2026-10-06. Its archive and verification
+manifest are attached to the [GitHub Release](https://github.com/rosek86/smithkit/releases/tag/v0.1.0).

@@ -20,29 +20,15 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 ## Installation
 
-After publication, install the first release, **0.1.0**, with:
+Install from npm:
 
 ```sh
-npm install smithkit@0.1.0
+npm install smithkit
 ```
 
-Until publication, build and install an archive from source:
-
-```sh
-git clone https://github.com/rosek86/smithkit.git
-cd smithkit
-npm ci
-npm pack
-```
-
-Install the resulting archive in your application:
-
-```sh
-npm install /path/to/smithkit/smithkit-0.1.0.tgz
-```
-
-Building requires Node.js 24 or later. Browser applications need SVG, ES2022,
-and an ESM-compatible build tool. No library stylesheet is required.
+Browser applications need SVG, ES2022, and an ESM-compatible build tool.
+No library stylesheet is required. To build the library from source, see
+[Contributing](https://github.com/rosek86/smithkit/blob/main/CONTRIBUTING.md).
 
 For a complete application using the installed package, see the
 [standalone integration example](https://github.com/rosek86/smithkit/tree/main/examples/basic).

@@ -7,7 +7,7 @@
 - Use descriptive private field names without a leading underscore; ESLint enforces this.
 - Run `npm run lint:fix` and `npm run format` for automatic cleanup. `npm run check` includes lint and formatting checks.
 - Keep the TypeScript aliases: `@typescript/native` supplies the TypeScript 7 compiler; `typescript` supplies the TypeScript 6 API required by ESLint.
-- Keep the public API exported from `src/index.ts`. Prioritize a clear, consistent API before the first release; do not retain compatibility aliases for superseded APIs. Update the demo, tests, and documentation together.
+- Keep the public API exported from `src/index.ts`. Keep the API clear and consistent; do not retain compatibility aliases for superseded APIs. During 0.x development, document breaking changes in a minor release and fixes in a patch release. Update the demo, tests, and documentation together.
 - Use `.js` extensions for relative imports inside `src/`; TypeScript resolves them to source files and emits valid ESM imports.
 - Keep RF calculations and parsing independent of the DOM. Do not import `demo/` from `src/` or access browser globals at module load time.
 - Keep consumer documentation and working examples in `README.md`, contributor instructions in `CONTRIBUTING.md`, and demo deployment instructions in `docs/deployment.md`.
