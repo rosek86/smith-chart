@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-10-06
 
 - Render grid and scale labels above all chart lines, preserving label visibility and styling during zoom and layer changes.
+
+- Refresh the npm README with installation instructions for the published package.
 
 ## 0.1.0 — 2026-10-06
 
