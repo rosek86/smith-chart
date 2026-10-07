@@ -19,7 +19,7 @@ To test local library changes instead, build an archive from the repository root
 npm ci
 npm pack
 cd examples/basic
-npm install --no-save --package-lock=false ../../smithkit-0.1.1.tgz
+npm install --no-save --package-lock=false ../../smithkit-0.2.0.tgz
 npm run dev
 ```
 

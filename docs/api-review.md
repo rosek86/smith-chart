@@ -1,7 +1,7 @@
 # Public API review for 0.1.0
 
 This review records the API decisions for version 0.1.0, including trace/marker
-management and measurement comparison. The upcoming 0.2.0 API groups standalone
+management and measurement comparison. The 0.2.0 API groups standalone
 operations into classes; see [the migration guide](migration-0.2.md).
 
 ## Decisions
