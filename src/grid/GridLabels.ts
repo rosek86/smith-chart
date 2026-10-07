@@ -13,7 +13,8 @@ export class GridLabels {
         new Tick({
           point: { r, i: 0 },
           dp: r === 0 || r >= 10 ? 0 : 1,
-          transform: { dx: 0.005, dy: r === 0 ? 0.005 : -0.005 },
+          // Keep the zero inside the rim and clear of the opposite grid's high-value labels.
+          transform: { dx: r === 0 ? 0.02 : 0.005, dy: r === 0 ? 0.02 : -0.005 },
           dominantBaseline: r === 0 ? 'hanging' : 'baseline',
         }),
     );

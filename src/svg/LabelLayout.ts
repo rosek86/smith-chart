@@ -5,11 +5,6 @@ interface LabelBox {
   bottom: number;
 }
 
-interface LabelBounds {
-  box: LabelBox;
-  parts: LabelBox[];
-}
-
 /** Responsive label placement measured in the default view, independent of user zoom. */
 export class LabelLayout {
   private width = 0;
@@ -38,7 +33,11 @@ export class LabelLayout {
     }
     const reference = rootMatrix.translate(this.baseView.x, this.baseView.y).scale(this.baseView.k);
     const normalize = reference.multiply(containerMatrix.inverse());
-    const labels = [...this.container.querySelectorAll<SVGTextElement>('text')];
+    // Peripheral rulers retain their complete, fixed-scale lettering. Only grid
+    // labels participate in thinning and minimum-font-size adjustments.
+    const labels = [...this.container.querySelectorAll<SVGTextElement>('text')].filter(
+      (label) => !label.closest('[data-label-layer=peripheral-scales]'),
+    );
     const view = this.viewport.ownerDocument.defaultView!;
     // Restore only properties owned by this layout before measuring the base styling.
     for (const label of labels) {
@@ -102,22 +101,15 @@ export class LabelLayout {
         this.resizedFonts.set(label, label.style.fontSize);
         label.style.fontSize = `${9 / scale}px`;
       }
-      const path = label.querySelector('textPath');
-      if (path?.hasAttribute('data-full-caption')) {
-        path.textContent = path.getAttribute(
-          scale < 1 ? 'data-compact-caption' : 'data-full-caption',
-        );
-      }
     }
     const measured = candidates.map((entry) => ({
       ...entry,
       box: LabelLayout.transformBox(entry.label.getBBox(), entry.matrix),
-      parts: LabelLayout.characterBounds(entry.label, entry.matrix),
     }));
     measured.sort((a, b) => b.priority - a.priority || a.order - b.order);
-    const occupied: LabelBounds[] = [];
+    const occupied: LabelBox[] = [];
     const hidden: SVGTextElement[] = [];
-    for (const { label, box, parts } of measured) {
+    for (const { label, box } of measured) {
       const outside =
         box.right <= box.left ||
         box.bottom <= box.top ||
@@ -125,34 +117,17 @@ export class LabelLayout {
         box.right > viewport.right - 1 ||
         box.top < viewport.top + 1 ||
         box.bottom > viewport.bottom - 1;
-      const collision = occupied.some(
-        (other) =>
-          LabelLayout.overlaps(box, other.box) &&
-          parts.some((part) =>
-            other.parts.some((otherPart) => LabelLayout.overlaps(part, otherPart)),
-          ),
-      );
+      const collision = occupied.some((other) => LabelLayout.overlaps(box, other));
       if (outside || collision) {
         hidden.push(label);
       } else {
-        occupied.push({ box, parts });
+        occupied.push(box);
       }
     }
     for (const label of hidden) {
       label.setAttribute('visibility', 'hidden');
       label.setAttribute('data-label-hidden', 'true');
     }
-  }
-
-  private static characterBounds(label: SVGTextElement, matrix: DOMMatrix): LabelBox[] {
-    if (!label.querySelector('textPath')) {
-      return [LabelLayout.transformBox(label.getBBox(), matrix)];
-    }
-    // A curved caption's rectangle includes empty space inside its arc. Measure
-    // individual characters so captions on neighboring rings can coexist.
-    return Array.from({ length: label.getNumberOfChars() }, (_, index) =>
-      LabelLayout.transformBox(label.getExtentOfChar(index), matrix),
-    );
   }
 
   private static transformBox(box: DOMRect, matrix: DOMMatrix): LabelBox {

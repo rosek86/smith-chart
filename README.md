@@ -353,17 +353,20 @@ Grid labels use normalized values; readings use physical units. Strokes default
 to slate gray with 1 px major and 0.6 px minor lines. Stroke widths stay constant
 under zoom. Layer controls do not expose drawing objects or SVG nodes.
 
-Grid and peripheral-scale labels adapt automatically to the chart's rendered size,
+Grid labels adapt automatically to the chart's rendered size,
 including static charts with zoom disabled. The layout prioritizes key values,
-hides labels that overlap or extend beyond the default view, and uses shorter
-peripheral captions at small sizes. It recalculates on resize and layer visibility
+hides labels that overlap or extend beyond the default view, and prioritizes zero
+and the highest labeled axis value. It recalculates on resize and layer visibility
 or style changes. Zoom and pan preserve the chosen labels and scale them smoothly
 with the grid. This changes only labels; grid lines and ticks remain unchanged.
 SVG exports preserve the current label layout.
 
 For small static charts, hide minor grid lines and, when unnecessary, peripheral
 scales using the controls above. Very small charts necessarily show fewer values;
-use a larger container when all scale captions and detailed readings are needed.
+use a larger container for detailed readings. Peripheral labels retain their full
+wording and scale with the chart. Their rulers form two outlined bands: phase
+(transmission/reflection) and electrical length (toward load/generator), with a
+shared tick circle inside each band.
 The independent `SmithScales` panel uses its own responsive layout.
 
 ## Parameter scales

@@ -55,15 +55,17 @@ export class SmithGridLayer extends ConstCircles {
   private static labelPriority(real: number, imaginary: number): number {
     const value = Math.abs(imaginary === 0 ? real : imaginary);
     const importance =
-      value === 1
-        ? 100
-        : value === 0
-          ? 95
-          : [0.5, 2].includes(value)
-            ? 80
-            : [0.2, 5, 10].includes(value)
-              ? 70
-              : 40;
+      value === 0
+        ? 300
+        : value === 1
+          ? 100
+          : value === 50
+            ? 90
+            : [0.5, 2].includes(value)
+              ? 80
+              : [0.2, 5, 10].includes(value)
+                ? 70
+                : 40;
     return importance + (imaginary === 0 ? 20 : real === 0 ? 10 : 0);
   }
 

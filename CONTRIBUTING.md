@@ -212,11 +212,12 @@ publishing; publisher configuration and the release procedure are described in
 
 ## Known technical debt
 
-- Grid and peripheral labels share screen-space collision handling in
+- Grid labels use screen-space collision handling in
   `src/svg/LabelLayout.ts`. Changes to fonts, label priorities, or grid definitions
   need visual checks at small and large sizes, including combined impedance and
-  admittance layers. Extremely small charts cannot display every scale caption;
-  the independent radial scales use a separate layout.
+  admittance layers. Peripheral scales preserve complete lettering in two outlined
+  bands; at extremely small sizes their text shrinks with the geometry. Independent
+  radial scales use a separate layout.
 - Reference impedances are positive real ohm values. Complex reference impedances,
   multiport data, and Touchstone 2.x are not supported. The demo can renormalize
   imported data and existing traces using the public library helpers.

@@ -34,7 +34,7 @@ test('static charts adapt label density to available space without changing the 
       );
       const boxes = labels.map((label) => label.getBoundingClientRect());
       const numericBoxes = labels
-        .filter((label) => !label.querySelector('textPath'))
+        .filter((label) => !label.closest('[data-label-layer=peripheral-scales]'))
         .map((label) => label.getBoundingClientRect());
       let collisions = 0;
       numericBoxes.forEach((a, index) =>
@@ -61,10 +61,12 @@ test('static charts adapt label density to available space without changing the 
             box.bottom <= viewport.bottom,
         ),
         minimumFont: Math.min(
-          ...labels.map((label) => {
-            const matrix = label.getScreenCTM()!;
-            return parseFloat(getComputedStyle(label).fontSize) * Math.hypot(matrix.a, matrix.b);
-          }),
+          ...labels
+            .filter((label) => !label.closest('[data-label-layer=peripheral-scales]'))
+            .map((label) => {
+              const matrix = label.getScreenCTM()!;
+              return parseFloat(getComputedStyle(label).fontSize) * Math.hypot(matrix.a, matrix.b);
+            }),
         ),
         match: labels.some(
           (label) => label.closest('[data-label-layer=resistance]') && label.textContent === '1.0',
@@ -87,7 +89,7 @@ test('static charts adapt label density to available space without changing the 
   }
   expect(results[0].count).toBeLessThan(results[3].count);
   expect(results[4].count).toBe(results[0].count);
-  expect(results[0].captions).toContain('TRANSMISSION · °');
+  expect(results[0].captions).toContain('WAVELENGTHS TOWARD GENERATOR →');
   expect(results[3].captions).toHaveLength(4);
   expect(results[3].captions).toContain('WAVELENGTHS TOWARD GENERATOR →');
   for (const result of [results[0], results[2], results[3]]) {
@@ -120,7 +122,7 @@ test('layout reacts to layer visibility, text styling, zoom and reset', async ({
     chart.layers.susceptance.setVisible(true);
     chart.layers.resistance.setStyle({ textFontFamily: 'monospace', textFontSize: 18 });
     const boxes = visible()
-      .filter((label) => !label.querySelector('textPath'))
+      .filter((label) => !label.closest('[data-label-layer=peripheral-scales]'))
       .map((label) => label.getBoundingClientRect());
     const collisions = boxes.flatMap((a, i) =>
       boxes
@@ -219,4 +221,110 @@ test('successive zoom frames and reset preserve labels, including after a zoomed
   expect(new Set(result.transforms).size).toBeGreaterThan(2);
   expect(result.resized).not.toEqual(result.initial);
   expect(result.reset).toEqual(result.resized);
+});
+
+test('grid endpoint labels survive compact layouts and combined impedance/admittance layers', async ({
+  page,
+}) => {
+  await page.setContent('<div id="chart" style="width:320px;height:320px"></div>');
+  await loadLibrary(page);
+  const results = await page.evaluate(async () => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    const host = document.getElementById('chart')!;
+    const results = [];
+    for (const size of [240, 320, 500, 900]) {
+      host.style.width = host.style.height = size + 'px';
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      for (const mode of ['impedance', 'admittance', 'combined'] as const) {
+        chart.layers.resistance.setVisible(mode !== 'admittance');
+        chart.layers.reactance.setVisible(mode !== 'admittance');
+        chart.layers.conductance.setVisible(mode !== 'impedance');
+        chart.layers.susceptance.setVisible(mode !== 'impedance');
+        for (const name of ['resistance', 'conductance'] as const) {
+          if (
+            (name === 'resistance' && mode === 'admittance') ||
+            (name === 'conductance' && mode === 'impedance')
+          ) {
+            continue;
+          }
+          const labels = [
+            ...host.querySelectorAll<SVGTextElement>('[data-label-layer=' + name + '] text'),
+          ];
+          const endpoints = labels.filter((label) => ['0', '50'].includes(label.textContent!));
+          results.push({
+            size,
+            mode,
+            name,
+            visible: endpoints
+              .filter((label) => getComputedStyle(label).visibility !== 'hidden')
+              .map((label) => label.textContent),
+          });
+        }
+      }
+    }
+    chart.destroy();
+    return results;
+  });
+  for (const result of results) {
+    expect(result.visible, JSON.stringify(result)).toEqual(['0', '50']);
+  }
+});
+
+test('peripheral rulers keep complete labels in two outlined groups at every chart size', async ({
+  page,
+}) => {
+  await page.setContent('<div id="chart" style="width:240px;height:240px"></div>');
+  await loadLibrary(page);
+  const results = await page.evaluate(async () => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    const host = document.getElementById('chart')!;
+    const results = [];
+    for (const size of [240, 320, 500, 900]) {
+      host.style.width = host.style.height = size + 'px';
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const svg = host.querySelector('svg')!;
+      const viewport = svg.getBoundingClientRect();
+      const labels = [...svg.querySelectorAll('[data-label-layer=peripheral-scales] text')];
+      const boundaries = [...svg.querySelectorAll<SVGCircleElement>('.peripheral-boundary')];
+      const rulers = [...svg.querySelectorAll<SVGCircleElement>('.peripheral-ruler')];
+      results.push({
+        size,
+        labels: labels.length,
+        visible: labels.every((label) => getComputedStyle(label).visibility !== 'hidden'),
+        captions: labels
+          .filter((label) => label.querySelector('textPath'))
+          .map((label) => label.textContent),
+        boundaries: boundaries.map((circle) => circle.r.baseVal.value),
+        rulers: rulers.map((circle) => circle.r.baseVal.value),
+        inside: boundaries.every((circle) => {
+          const box = circle.getBoundingClientRect();
+          return (
+            box.left >= viewport.left &&
+            box.right <= viewport.right &&
+            box.top >= viewport.top &&
+            box.bottom <= viewport.bottom
+          );
+        }),
+      });
+    }
+    chart.destroy();
+    return results;
+  });
+  for (const result of results) {
+    expect(result).toMatchObject({
+      labels: 151,
+      visible: true,
+      inside: true,
+      boundaries: [250, 290, 330],
+      rulers: [270, 310],
+      captions: [
+        'TRANSMISSION PHASE · °',
+        'REFLECTION PHASE · °',
+        '← WAVELENGTHS TOWARD LOAD',
+        'WAVELENGTHS TOWARD GENERATOR →',
+      ],
+    });
+  }
 });

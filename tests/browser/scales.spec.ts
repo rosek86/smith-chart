@@ -18,8 +18,8 @@ test('peripheral indicators share marker selection and follow chart zoom', async
   expect(Number(await dot('transmission-phase').getAttribute('data-value'))).toBeCloseTo(
     26.565051177,
   );
-  expect(Number(await dot('transmission-phase').getAttribute('cx'))).toBeCloseTo(250 + 250 * 0.6);
-  expect(Number(await dot('transmission-phase').getAttribute('cy'))).toBeCloseTo(250 - 250 * 0.8);
+  expect(Number(await dot('transmission-phase').getAttribute('cx'))).toBeCloseTo(250 + 270 * 0.6);
+  expect(Number(await dot('transmission-phase').getAttribute('cy'))).toBeCloseTo(250 - 270 * 0.8);
   const before = await dot('reflection-phase').boundingBox();
   const surface = page.locator('#smith circle[fill=transparent]');
   await surface.hover();
