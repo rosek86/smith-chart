@@ -38,8 +38,9 @@
           <section class="chart-panel" aria-label="Interactive Smith chart">
             <div id="smith"></div>
             <p class="hint">
-              Scroll to zoom · drag to pan · drag a numbered marker along a trace. Grid values are
-              normalized to Z₀.
+              Scroll to zoom · drag to pan · drag a marker with a mouse or touch. Tab to a marker;
+              use arrow keys to move it, Shift+Arrow for ten samples, Home/End for endpoints. Grid
+              values are normalized to Z₀.
             </p>
           </section>
           <section class="panel scales-panel" aria-label="Parameter scales">
@@ -78,6 +79,7 @@
                   <select id="marker-select" disabled>
                     <option value="">No markers available</option>
                   </select>
+                  <button id="focus-marker" type="button" disabled>Focus on chart</button>
                 </div>
                 <div id="marker-readout" hidden>Load a trace to place a marker.</div>
               </div>

@@ -85,6 +85,12 @@ function refreshMarkerOptions(): void {
   renderReadout();
 }
 
+element('focus-marker').addEventListener('click', () => {
+  if (markerData) {
+    smith.focusMarker(markerData.markerId);
+  }
+});
+
 markerSelect.addEventListener('change', () => {
   markerData = smith.getMarker(markerSelect.value);
   renderReadout();
@@ -118,6 +124,7 @@ function renderReadout(): void {
   markerSelect.value = markerData ? markerData.markerId : '';
   element('cursor-help').hidden = source !== 'cursor';
   const trace = smith.getTraces().find((entry) => entry.id === markerData?.traceId);
+  element<HTMLButtonElement>('focus-marker').disabled = !trace?.visible;
   const swatch = element('marker-color');
   swatch.hidden = !trace;
   swatch.style.backgroundColor = trace?.color ?? '';
@@ -182,10 +189,15 @@ function updateReadout(event: SmithEvent): void {
     cursorData = event.data;
   } else if (
     event.type === SmithEventType.MarkerDragStart ||
+    event.type === SmithEventType.MarkerSelect ||
     !markerData ||
     event.data.markerId === markerData.markerId
   ) {
     markerData = event.data;
+  }
+  if (event.type === SmithEventType.MarkerSelect) {
+    selectSource('marker', false);
+    return;
   }
   if (event.type === SmithEventType.MarkerDragStart) {
     activeMarkerDrags++;

@@ -30,7 +30,7 @@ flowchart TB
         Data["SmithData<br/>Coordination and marker events"]
         Model["TraceModel<br/>Samples and marker selection · no DOM"]
         Renderer["TraceRenderer<br/>Trace lines and points"]
-        Marker["SmithMarker<br/>Draggable SVG markers"]
+        Marker["SmithMarker<br/>Keyboard/touch/mouse SVG markers"]
 
         Data --> Model
         Data --> Renderer

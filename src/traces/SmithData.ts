@@ -13,6 +13,9 @@ export class SmithData {
   private readonly markers = new Map<TraceMarker, SmithMarker>();
   private readonly pendingEvents = new Map<TraceMarker, ReturnType<typeof setTimeout>>();
   private destroyed = false;
+  private viewportScale = 1;
+  private name = 'Trace';
+  private selectHandler: ((marker: SmithMarker) => void) | null = null;
   private visible = true;
   private handler: ((marker: number, data: TraceSample) => void) | null = null;
 
@@ -38,7 +41,9 @@ export class SmithData {
   }
 
   public setViewportScale(scale: number): void {
+    this.viewportScale = scale;
     this.renderer.setViewportScale(scale);
+    this.markers.forEach((marker) => marker.zoom(this.transform.k * scale));
   }
 
   public zoom(transform: TraceTransform): void {
@@ -47,7 +52,7 @@ export class SmithData {
     }
     this.transform = transform;
     this.renderer.zoom(transform);
-    this.markers.forEach((marker) => marker.zoom(transform.k));
+    this.markers.forEach((marker) => marker.zoom(transform.k * this.viewportScale));
   }
 
   public addMarker(sampleIndex = 0): number {
@@ -58,14 +63,18 @@ export class SmithData {
     );
     this.markers.set(entry, marker);
     marker.Element.attr('data-role', 'marker');
+    marker.setSampleHandler((sampleIndex) =>
+      this.setMarkerSample(this.model.markerIndex(entry), sampleIndex),
+    );
+    marker.setSelectHandler(() => this.selectHandler?.(marker));
     this.markerContainer.append(marker);
     marker.setDragHandler((point) => {
       if (this.model.selectNearestPoint(entry, this.scaler.pointInvert(point))) {
         this.moveMarker(entry);
-        marker.zoom(this.transform.k);
+        marker.zoom(this.transform.k * this.viewportScale);
       }
     });
-    marker.zoom(this.transform.k);
+    marker.zoom(this.transform.k * this.viewportScale);
     marker.show();
     marker.Element.style('display', () => (this.visible ? null : 'none'));
     this.moveMarker(entry);
@@ -144,14 +153,35 @@ export class SmithData {
     this.markers.forEach((marker) => {
       if (!visible) {
         marker.cancelDrag();
+        marker.Node?.blur();
       }
       marker.Element.style('display', () => (visible ? null : 'none'));
     });
   }
 
   private moveMarker(entry: TraceMarker): void {
-    this.markers.get(entry)!.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
+    const marker = this.markers.get(entry)!;
+    marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
+    this.updateReading(entry, marker);
     this.notifyMarker(entry);
+  }
+
+  private updateReading(entry: TraceMarker, marker: SmithMarker): void {
+    marker.setReading(
+      `${this.name}, marker ${entry.number}`,
+      this.model.markerSampleIndex(this.model.markerIndex(entry)),
+      this.SampleCount,
+      entry.selectedPoint.frequencyHz,
+    );
+  }
+
+  public setName(name: string): void {
+    this.name = name;
+    this.markers.forEach((marker, entry) => this.updateReading(entry, marker));
+  }
+
+  public setMarkerSelectHandler(handler: (marker: SmithMarker) => void): void {
+    this.selectHandler = handler;
   }
 
   private notifyMarker(entry: TraceMarker): void {
@@ -188,6 +218,7 @@ export class SmithData {
     this.destroyed = true;
     this.cancelEvents();
     this.handler = null;
+    this.selectHandler = null;
     this.markers.forEach((marker) => marker.destroy());
     this.markers.clear();
     this.model.clear();

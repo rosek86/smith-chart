@@ -110,6 +110,25 @@ export class SvgExporter {
       }
       // An exported image has no event handlers or interactive controls.
       element.removeAttribute('tabindex');
+      if (original.getAttribute('data-role') === 'marker') {
+        // A static marker is an image, not an operable sample slider.
+        element.setAttribute('role', 'img');
+        element.setAttribute(
+          'aria-label',
+          `${original.getAttribute('aria-label')}; ${original.getAttribute('aria-valuetext')}`,
+        );
+        for (const attribute of [
+          'aria-valuemin',
+          'aria-valuemax',
+          'aria-valuenow',
+          'aria-valuetext',
+          'aria-orientation',
+          'aria-description',
+          'aria-disabled',
+        ]) {
+          element.removeAttribute(attribute);
+        }
+      }
       element.removeAttribute('class');
       for (const attribute of [...element.attributes]) {
         if (attribute.name.startsWith('on')) {

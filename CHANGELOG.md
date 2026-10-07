@@ -2,6 +2,9 @@
 
 ## Unreleased — next minor (0.2.0)
 
+- Add keyboard marker selection/navigation, accessible sample and frequency readings, visible focus, constant-size touch targets, `focusMarker`, and `MarkerSelect` events.
+- Keep markers and focus indicators above chart labels; add a focus action to the demo marker selector.
+
 - Group peripheral rulers into outlined phase and electrical-length bands, preserving all scale captions and values.
 - Preserve zero and the highest labeled axis value when thinning impedance/admittance labels, including combined grids.
 - Adapt grid labels to the available space, preserving a minimum readable font size, prioritizing key values, and hiding collisions on small charts while keeping labels stable during zoom.
