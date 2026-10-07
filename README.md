@@ -68,8 +68,8 @@ must be finite and non-negative; both coordinates must be finite. A trace must
 contain at least one sample.
 
 Each new trace receives one marker on its first sample. Drag markers to select
-samples, scroll to zoom, and drag the chart to pan. Markers stay above all sample
-points. `chart.resetView()` restores the initial view, including peripheral rulers.
+samples with a mouse or touch, scroll to zoom, and drag the chart to pan. Markers
+and their focus indicators stay above grid labels and sample points. `chart.resetView()` restores the initial view, including peripheral rulers.
 
 Construct `Smith` only in a browser, such as your framework's mount hook. Importing
 the package and using its calculation or parsing methods does not require a DOM.
@@ -93,6 +93,25 @@ chart.draw('#smith');
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
 event handlers, and cancels queued notifications. Repeated destruction is safe.
+
+### Keyboard and touch markers
+
+Use Tab/Shift+Tab to focus a marker. Arrow keys move through samples in input order;
+Right/Up advances and Left/Down goes back. Shift+Arrow or Page Up/Down moves ten
+samples, and Home/End selects the first/last sample. Navigation clamps at the ends
+and also works when chart zoom is disabled. A single-sample trace remains focusable
+for reading, with its slider marked disabled.
+
+A focused marker has a contrasting outline and exposes its trace name, marker
+number, sample position, and frequency to assistive technology. Hidden traces are
+excluded from keyboard focus. `chart.focusMarker(id)` allows a separate marker
+selector to focus the matching chart control. The demo provides a **Focus on chart**
+button beside its marker selector.
+
+Markers have a 44 CSS px circular hit area and an 18 CSS px triangle, kept constant
+through zoom and container resizing. A marker touch gesture does not pan the chart;
+cancelling it releases the drag state. Touch target areas may overlap for nearby
+markers; use keyboard focus or the demo selector to reach an obscured marker.
 
 ## Traces and markers
 
@@ -126,6 +145,7 @@ chart.removeMarker(markerB);
 | `clearTraces()`                       | Removes all traces and their markers.                                                                                    |
 | `addMarker(traceId, sampleIndex = 0)` | Returns a marker ID, or `undefined` if the trace is missing.                                                             |
 | `getMarker(id)`                       | Returns a `MarkerSnapshot`, or `undefined` if missing.                                                                   |
+| `focusMarker(id)`                     | Moves keyboard focus to a mounted, visible marker; returns `false` if missing or not focusable.                          |
 | `setMarkerSample(id, sampleIndex)`    | Selects an existing sample and queues a marker notification.                                                             |
 | `removeMarker(id)`                    | Removes one marker without renumbering the remaining markers.                                                            |
 | `compareMarkers(a, b)`                | Returns B − A, or `undefined` if either marker is missing.                                                               |
@@ -197,7 +217,7 @@ const unsubscribe = chart.onEvent((event) => {
     console.log(event.data?.impedanceOhms?.toVector());
     return;
   }
-  // Marker, MarkerDragStart, and MarkerDragEnd always carry a MarkerSnapshot.
+  // Marker, MarkerSelect, MarkerDragStart, and MarkerDragEnd carry a MarkerSnapshot.
   console.log(event.data.markerId, event.data.frequencyHz);
 });
 
@@ -207,7 +227,12 @@ chart.destroy();
 ```
 
 The event types are `Cursor` (`'cursor'`), `Marker` (`'marker'`),
+`MarkerSelect` (`'marker-select'`),
 `MarkerDragStart` (`'marker-drag-start'`), and `MarkerDragEnd` (`'marker-drag-end'`).
+`MarkerSelect` fires synchronously when a marker receives focus or is engaged by
+keyboard navigation or a pointer press. Use it to select the corresponding
+readout; it does not indicate a position change. Keyboard changes use the normal
+queued `Marker` event and do not emit drag lifecycle events.
 Cursor movement is suspended during marker dragging. Drag start/end events fire
 synchronously; marker position notifications are queued and report the latest
 snapshot at delivery. Before delivery, repeated updates to the same marker coalesce

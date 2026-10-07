@@ -69,6 +69,8 @@ const traces: TraceInfo[] = chart.getTraces();
 const markerId: string | undefined = chart.addMarker(traceId, 0);
 if (markerId) {
   chart.setMarkerSample(markerId, 0);
+  const focused: boolean = chart.focusMarker(markerId);
+  void focused;
   const selected: boolean = chart.setMarkerFrequency(markerId, 1.2e9);
   void selected;
   const marker: MarkerSnapshot | undefined = chart.getMarker(markerId);
@@ -103,7 +105,7 @@ scales.update(Complex.zero());
 scales.update(null);
 scales.destroy();
 const unsubscribe = chart.onEvent((event: SmithEvent) => {
-  if (event.type === SmithEventType.Marker) {
+  if (event.type === SmithEventType.Marker || event.type === SmithEventType.MarkerSelect) {
     const frequency: number = event.data.frequencyHz;
     const id: string = event.data.markerId;
     void [frequency, id];

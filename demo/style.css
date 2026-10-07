@@ -141,12 +141,16 @@ select:focus-visible {
 }
 #marker-selection:not([hidden]) {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
 }
 #marker-selection label {
   font-size: inherit;
+}
+#focus-marker {
+  padding: 6px 8px;
 }
 #marker-select {
   min-width: 0;

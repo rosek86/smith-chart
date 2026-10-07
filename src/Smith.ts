@@ -48,6 +48,7 @@ import type {
 export enum SmithEventType {
   Cursor = 'cursor',
   Marker = 'marker',
+  MarkerSelect = 'marker-select',
   MarkerDragStart = 'marker-drag-start',
   MarkerDragEnd = 'marker-drag-end',
 }
@@ -55,7 +56,11 @@ export enum SmithEventType {
 export type SmithEvent =
   | { type: SmithEventType.Cursor; data: SmithReading | undefined }
   | {
-      type: SmithEventType.Marker | SmithEventType.MarkerDragStart | SmithEventType.MarkerDragEnd;
+      type:
+        | SmithEventType.Marker
+        | SmithEventType.MarkerSelect
+        | SmithEventType.MarkerDragStart
+        | SmithEventType.MarkerDragEnd;
       data: MarkerSnapshot;
     };
 
@@ -179,7 +184,6 @@ export class Smith {
     this.container.append(this.reactanceAxis);
     this.container.append(cursorContainer);
     this.container.append(this.dataContainer);
-    this.container.append(this.markerContainer);
     const labels = new SmithGroup().attr('data-layer', 'labels').attr('pointer-events', 'none');
     for (const [name, layer] of [
       ['conductance', this.constConductance],
@@ -191,6 +195,7 @@ export class Smith {
     }
     labels.append(this.peripheralScaleRenderer.labels);
     this.container.append(labels);
+    this.container.append(this.markerContainer);
     this.labelLayout = new LabelLayout(
       this.svg.Node as SVGSVGElement,
       labels.Node as SVGGElement,
@@ -356,7 +361,10 @@ export class Smith {
       .scaleExtent([0.6, 1000])
       .filter(
         (event: MouseEvent | WheelEvent) =>
-          this.zoomEnabled && (!event.ctrlKey || event.type === 'wheel') && !event.button,
+          this.zoomEnabled &&
+          this.draggedMarkers.size === 0 &&
+          (!event.ctrlKey || event.type === 'wheel') &&
+          !event.button,
       )
       .on('start', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
         if (event.sourceEvent) {
@@ -364,7 +372,7 @@ export class Smith {
         }
       })
       .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
-        if (!this.zoomEnabled && !this.applyingView) {
+        if ((!this.zoomEnabled || this.draggedMarkers.size > 0) && !this.applyingView) {
           // An already active mouse/touch gesture still needs its normal end event.
           // Restore D3's view through its public API while that gesture finishes.
           this.applyView(this.transform);
@@ -528,6 +536,7 @@ export class Smith {
     data.setStyle(options);
     if (options.name !== undefined) {
       this.traceMetadata.get(data)!.name = options.name.trim();
+      data.setName(options.name.trim());
     }
     if (options.color !== undefined) {
       data.setColor(options.color);
@@ -579,6 +588,15 @@ export class Smith {
     this.assertAlive();
     const location = this.findMarker(id);
     return location ? this.data[location.datasetNo].removeMarker(location.markerNo) : false;
+  }
+
+  /** Focus a mounted, visible marker for keyboard interaction. */
+  public focusMarker(id: string): boolean {
+    this.assertAlive();
+    const location = this.findMarker(id);
+    return location
+      ? this.data[location.datasetNo].Markers[location.markerNo].marker.focus()
+      : false;
   }
 
   public setMarkerSample(id: string, sampleIndex: number): boolean {
@@ -677,6 +695,13 @@ export class Smith {
     );
     const number = this.nextTraceId++;
     this.traceMetadata.set(data, { id: `trace-${number}`, name: `Trace ${number}` });
+    data.setName(`Trace ${number}`);
+    data.setMarkerSelectHandler((marker) => {
+      const snapshot = this.getMarker(this.markerId(marker));
+      if (snapshot) {
+        this.emit({ type: SmithEventType.MarkerSelect, data: snapshot });
+      }
+    });
     data.setMarkerMoveHandler((index) => {
       const marker = data.Markers[index];
       const snapshot = marker && this.getMarker(this.markerId(marker.marker));

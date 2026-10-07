@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { loadLibrary } from './library';
 
-test('all labels stay above geometry after layer and data updates, without intercepting gestures', async ({
+test('grid and scale labels stay above geometry after updates, with markers on top', async ({
   page,
 }) => {
   await page.setContent(
@@ -55,7 +55,7 @@ test('all labels stay above geometry after layer and data updates, without inter
     const results = await page.locator('svg').evaluateAll((svgs) =>
       svgs.map((svg) => {
         const elements = [...svg.querySelectorAll('text, line, path, circle, polygon')].filter(
-          (element) => !element.closest('defs'),
+          (element) => !element.closest('defs, [data-layer=markers]'),
         );
         const firstLabel = elements.findIndex((element) => element.tagName === 'text');
         return {
@@ -77,6 +77,12 @@ test('all labels stay above geometry after layer and data updates, without inter
     }
   };
   await checkPaintOrder();
+  const markersAboveLabels = await page.locator('#chart svg').evaluate((svg) => {
+    const labels = svg.querySelector('[data-layer=labels]')!;
+    const markers = svg.querySelector('[data-layer=markers]')!;
+    return Boolean(labels.compareDocumentPosition(markers) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(markersAboveLabels).toBe(true);
   const chart = page.locator('#chart svg > g');
   const transform = await chart.getAttribute('transform');
   await page.locator('#chart circle[fill=transparent]').hover();
