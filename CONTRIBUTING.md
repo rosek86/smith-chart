@@ -212,9 +212,12 @@ publishing; publisher configuration and the release procedure are described in
 
 ## Known technical debt
 
-- Dense grid labels can overlap at small sizes. Grid bands and label rules live in
-  `src/grid/`; SVG rendering is shared by `SmithGridLayer`. Changes need visual checks,
-  especially near chart edges and on narrow screens.
+- Grid labels use screen-space collision handling in
+  `src/svg/LabelLayout.ts`. Changes to fonts, label priorities, or grid definitions
+  need visual checks at small and large sizes, including combined impedance and
+  admittance layers. Peripheral scales preserve complete lettering in two outlined
+  bands; at extremely small sizes their text shrinks with the geometry. Independent
+  radial scales use a separate layout.
 - Reference impedances are positive real ohm values. Complex reference impedances,
   multiport data, and Touchstone 2.x are not supported. The demo can renormalize
   imported data and existing traces using the public library helpers.

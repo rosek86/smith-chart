@@ -1,3 +1,5 @@
+import pixelmatch from 'pixelmatch';
+import { PNG } from 'pngjs';
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { loadLibrary } from './library';
@@ -277,52 +279,47 @@ test('standalone SVG paints the same chart as the live view', async ({ page }, t
   const exported = await standalone.locator('svg').screenshot();
   await testInfo.attach('live', { body: original, contentType: 'image/png' });
   await testInfo.attach('export', { body: exported, contentType: 'image/png' });
-  const difference = await page.evaluate(
-    async (images) => {
-      const pixels = await Promise.all(
-        images.map(async (base64) => {
-          const image = new Image();
-          image.src = 'data:image/png;base64,' + base64;
-          await image.decode();
-          const canvas = document.createElement('canvas');
-          canvas.width = image.width;
-          canvas.height = image.height;
-          const context = canvas.getContext('2d')!;
-          context.drawImage(image, 0, 0);
-          return {
-            width: image.width,
-            height: image.height,
-            data: context.getImageData(0, 0, image.width, image.height).data,
-          };
-        }),
-      );
-      let totalError = 0;
-      let significantPixels = 0;
-      for (let i = 0; i < pixels[0].data.length; i += 4) {
-        let maximum = 0;
-        for (let channel = 0; channel < 4; channel++) {
-          const error = Math.abs(pixels[0].data[i + channel] - pixels[1].data[i + channel]);
-          totalError += error;
-          maximum = Math.max(maximum, error);
-        }
-        if (maximum > 32) {
-          significantPixels++;
-        }
+  const reference = PNG.sync.read(original);
+  expect([reference.width, reference.height]).toEqual([500, 500]);
+  const compare = (image: Buffer) => {
+    const actual = PNG.sync.read(image);
+    expect([actual.width, actual.height]).toEqual([reference.width, reference.height]);
+    const diff = new PNG({ width: reference.width, height: reference.height });
+    // Ignore detected antialiasing, which differs between inline and standalone SVG
+    // on Linux. Keep a strict limit on perceptually different pixels elsewhere.
+    const differentPixels = pixelmatch(
+      reference.data,
+      actual.data,
+      diff.data,
+      reference.width,
+      reference.height,
+      { threshold: 0.1, includeAA: false },
+    );
+    return { differentPixels, diff: PNG.sync.write(diff) };
+  };
+  const difference = compare(exported);
+  await testInfo.attach('diff', { body: difference.diff, contentType: 'image/png' });
+  expect(difference.differentPixels).toBeLessThan(25);
+
+  // Verify that the comparison still rejects an omitted caption or measurement trace.
+  for (const selector of [
+    '[data-label-scale=wavelengths-generator] text:has(textPath)',
+    '[data-layer=samples]',
+  ]) {
+    const element = standalone.locator(selector);
+    const style = await element.getAttribute('style');
+    await element.evaluate((node) => {
+      node.style.visibility = 'hidden';
+    });
+    const missingElement = compare(await standalone.locator('svg').screenshot());
+    expect(missingElement.differentPixels, selector).toBeGreaterThanOrEqual(25);
+    await element.evaluate((node, originalStyle) => {
+      if (originalStyle === null) {
+        node.removeAttribute('style');
+      } else {
+        node.setAttribute('style', originalStyle);
       }
-      return {
-        sizes: pixels.map(({ width, height }) => [width, height]),
-        meanError: totalError / pixels[0].data.length,
-        significantPixels,
-      };
-    },
-    [original.toString('base64'), exported.toString('base64')],
-  );
-  expect(difference.sizes).toEqual([
-    [500, 500],
-    [500, 500],
-  ]);
-  // Standalone SVG and inline SVG can rasterize edge pixels slightly differently.
-  expect(difference.meanError).toBeLessThan(0.02);
-  expect(difference.significantPixels).toBeLessThan(25);
+    }, style);
+  }
   await standalone.close();
 });

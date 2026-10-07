@@ -28,11 +28,18 @@ test('grid setters and drawing options update the rendered geometry of all four 
           };
         });
       const snapshot = () => {
-        const labelStyle = getComputedStyle(labels.querySelector('text')!);
+        const label = labels.querySelector('text')!;
+        const labelStyle = getComputedStyle(label);
+        const matrix = label.getScreenCTM()!;
         return {
           minor: geometryStyles(minor),
           major: geometryStyles(major),
-          text: { stroke: labelStyle.stroke, fill: labelStyle.fill, size: labelStyle.fontSize },
+          text: {
+            stroke: labelStyle.stroke,
+            fill: labelStyle.fill,
+            size: labels.getAttribute('font-size'),
+            renderedSize: parseFloat(labelStyle.fontSize) * Math.hypot(matrix.a, matrix.b),
+          },
         };
       };
       const initial = snapshot();
@@ -79,7 +86,12 @@ test('grid setters and drawing options update the rendered geometry of all four 
       expect(snapshot.text.stroke).toBe('none');
     }
     expect(layer.updated.text).toEqual(layer.initial.text);
-    expect(layer.options.text).toEqual({ stroke: 'none', fill: 'rgb(171, 205, 239)', size: '9px' });
+    expect(layer.options.text).toMatchObject({
+      stroke: 'none',
+      fill: 'rgb(171, 205, 239)',
+      size: '9',
+    });
+    expect(layer.options.text.renderedSize).toBeGreaterThanOrEqual(8.99);
   }
   expect([...tags].sort()).toEqual(['circle', 'line', 'path']);
 });
@@ -105,15 +117,17 @@ for (const width of [340, 900]) {
         layer.setVisible(true);
         const labels = [
           ...document.querySelectorAll<SVGTextElement>(`[data-label-layer=${name}] text`),
-        ].map((label) => {
-          const rect = label.getBoundingClientRect();
-          return {
-            x: rect.x - box.x,
-            y: rect.y - box.y,
-            right: rect.right - box.x,
-            bottom: rect.bottom - box.y,
-          };
-        });
+        ]
+          .filter((label) => getComputedStyle(label).visibility !== 'hidden')
+          .map((label) => {
+            const rect = label.getBoundingClientRect();
+            return {
+              x: rect.x - box.x,
+              y: rect.y - box.y,
+              right: rect.right - box.x,
+              bottom: rect.bottom - box.y,
+            };
+          });
         bounds.push({ width: box.width, height: box.height, labels });
         layer.setVisible(false);
       }

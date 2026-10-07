@@ -7,6 +7,7 @@ export class GridLayerControl extends LayerControl implements GridLayer {
   public constructor(
     private readonly layer: ConstCircles,
     assertAlive: () => void,
+    private readonly changed: () => void,
   ) {
     super(assertAlive);
   }
@@ -14,6 +15,7 @@ export class GridLayerControl extends LayerControl implements GridLayer {
   public setVisible(visible: boolean): void {
     this.assertAlive();
     this.layer.visibility(visible);
+    this.changed();
   }
 
   public setMinorVisible(visible: boolean): void {
@@ -38,5 +40,6 @@ export class GridLayerControl extends LayerControl implements GridLayer {
         this.layer[properties[key]] = String(value);
       }
     }
+    this.changed();
   }
 }

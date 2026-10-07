@@ -54,6 +54,9 @@ flowchart TB
   package entry point. Internal modules are not supported package entry points.
 - [Smith](../src/Smith.ts): composes the chart, manages traces and markers, and owns
   zoom, lifecycle, and chart events.
+- [LabelLayout](../src/svg/LabelLayout.ts): coordinates grid labels
+  in the default view. It adjusts density and font sizes when the viewport or layer
+  settings change, keeping the chosen labels stable during zoom and pan.
 - [SmithData](../src/traces/SmithData.ts): coordinates one trace and its draggable
   markers. [TraceModel](../src/traces/TraceModel.ts) owns validated samples and
   marker selection without a DOM; [TraceRenderer](../src/traces/TraceRenderer.ts)

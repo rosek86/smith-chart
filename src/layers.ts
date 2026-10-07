@@ -8,7 +8,7 @@ export interface GridStyle {
   minorWidth: number;
   textColor: string;
   textFontFamily: string;
-  /** Font size in SVG chart units; labels scale with chart geometry. */
+  /** Base font size in chart units; adaptive layout enforces a 9 CSS px minimum in the default view. */
   textFontSize: number;
 }
 export interface CircleStyle {
