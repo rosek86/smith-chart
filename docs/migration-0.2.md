@@ -1,6 +1,6 @@
 # Migrating from 0.1.x to 0.2.0
 
-The next minor release organizes stateless library operations as static class
+Version 0.2.0 organizes stateless library operations as static class
 methods. Import each class from `smithkit`; no instance is needed. Standalone
 function exports are removed rather than retained as compatibility aliases.
 

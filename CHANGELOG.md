@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — next minor (0.2.0)
+## 0.2.0 — 2026-10-07
 
 - Add keyboard marker selection/navigation, accessible sample and frequency readings, visible focus, constant-size touch targets, `focusMarker`, and `MarkerSelect` events.
 - Keep markers and focus indicators above chart labels; add a focus action to the demo marker selector.

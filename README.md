@@ -5,16 +5,16 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 [Try the interactive demo](https://rosek86.github.io/smithkit/).
 
-This branch documents the upcoming 0.2.0 class API. For the published 0.1.x API,
-see the [0.1.1 README](https://github.com/rosek86/smithkit/blob/v0.1.1/README.md).
-See the [migration guide](docs/migration-0.2.md) for the changed imports.
+Upgrading from 0.1.x? Version 0.2.0 groups calculation, parsing, formatting, and
+comparison functions into classes. See the [migration guide](https://github.com/rosek86/smithkit/blob/v0.2.0/docs/migration-0.2.md)
+for the changed imports.
 
 ## Features
 
 - Labeled resistance, reactance, conductance, and susceptance grids.
 - Configurable constant-Q and constant-VSWR circles.
 - Zoom, pan, view reset, and cursor readings.
-- Named traces with colors, visibility, and draggable markers that snap to samples.
+- Named traces with colors, visibility, and keyboard/touch/mouse markers that snap to samples.
 - Marker comparisons: frequency, complex impedance, and wrapped phase differences.
 - Physical impedance/admittance conversions and DOM-independent RF readings.
 - Twelve parameter scales mounted independently of chart zoom.

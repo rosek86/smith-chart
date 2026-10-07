@@ -5,7 +5,7 @@
 commit `663d8c55a7e06c572ce4c38bce53a79684d855f0` and includes the tested archive
 and its manifest. The archive was verified against the published npm package.
 
-## API scope for 0.1.x
+## API scope
 
 The supported entry point is `smithkit`; deep imports are not exported. Supported
 chart, parser, and RF operations are documented in the README and reviewed in
@@ -70,7 +70,7 @@ in the npm trusted-publisher configuration.
 
 1. Update the version, lockfile, changelog, release notes, and version-specific
    examples through a PR. Merge it, then validate the final release commit as above.
-2. Create the matching tag (for example `v0.1.1`) at that exact commit and publish
+2. Create the matching tag (for example `v0.2.0`) at that exact commit and publish
    its GitHub Release with the reviewed notes.
 3. `release.yml` verifies the tag against `package.json`, runs `prepare:release`,
    and uploads the exact tested archive and manifest.
@@ -88,7 +88,7 @@ The workflow supports normal `x.y.z` versions. Prerelease versions and dist-tags
 need an explicit workflow change. Failed publication can be rerun after fixing
 account configuration. To retry with the current workflow without moving a release
 tag, run `release.yml` from the default branch and set `release_tag` to the existing
-tag (for example `v0.1.1`). This verifies and publishes that tag's source. The same
+tag (for example `v0.2.0`). This verifies and publishes that tag's source. The same
 input is rejected on other branches. Leave it empty for verification only.
 An identical existing archive is skipped; a different archive requires a new version.
 

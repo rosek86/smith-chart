@@ -1,6 +1,6 @@
 {
   "name": "smithkit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Framework-independent, interactive Smith chart library for JavaScript and TypeScript",
   "type": "module",
   "scripts": {
