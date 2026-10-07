@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Extract the internal `SvgChartRenderer` from `Smith`, separating SVG composition, view updates, and rendering lifecycle from the public chart API without changing chart behavior.
+
 ## 0.2.0 — 2026-10-07
 
 - Add keyboard marker selection/navigation, accessible sample and frequency readings, visible focus, constant-size touch targets, `focusMarker`, and `MarkerSelect` events.
