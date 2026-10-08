@@ -1,5 +1,5 @@
 import { ImageExporter } from '../svg/ImageExporter.js';
-import type { ImageExportOptions } from '../svg/export.js';
+import type { ScaleImageExportOptions } from '../svg/export.js';
 import { Theme } from '../appearance/Theme.js';
 import { SvgTheme } from '../appearance/SvgTheme.js';
 import type { SmithAppearance } from '../appearance/types.js';
@@ -46,6 +46,7 @@ export class SmithScales {
     labels
       .append('text')
       .attr('class', 'scale-value')
+      .attr('data-role', 'scale-value')
       .attr('x', this.start)
       .attr('y', 25)
       .attr('font-family', 'var(--smithkit-fontFamily)')
@@ -124,44 +125,69 @@ export class SmithScales {
   /** Show a passive-load reflection coefficient, or hide indicators with null. */
   public update(gamma: Complex | null): void {
     this.assertAlive();
-    const magnitude = gamma === null ? NaN : Math.hypot(gamma.re, gamma.im);
-    if (!gamma || !Number.isFinite(magnitude) || magnitude > 1) {
-      this.axes.select('circle').attr('visibility', 'hidden').attr('data-position', null);
-      this.axes.select('.scale-value').text('—');
-      this.axes.attr('aria-label', (scale) => `${scale.title}. ${scale.description ?? ''}`.trim());
-      this.axes.select('title').text((scale) => scale.description ?? scale.title);
-      return;
-    }
-    const start = this.start;
-    const length = this.length;
-    this.axes.each(function (scale) {
-      const value = scale.read(gamma);
-      const position = Math.max(0, Math.min(1, scale.position(value)));
-      const axis = select(this);
-      const number = value === Infinity ? '∞' : format('.4~g')(value);
-      const suffix = scale.unit === 'dB' ? ' dB' : scale.id === 'vswr' ? ' : 1' : '';
-      const readout = number + suffix;
-      const label = `${scale.title}: ${readout}${scale.description ? `. ${scale.description}` : ''}`;
-      axis.select('.scale-value').text(readout);
-      axis.attr('aria-label', label).select('title').text(label);
-      axis
-        .select('circle')
-        .attr('cx', start + position * length)
-        .attr('data-position', position)
-        .attr('visibility', null);
-    });
+    this.axes.each((scale, index, nodes) => this.updateAxis(nodes[index], scale, gamma));
   }
 
-  /** Export all mounted scales in their current layout as a standalone SVG. */
-  public toSvg(options?: ImageExportOptions): string {
+  private updateAxis(
+    node: SVGElement,
+    scale: (typeof this.scales)[number],
+    gamma: Complex | null,
+  ): void {
+    const axis = select(node);
+    const magnitude = gamma === null ? NaN : Math.hypot(gamma.re, gamma.im);
+    if (!gamma || !Number.isFinite(magnitude) || magnitude > 1) {
+      axis
+        .select('circle')
+        .attr('visibility', 'hidden')
+        .style('visibility', 'hidden')
+        .attr('data-position', null);
+      axis.select('[data-role="scale-value"]').text('—');
+      axis.attr('aria-label', `${scale.title}. ${scale.description ?? ''}`.trim());
+      axis.select('title').text(scale.description ?? scale.title);
+      return;
+    }
+    const value = scale.read(gamma);
+    const position = Math.max(0, Math.min(1, scale.position(value)));
+    const number = value === Infinity ? '∞' : format('.4~g')(value);
+    const suffix = scale.unit === 'dB' ? ' dB' : scale.id === 'vswr' ? ' : 1' : '';
+    const readout = number + suffix;
+    const label = `${scale.title}: ${readout}${scale.description ? `. ${scale.description}` : ''}`;
+    axis.select('[data-role="scale-value"]').text(readout);
+    axis.attr('aria-label', label).select('title').text(label);
+    axis
+      .select('circle')
+      .attr('cx', this.start + position * this.length)
+      .attr('data-position', position)
+      .attr('visibility', null)
+      .style('visibility', 'visible');
+  }
+
+  /** Export mounted scales, optionally with a separate reading and its description. */
+  public toSvg(options?: ScaleImageExportOptions): string {
     this.assertAlive();
-    const source = SvgExporter.scales(this.container.node()!, this.axes.nodes());
+    const container = this.container.node()!;
+    const style = getComputedStyle(container);
+    const readout = options?.readout;
+    const source = SvgExporter.scales(
+      container,
+      this.axes.nodes(),
+      readout
+        ? (copy, index) => this.updateAxis(copy, this.scales[index], readout.reflectionCoefficient)
+        : undefined,
+      readout?.label
+        ? {
+            text: readout.label,
+            color: style.getPropertyValue('--smithkit-scales-textColor').trim(),
+            fontFamily: style.getPropertyValue('--smithkit-fontFamily').trim(),
+          }
+        : undefined,
+    );
     return options === undefined ? source : ImageExporter.svg([source], options);
   }
 
-  /** Export all mounted scales and current readings as a PNG image. */
-  public async toPng(options: ImageExportOptions = {}): Promise<Blob> {
-    return ImageExporter.png([this.toSvg()], options);
+  /** Export mounted scales as PNG without changing their live readings. */
+  public async toPng(options: ScaleImageExportOptions = {}): Promise<Blob> {
+    return ImageExporter.png([this.toSvg({ readout: options.readout })], options);
   }
 
   public destroy(): void {

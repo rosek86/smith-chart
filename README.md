@@ -611,7 +611,27 @@ Fonts must be available to the browser; external font files are not embedded.
 Export size increases resolution; it does not change the current label density.
 
 The demo's **Export** dialog supports chart, scales, or a combined report,
-custom dimensions/background, and the optional trace legend. The default output width is 3200 px. Choose PNG or SVG in the same dialog; both formats support these report options. The demo starts in dark mode.
+custom dimensions/background, and the optional trace legend. The default output width is 3200 px. Choose PNG or SVG in the same dialog; both formats support these report options. The demo starts in dark mode. For exports containing parameter scales, **Scale readings** explicitly selects a marker or **None**, independently of the Cursor/Marker tab. Marker exports include the trace name, marker number, and frequency; cursor readings are not exported.
+
+To export a specific scale reading without changing the live view, pass `readout` to
+`scales.toSvg()` / `scales.toPng()`, or `scaleReadout` to a combined chart export:
+
+```ts
+import { Complex, SmithScales } from 'smithkit';
+
+const scales = new SmithScales();
+scales.draw('#scales');
+const report = await chart.toPng({
+  scales,
+  scaleReadout: {
+    reflectionCoefficient: Complex.from(0.2, 0.3),
+    label: 'Antenna · Marker 1 · Frequency: 1 GHz',
+  },
+});
+```
+
+Use `{ reflectionCoefficient: null }` for scales without readings. Omit the override to
+preserve the current readings. Labels wrap to fit the exported scales.
 
 ## SVG export
 

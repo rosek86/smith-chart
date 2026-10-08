@@ -1,3 +1,4 @@
+import type { Complex } from '../math/Complex.js';
 import type { SmithScales } from '../scales/SmithScales.js';
 
 export interface ImageExportOptions {
@@ -9,9 +10,22 @@ export interface ImageExportOptions {
   background?: string;
 }
 
+export interface ScaleExportReadout {
+  /** Use this reading instead of the live cursor/marker state; null exports empty scales. */
+  reflectionCoefficient: Complex | null;
+  /** Visible description of the reading, such as trace, marker, and frequency. */
+  label?: string;
+}
+
+export interface ScaleImageExportOptions extends ImageExportOptions {
+  readout?: ScaleExportReadout;
+}
+
 export interface SmithImageExportOptions extends ImageExportOptions {
   /** Include a footer with the names and colors of visible traces. Default: false. */
   legend?: boolean;
   /** Include mounted radial scales centered below the chart, preserving their current layout/readings. */
   scales?: SmithScales;
+  /** Override readings in the included radial scales without changing the live view. */
+  scaleReadout?: ScaleExportReadout;
 }

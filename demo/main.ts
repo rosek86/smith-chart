@@ -84,10 +84,37 @@ const exportForm = element<HTMLFormElement>('image-export-form');
 const exportTarget = element<HTMLSelectElement>('image-target');
 const exportBackground = element<HTMLSelectElement>('image-background');
 const exportLegend = element<HTMLInputElement>('image-legend');
-exportButton.addEventListener('click', () => exportDialog.showModal());
+const exportReadout = element<HTMLSelectElement>('image-readout');
+exportButton.addEventListener('click', () => {
+  const options = smith
+    .getTraces()
+    .flatMap((trace) =>
+      trace.markers.map(
+        (marker) => new Option(`Marker: ${markerLabel(trace, marker.number)}`, marker.id),
+      ),
+    );
+  exportReadout.replaceChildren(new Option('None', ''), ...options);
+  const selectedMarkerId = markerData?.markerId;
+  exportReadout.value = options.some((option) => option.value === selectedMarkerId)
+    ? selectedMarkerId!
+    : '';
+  updateExportReadout();
+  exportDialog.showModal();
+});
+function updateExportReadout(): void {
+  element('image-readout-settings').hidden = exportTarget.value === 'chart';
+  const marker = exportReadout.value ? smith.getMarker(exportReadout.value) : undefined;
+  const trace = smith.getTraces().find((trace) => trace.id === marker?.traceId);
+  element('image-readout-description').textContent =
+    marker && trace
+      ? `${markerLabel(trace, marker.markerNumber)} · Frequency: ${SmithFormatter.number(marker.frequencyHz)}Hz`
+      : 'Scales without readings. Cursor position is not exported.';
+}
+exportReadout.addEventListener('change', updateExportReadout);
 exportDialog.addEventListener('close', () => exportButton.focus({ preventScroll: true }));
 exportTarget.addEventListener('change', () => {
   exportLegend.disabled = exportTarget.value === 'scales';
+  updateExportReadout();
 });
 exportBackground.addEventListener('change', () => {
   element('image-custom-background').hidden = exportBackground.value !== 'custom';
@@ -112,8 +139,19 @@ exportForm.addEventListener('submit', async (event) => {
   };
   const target = exportTarget.value;
   const format = element<HTMLSelectElement>('image-format').value;
+  const marker = exportReadout.value ? smith.getMarker(exportReadout.value) : undefined;
+  const trace = smith.getTraces().find((trace) => trace.id === marker?.traceId);
+  const readout = {
+    reflectionCoefficient: marker?.reflectionCoefficient ?? null,
+    label:
+      marker && trace
+        ? `${markerLabel(trace, marker.markerNumber)} · Frequency: ${SmithFormatter.number(marker.frequencyHz)}Hz`
+        : undefined,
+  };
+  const scaleOptions = { ...options, readout };
   const chartOptions = {
     ...options,
+    scaleReadout: readout,
     legend: exportLegend.checked,
     scales: target === 'combined' ? scales : undefined,
   };
@@ -123,11 +161,11 @@ exportForm.addEventListener('submit', async (event) => {
   try {
     const blob =
       format === 'svg'
-        ? new Blob([target === 'scales' ? scales.toSvg(options) : smith.toSvg(chartOptions)], {
+        ? new Blob([target === 'scales' ? scales.toSvg(scaleOptions) : smith.toSvg(chartOptions)], {
             type: 'image/svg+xml;charset=utf-8',
           })
         : target === 'scales'
-          ? await scales.toPng(options)
+          ? await scales.toPng(scaleOptions)
           : await smith.toPng(chartOptions);
     const filename = `${target === 'combined' ? 'smith-report' : `smith-${target}`}.${format}`;
     FileDownload.save(blob, filename);

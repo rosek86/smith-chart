@@ -58,18 +58,55 @@ export class SvgExporter {
   }
 
   /** Preserve the current CSS layout of separate scale SVGs in one SVG document. */
-  public static scales(container: HTMLElement, axes: readonly SVGSVGElement[]): string {
+  public static scales(
+    container: HTMLElement,
+    axes: readonly SVGSVGElement[],
+    customize?: (copy: SVGElement, index: number) => void,
+    caption?: { text: string; color: string; fontFamily: string },
+  ): string {
     const bounds = SvgExporter.bounds(container);
     const root = container.ownerDocument.createElementNS(SvgExporter.namespace, 'svg');
-    root.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
-    SvgExporter.size(root, bounds.width, bounds.height);
+    const lines: string[] = [];
+    if (caption?.text) {
+      const context = document.createElement('canvas').getContext('2d')!;
+      context.font = `14px ${caption.fontFamily}`;
+      let line = '';
+      for (const character of caption.text) {
+        if (
+          character === '\n' ||
+          (line && context.measureText(line + character).width > Math.max(1, bounds.width - 32))
+        ) {
+          lines.push(line);
+          line = '';
+        }
+        if (character !== '\n') {
+          line += character;
+        }
+      }
+      lines.push(line);
+    }
+    const captionHeight = lines.length ? 16 + lines.length * 22 : 0;
+    root.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height + captionHeight}`);
+    SvgExporter.size(root, bounds.width, bounds.height + captionHeight);
     SvgExporter.background(root, container);
-    for (const axis of axes) {
+    lines.forEach((line, index) => {
+      const text = container.ownerDocument.createElementNS(SvgExporter.namespace, 'text');
+      text.setAttribute('data-role', 'scale-readout-label');
+      text.setAttribute('x', '16');
+      text.setAttribute('y', String(22 + index * 22));
+      text.setAttribute('fill', caption!.color);
+      text.setAttribute('font-family', caption!.fontFamily);
+      text.setAttribute('font-size', '14');
+      text.textContent = line;
+      root.appendChild(text);
+    });
+    for (const [index, axis] of axes.entries()) {
       const position = SvgExporter.bounds(axis);
       const copy = SvgExporter.copy(axis);
       copy.setAttribute('x', String(position.x - bounds.x));
-      copy.setAttribute('y', String(position.y - bounds.y));
+      copy.setAttribute('y', String(position.y - bounds.y + captionHeight));
       SvgExporter.size(copy, position.width, position.height);
+      customize?.(copy, index);
       root.appendChild(copy);
     }
     return SvgExporter.serialize(root);

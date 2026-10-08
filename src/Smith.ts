@@ -105,7 +105,7 @@ export class Smith {
     }
     const sources = [source];
     if (options.scales) {
-      sources.push(options.scales.toSvg());
+      sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
     return ImageExporter.svg(sources, options, options.legend ? this.exportLegend() : undefined);
   }
@@ -122,7 +122,7 @@ export class Smith {
   public async toPng(options: SmithImageExportOptions = {}): Promise<Blob> {
     const sources = [this.toSvg()];
     if (options.scales) {
-      sources.push(options.scales.toSvg());
+      sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
     return ImageExporter.png(sources, options, options.legend ? this.exportLegend() : undefined);
   }

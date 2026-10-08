@@ -393,3 +393,116 @@ test('SVG reports share vertical composition, sizing, backgrounds, and trace leg
     parserError: false,
   });
 });
+
+test('scale exports override readings and label them without changing the live scales', async ({
+  page,
+}) => {
+  await page.setContent(
+    '<div id="chart" style="width:300px;height:300px"></div><div id="scales" style="width:320px"></div>',
+  );
+  await loadLibrary(page);
+  const result = await page.evaluate(async () => {
+    const { Smith, SmithScales, Complex } = window.SmithTest;
+    const chart = new Smith(50, { theme: 'dark' });
+    chart.draw('#chart');
+    const scales = new SmithScales({ theme: 'dark' });
+    scales.draw('#scales');
+    scales.update(null);
+    const before = document.querySelector('#scales')!.innerHTML;
+    const readout = {
+      reflectionCoefficient: Complex.from(0.5, 0),
+      label: 'Antenna <A> & Γ · Marker 2 · Frequency: 1 GHz '.repeat(3),
+    };
+    const exported = chart.toSvg({ scales, scaleReadout: readout });
+    const image = new DOMParser().parseFromString(exported, 'image/svg+xml');
+    const vswr = image.querySelector('[data-scale="vswr"]')!;
+    const labels = [...image.querySelectorAll('[data-role="scale-readout-label"]')];
+    const pngPromise = scales.toPng({ readout: { reflectionCoefficient: Complex.from(0.5, 0) } });
+    const unchanged = before === document.querySelector('#scales')!.innerHTML;
+    scales.update(Complex.from(0.5, 0));
+    const expectedPng = await scales.toPng();
+    const png = await pngPromise;
+    const actual = new Uint8Array(await png.arrayBuffer());
+    const expected = new Uint8Array(await expectedPng.arrayBuffer());
+    const empty = new DOMParser().parseFromString(
+      scales.toSvg({ readout: { reflectionCoefficient: null } }),
+      'image/svg+xml',
+    );
+    return {
+      unchanged,
+      value: vswr.querySelector('[data-role="scale-value"]')!.textContent,
+      indicator: (vswr.querySelector('circle') as SVGElement).style.visibility,
+      label: labels.map((node) => node.textContent).join(''),
+      lines: labels.length,
+      empty: [...empty.querySelectorAll('[data-role="scale-value"]')].every(
+        (node) => node.textContent === '—',
+      ),
+      hidden: [...empty.querySelectorAll('circle')].every(
+        (node) => node.style.visibility === 'hidden',
+      ),
+      samePng:
+        actual.length === expected.length &&
+        actual.every((byte, index) => byte === expected[index]),
+    };
+  });
+  expect(result.unchanged).toBe(true);
+  expect(result.value).toBe('3 : 1');
+  expect(result.indicator).toBe('visible');
+  expect(result.label).toBe('Antenna <A> & Γ · Marker 2 · Frequency: 1 GHz '.repeat(3));
+  expect(result.lines).toBeGreaterThan(1);
+  expect(result.empty).toBe(true);
+  expect(result.hidden).toBe(true);
+  expect(result.samePng).toBe(true);
+});
+
+test('demo exports an explicit marker or empty scales independently of the active tab', async ({
+  page,
+}) => {
+  await page.goto('');
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  await page.locator('#image-target').selectOption('scales');
+  await expect(page.locator('#image-readout')).toHaveValue('');
+  await expect(page.locator('#image-readout option')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Load sample trace' }).click();
+  await page.getByRole('button', { name: 'Add marker', exact: true }).click();
+  await page.getByRole('tab', { name: 'Cursor', exact: true }).click();
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  await expect(page.locator('#image-readout')).not.toHaveValue('');
+  await expect(page.locator('#image-readout option')).toHaveCount(3);
+  await page.locator('#image-readout').selectOption({ index: 1 });
+  const description = await page.locator('#image-readout-description').textContent();
+  expect(description).toContain('Frequency:');
+  await page.locator('#image-format').selectOption('svg');
+  const save = async () => {
+    const downloading = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download', exact: true }).click();
+    const download = await downloading;
+    return readFile((await download.path())!, 'utf8');
+  };
+  const markerSvg = await save();
+  expect(markerSvg).toContain('scale-readout-label');
+  const inspect = async (svg: string) =>
+    page.evaluate((source) => {
+      const doc = new DOMParser().parseFromString(source, 'image/svg+xml');
+      return {
+        label: [...doc.querySelectorAll('[data-role="scale-readout-label"]')]
+          .map((node) => node.textContent)
+          .join(''),
+        empty: [...doc.querySelectorAll('[data-role="scale-value"]')].every(
+          (node) => node.textContent === '—',
+        ),
+      };
+    }, svg);
+  expect((await inspect(markerSvg)).label).toBe(description);
+  expect((await inspect(markerSvg)).empty).toBe(false);
+  await page.locator('#image-readout').selectOption('');
+  const empty = await inspect(await save());
+  expect(empty.empty).toBe(true);
+  expect(empty.label).toBe('');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('tab', { name: 'Cursor', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+});
