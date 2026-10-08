@@ -5,6 +5,10 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 [Try the interactive demo](https://rosek86.github.io/smithkit/).
 
+Upgrading from 0.2.x? Version 0.3.0 replaces `GridLayer.setMinorVisible()` with
+`setDetail('basic' | 'standard' | 'detailed')`. Replace `false` with `'standard'`
+and `true` with `'detailed'`; `'basic'` shows only the principal circles.
+
 Upgrading from 0.1.x? Version 0.2.0 groups calculation, parsing, formatting, and
 comparison functions into classes. See the [migration guide](https://github.com/rosek86/smithkit/blob/v0.2.0/docs/migration-0.2.md)
 for the changed imports.

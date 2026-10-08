@@ -15,6 +15,5 @@
 - Library output belongs in `dist/lib/`; demo output belongs in `dist/demo/`. Never include demo assets, tests, or deployment credentials in the npm package.
 - For code or packaging changes, run `npm run check`. For rendering or interaction changes, also run `npm run test:e2e` against the built demo. For packaging changes, run `npm run check:package` to pack and install the library in a separate consumer project and check imports and types.
 - Documentation-only changes need link/example review and `git diff --check`, not a full test run.
-- The sibling `smith-app-ng` repository is a legacy Angular application. Do not modify it as a side effect of library changes.
 
 See `CONTRIBUTING.md` for setup, architecture, and known technical debt.

@@ -48,15 +48,5 @@ To stop automatic publication temporarily while retaining checks, disable the
 `deploy` job in `.github/workflows/ci.yml` through a pull request. To unpublish the
 site, use **Settings → Pages → Unpublish site**.
 
-## Migration from smith-app
-
-Previous workflows pushed generated files to `rosek86/smith-app` on `gh-pages`.
-This repository no longer updates that site. Its existing content and the legacy
-Angular source remain in the old repository; old links do not redirect automatically.
-
-The obsolete deployment key, `SMITH_APP_DEPLOY_KEY` secret,
-`SMITH_APP_DEPLOY_ENABLED` variable, and `smith-app-pages` environment and deployment
-history have been removed. Current deployments use only `github-pages`.
-
 Documentation: [custom GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages),
 [Pages publishing sources](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
