@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Select a specific marker or no readings for demo scale exports, with trace, marker, and frequency printed in the image; add independent scale readout overrides for SVG/PNG exports.
+
+- Add PNG export for charts and radial scales with configurable dimensions/backgrounds, an optional visible-trace legend, and combined report images with scales centered below the chart; default to 3200 px width in the demo and share PNG/SVG options in one Export dialog.
+- Start the demo in dark mode; allow SVG reports to use the same size, background, legend, and combined layout options as PNG.
+
 - Group demo appearance, layers, grid detail, labels, and reference impedance in an accessible Chart settings dialog.
 
 - Add `GridLayer.setLabelsVisible(boolean)` and a shared demo checkbox to toggle grid labels independently of grid lines, preserving the setting across updates and SVG export.

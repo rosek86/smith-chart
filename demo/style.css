@@ -264,7 +264,8 @@ input[type='file'] {
   overflow-wrap: anywhere;
 }
 #file-status[data-error='true'],
-#reference-status[data-error='true'] {
+#reference-status[data-error='true'],
+#image-status[data-error='true'] {
   color: var(--error);
 }
 footer {
@@ -447,7 +448,8 @@ footer {
   --error: #fca5a5;
   color-scheme: dark;
 }
-#chart-settings {
+#chart-settings,
+#image-export {
   width: min(520px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -457,7 +459,8 @@ footer {
   color: var(--text);
   box-shadow: 0 16px 64px rgb(0 0 0 / 25%);
 }
-#chart-settings::backdrop {
+#chart-settings::backdrop,
+#image-export::backdrop {
   background: rgb(2 6 23 / 45%);
 }
 .settings-heading {
@@ -524,10 +527,63 @@ footer {
   margin-bottom: 0;
 }
 @media (max-width: 480px) {
-  #chart-settings {
+  #chart-settings,
+  #image-export {
     padding: 16px;
   }
   #chart-settings fieldset {
     grid-template-columns: 1fr;
   }
+}
+
+#image-export-form > label:not([hidden]),
+#image-readout-settings > label {
+  display: block;
+  margin: 16px 0 8px;
+}
+#image-export-form select,
+#image-export-form input[type='number'] {
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.image-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.image-dimensions input {
+  margin-top: 8px;
+}
+#image-export-form .image-legend {
+  margin-block: 20px;
+}
+#image-status:empty {
+  display: none;
+}
+
+select,
+#marker-select,
+.settings-select select,
+.comparison-selectors select,
+#image-export-form select {
+  appearance: none;
+  padding-right: 32px;
+  background-color: var(--surface);
+  color: var(--text);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 16px center,
+    right 11px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
 }

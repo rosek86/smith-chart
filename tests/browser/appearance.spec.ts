@@ -210,6 +210,7 @@ test('demo theme switch updates chart and scales without losing marker selection
   await page.goto('./');
   await page.getByRole('button', { name: 'Load sample trace', exact: true }).click();
   await page.getByRole('tab', { name: 'Marker', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const selected = await page.locator('#marker-select').inputValue();
   await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.getByLabel('Theme', { exact: true }).selectOption('dark');

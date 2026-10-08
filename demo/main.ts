@@ -10,7 +10,7 @@ import type {
 } from '../src';
 import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
-import { SvgDownload } from './download';
+import { FileDownload } from './download';
 
 function element<T extends HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -25,9 +25,9 @@ const settingsButton = element<HTMLButtonElement>('open-settings');
 settingsButton.addEventListener('click', () => settingsDialog.showModal());
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
-const smith = new Smith(50);
+const smith = new Smith(50, { theme: 'dark' });
 smith.draw('#smith');
-const scales = new SmithScales();
+const scales = new SmithScales({ theme: 'dark' });
 scales.draw('#smith-scales');
 
 element<HTMLSelectElement>('theme').addEventListener('change', (event) => {
@@ -78,11 +78,104 @@ gridDetail.addEventListener('change', updateGridDetail);
 updateGridDetail();
 
 element('reset-view').addEventListener('click', () => smith.resetView());
-element('export-chart').addEventListener('click', () => {
-  SvgDownload.save(smith.toSvg(), 'smith-chart.svg');
+const exportDialog = element<HTMLDialogElement>('image-export');
+const exportButton = element<HTMLButtonElement>('open-image-export');
+const exportForm = element<HTMLFormElement>('image-export-form');
+const exportTarget = element<HTMLSelectElement>('image-target');
+const exportBackground = element<HTMLSelectElement>('image-background');
+const exportLegend = element<HTMLInputElement>('image-legend');
+const exportReadout = element<HTMLSelectElement>('image-readout');
+exportButton.addEventListener('click', () => {
+  const options = smith
+    .getTraces()
+    .flatMap((trace) =>
+      trace.markers.map(
+        (marker) => new Option(`Marker: ${markerLabel(trace, marker.number)}`, marker.id),
+      ),
+    );
+  exportReadout.replaceChildren(new Option('None', ''), ...options);
+  const selectedMarkerId = markerData?.markerId;
+  exportReadout.value = options.some((option) => option.value === selectedMarkerId)
+    ? selectedMarkerId!
+    : '';
+  updateExportReadout();
+  exportDialog.showModal();
 });
-element('export-scales').addEventListener('click', () => {
-  SvgDownload.save(scales.toSvg(), 'smith-scales.svg');
+function updateExportReadout(): void {
+  element('image-readout-settings').hidden = exportTarget.value === 'chart';
+  const marker = exportReadout.value ? smith.getMarker(exportReadout.value) : undefined;
+  const trace = smith.getTraces().find((trace) => trace.id === marker?.traceId);
+  element('image-readout-description').textContent =
+    marker && trace
+      ? `${markerLabel(trace, marker.markerNumber)} · Frequency: ${SmithFormatter.number(marker.frequencyHz)}Hz`
+      : 'Scales without readings. Cursor position is not exported.';
+}
+exportReadout.addEventListener('change', updateExportReadout);
+exportDialog.addEventListener('close', () => exportButton.focus({ preventScroll: true }));
+exportTarget.addEventListener('change', () => {
+  exportLegend.disabled = exportTarget.value === 'scales';
+  updateExportReadout();
+});
+exportBackground.addEventListener('change', () => {
+  element('image-custom-background').hidden = exportBackground.value !== 'custom';
+});
+exportForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const download = element<HTMLButtonElement>('download-image');
+  const output = element('image-status');
+  const dimension = (id: string) => {
+    const input = element<HTMLInputElement>(id);
+    return input.value === '' ? undefined : input.valueAsNumber;
+  };
+  const options = {
+    width: dimension('image-width'),
+    height: dimension('image-height'),
+    background:
+      exportBackground.value === 'current'
+        ? undefined
+        : exportBackground.value === 'custom'
+          ? element<HTMLInputElement>('image-color').value
+          : exportBackground.value,
+  };
+  const target = exportTarget.value;
+  const format = element<HTMLSelectElement>('image-format').value;
+  const marker = exportReadout.value ? smith.getMarker(exportReadout.value) : undefined;
+  const trace = smith.getTraces().find((trace) => trace.id === marker?.traceId);
+  const readout = {
+    reflectionCoefficient: marker?.reflectionCoefficient ?? null,
+    label:
+      marker && trace
+        ? `${markerLabel(trace, marker.markerNumber)} · Frequency: ${SmithFormatter.number(marker.frequencyHz)}Hz`
+        : undefined,
+  };
+  const scaleOptions = { ...options, readout };
+  const chartOptions = {
+    ...options,
+    scaleReadout: readout,
+    legend: exportLegend.checked,
+    scales: target === 'combined' ? scales : undefined,
+  };
+  download.disabled = true;
+  output.textContent = `Preparing ${format.toUpperCase()}…`;
+  output.dataset.error = 'false';
+  try {
+    const blob =
+      format === 'svg'
+        ? new Blob([target === 'scales' ? scales.toSvg(scaleOptions) : smith.toSvg(chartOptions)], {
+            type: 'image/svg+xml;charset=utf-8',
+          })
+        : target === 'scales'
+          ? await scales.toPng(scaleOptions)
+          : await smith.toPng(chartOptions);
+    const filename = `${target === 'combined' ? 'smith-report' : `smith-${target}`}.${format}`;
+    FileDownload.save(blob, filename);
+    output.textContent = `Saved ${filename}.`;
+  } catch (error) {
+    output.textContent = error instanceof Error ? error.message : 'Could not export image.';
+    output.dataset.error = 'true';
+  } finally {
+    download.disabled = false;
+  }
 });
 
 type ReadoutSource = 'cursor' | 'marker';
