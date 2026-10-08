@@ -81,6 +81,7 @@ export class SvgExporter {
       return;
     }
     const rect = source.ownerDocument.createElementNS(SvgExporter.namespace, 'rect');
+    rect.setAttribute('data-export-background', 'true');
     rect.setAttribute('width', '100%');
     rect.setAttribute('height', '100%');
     rect.setAttribute('fill', color);

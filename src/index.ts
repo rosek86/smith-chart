@@ -34,3 +34,5 @@ export { SmithFormatter } from './SmithFormatter.js';
 export type { ReactiveComponent } from './rf/RfCalculations.js';
 
 export type { SmithAppearance, SmithTheme, SmithThemeOverrides } from './appearance/types.js';
+
+export type { PngExportOptions, SmithPngExportOptions } from './svg/png.js';

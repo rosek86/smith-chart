@@ -264,7 +264,8 @@ input[type='file'] {
   overflow-wrap: anywhere;
 }
 #file-status[data-error='true'],
-#reference-status[data-error='true'] {
+#reference-status[data-error='true'],
+#png-status[data-error='true'] {
   color: var(--error);
 }
 footer {
@@ -447,7 +448,8 @@ footer {
   --error: #fca5a5;
   color-scheme: dark;
 }
-#chart-settings {
+#chart-settings,
+#png-export {
   width: min(520px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -457,7 +459,8 @@ footer {
   color: var(--text);
   box-shadow: 0 16px 64px rgb(0 0 0 / 25%);
 }
-#chart-settings::backdrop {
+#chart-settings::backdrop,
+#png-export::backdrop {
   background: rgb(2 6 23 / 45%);
 }
 .settings-heading {
@@ -524,10 +527,43 @@ footer {
   margin-bottom: 0;
 }
 @media (max-width: 480px) {
-  #chart-settings {
+  #chart-settings,
+  #png-export {
     padding: 16px;
   }
   #chart-settings fieldset {
     grid-template-columns: 1fr;
   }
+}
+
+#png-export-form > label:not([hidden]) {
+  display: block;
+  margin: 16px 0 8px;
+}
+#png-export-form select,
+#png-export-form input[type='number'] {
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.png-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.png-dimensions input {
+  margin-top: 8px;
+}
+#png-export-form .png-legend {
+  margin-block: 20px;
+}
+#png-status:empty {
+  display: none;
 }

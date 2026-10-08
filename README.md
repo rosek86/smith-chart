@@ -20,7 +20,7 @@ for the changed imports.
 - Twelve parameter scales mounted independently of chart zoom.
 - Four peripheral rulers for phase and electrical length.
 - One-port Touchstone 1.x import with RI, MA, and DB representations.
-- Standalone SVG export of the current chart and radial scales.
+- Standalone SVG and configurable PNG export of the chart and radial scales.
 - ESM modules and TypeScript declarations.
 
 ## Installation
@@ -572,6 +572,47 @@ Omitted options use Touchstone defaults: GHz, S, MA, 50 Ω. For an existing char
 use `RfCalculations.renormalizeSamples` when the file reference differs from
 `chart.referenceImpedanceOhms`. The parser itself does not renormalize data.
 Multiport data and Touchstone 2.x are not supported.
+
+## PNG export
+
+`chart.toPng(options?)` and `scales.toPng(options?)` return `Promise<Blob>` with MIME
+type `image/png`. Call them in a browser after mounting the components at non-zero
+sizes, as with SVG export. The current view, labels, colors, markers, and scale
+readings are captured without modifying the live components.
+
+```ts
+import { SmithScales } from 'smithkit';
+
+const scales = new SmithScales();
+scales.draw('#scales');
+const png = await chart.toPng({ width: 1600, background: 'white', legend: true });
+// Use the Blob with your application's download, preview, or upload flow.
+const report = await chart.toPng({ width: 2400, scales, legend: true });
+const scalePng = await scales.toPng({ width: 1200, background: 'transparent' });
+```
+
+- `width` / `height`: output pixels. Omit both to use the snapshot's natural size;
+  specify one to preserve proportions. With both set, the complete image is
+  centered and fitted without distortion or cropping. Padding uses the chosen
+  background, or transparency when no background is specified.
+- `background`: omit to keep component backgrounds, or pass a concrete CSS color
+  (for example `'#fff'`) or `'transparent'` to replace them. Chart colors stay as
+  configured; choose a suitable chart theme for your report background.
+- `legend` (chart only): append the names and colors of visible traces. Long names
+  wrap; hidden traces are omitted. Default: `false`.
+- `scales` (chart only): a mounted `SmithScales` instance to place beside the chart.
+  Its current responsive layout and readings are preserved. Update scales with
+  the selected marker before export if the report should include marker readings.
+
+Dimensions must be positive integers, at most 8192 px per side and 16 megapixels
+in total. Invalid options and unavailable/destroyed components reject the promise.
+PNG export uses browser SVG decoding and Canvas 2D and releases temporary image URLs.
+Fonts must be available to the browser; external font files are not embedded.
+Export size increases resolution; it does not change the current label density.
+
+The demo's **Export PNG** dialog supports chart, scales, or a combined report,
+custom dimensions/background, and the optional trace legend. Existing SVG downloads
+remain available separately.
 
 ## SVG export
 

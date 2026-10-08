@@ -1,9 +1,9 @@
 /** File downloads belong to the demo, not to the rendering library. */
-export class SvgDownload {
+export class FileDownload {
   private constructor() {}
 
-  public static save(svg: string, filename: string): void {
-    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  public static save(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;

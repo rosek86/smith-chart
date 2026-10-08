@@ -1,3 +1,5 @@
+import { PngExporter } from '../svg/PngExporter.js';
+import type { PngExportOptions } from '../svg/png.js';
 import { Theme } from '../appearance/Theme.js';
 import { SvgTheme } from '../appearance/SvgTheme.js';
 import type { SmithAppearance } from '../appearance/types.js';
@@ -154,6 +156,11 @@ export class SmithScales {
   public toSvg(): string {
     this.assertAlive();
     return SvgExporter.scales(this.container.node()!, this.axes.nodes());
+  }
+
+  /** Export all mounted scales and current readings as a PNG image. */
+  public async toPng(options: PngExportOptions = {}): Promise<Blob> {
+    return PngExporter.create([this.toSvg()], options);
   }
 
   public destroy(): void {

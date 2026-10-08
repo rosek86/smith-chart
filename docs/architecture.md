@@ -111,3 +111,13 @@ trace color slots separately from explicit user colors, preserving IDs and selec
 when a palette changes. Appearance updates remeasure grid labels without rebuilding
 the SVG or resetting the view. The exporter resolves the tokens and includes the
 configured background in standalone files.
+
+## PNG reports
+
+`Smith.toPng` and `SmithScales.toPng` capture the existing standalone SVG snapshots
+and pass them to the internal `svg/PngExporter`. It rasterizes the snapshots into a
+detached Canvas 2D, composes optional radial scales and a visible-trace legend, and
+returns a PNG Blob. Explicit export backgrounds replace the marked SVG background
+rectangles in the copies. Export dimensions affect only the output image; live SVG
+nodes, chart state, and label density stay unchanged. The demo owns download links
+and export controls, while the library owns image composition and encoding.

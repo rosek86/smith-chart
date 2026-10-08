@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add PNG export for charts and radial scales with configurable dimensions/backgrounds, an optional visible-trace legend, and combined report images; expose these options in the demo export dialog.
+
 - Group demo appearance, layers, grid detail, labels, and reference impedance in an accessible Chart settings dialog.
 
 - Add `GridLayer.setLabelsVisible(boolean)` and a shared demo checkbox to toggle grid labels independently of grid lines, preserving the setting across updates and SVG export.

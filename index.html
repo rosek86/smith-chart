@@ -29,6 +29,14 @@
           Chart settings
         </button>
         <button id="reset-view" type="button">Reset view</button>
+        <button
+          id="open-png-export"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="png-export"
+        >
+          Export PNG
+        </button>
         <button id="export-chart" type="button">Export chart SVG</button>
         <button id="export-scales" type="button">Export scales SVG</button>
       </div>
@@ -209,6 +217,64 @@
         >
         <p id="reference-status" class="hint" role="status" aria-live="polite"></p>
       </fieldset>
+    </dialog>
+    <dialog id="png-export" aria-labelledby="png-export-title" aria-describedby="png-export-help">
+      <div class="settings-heading">
+        <h2 id="png-export-title">Export PNG</h2>
+        <form method="dialog"><button type="submit" autofocus>Close</button></form>
+      </div>
+      <p id="png-export-help" class="hint">
+        Save the current view for a report. Colors and label detail follow the chart's current
+        settings.
+      </p>
+      <form id="png-export-form">
+        <label for="png-target">Include</label>
+        <select id="png-target">
+          <option value="chart">Chart</option>
+          <option value="scales">Parameter scales</option>
+          <option value="combined">Chart and scales</option>
+        </select>
+        <div class="png-dimensions">
+          <label for="png-width"
+            >Width (px)<input
+              id="png-width"
+              type="number"
+              min="1"
+              max="8192"
+              step="1"
+              value="1600"
+              placeholder="Auto"
+          /></label>
+          <label for="png-height"
+            >Height (px)<input
+              id="png-height"
+              type="number"
+              min="1"
+              max="8192"
+              step="1"
+              placeholder="Auto"
+          /></label>
+        </div>
+        <p class="hint">
+          Leave one dimension empty to preserve proportions. With both dimensions set, the image
+          fits without cropping. Maximum: 8192 px per side and 16 megapixels.
+        </p>
+        <label for="png-background">Background</label>
+        <select id="png-background">
+          <option value="current">Current theme</option>
+          <option value="white">White</option>
+          <option value="transparent">Transparent</option>
+          <option value="custom">Custom color</option>
+        </select>
+        <label id="png-custom-background" for="png-color" hidden
+          >Background color <input id="png-color" type="color" value="#ffffff"
+        /></label>
+        <label class="png-legend"
+          ><input id="png-legend" type="checkbox" checked /> Include visible trace legend</label
+        >
+        <button id="download-png" type="submit">Download PNG</button>
+        <p id="png-status" class="hint" role="status" aria-live="polite"></p>
+      </form>
     </dialog>
     <script type="module" src="/demo/main.ts"></script>
   </body>
