@@ -52,6 +52,7 @@ export class SvgExporter {
   public static chart(source: SVGElement): string {
     const bounds = SvgExporter.bounds(source);
     const copy = SvgExporter.copy(source);
+    SvgExporter.background(copy, source);
     SvgExporter.size(copy, bounds.width, bounds.height);
     return SvgExporter.serialize(copy);
   }
@@ -62,6 +63,7 @@ export class SvgExporter {
     const root = container.ownerDocument.createElementNS(SvgExporter.namespace, 'svg');
     root.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
     SvgExporter.size(root, bounds.width, bounds.height);
+    SvgExporter.background(root, container);
     for (const axis of axes) {
       const position = SvgExporter.bounds(axis);
       const copy = SvgExporter.copy(axis);
@@ -71,6 +73,19 @@ export class SvgExporter {
       root.appendChild(copy);
     }
     return SvgExporter.serialize(root);
+  }
+
+  private static background(root: SVGElement, source: Element): void {
+    const color = source.ownerDocument.defaultView!.getComputedStyle(source).backgroundColor;
+    if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') {
+      return;
+    }
+    const rect = source.ownerDocument.createElementNS(SvgExporter.namespace, 'rect');
+    rect.setAttribute('width', '100%');
+    rect.setAttribute('height', '100%');
+    rect.setAttribute('fill', color);
+    rect.setAttribute('stroke', 'none');
+    root.insertBefore(rect, root.firstChild);
   }
 
   private static bounds(element: Element): DOMRect {

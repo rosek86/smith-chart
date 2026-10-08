@@ -31,3 +31,5 @@ export type {
 export { SmithFormatter } from './SmithFormatter.js';
 
 export type { ReactiveComponent } from './rf/RfCalculations.js';
+
+export type { SmithAppearance, SmithTheme, SmithThemeOverrides } from './appearance/types.js';

@@ -29,8 +29,9 @@ export class SmithGridLayer extends ConstCircles {
     this.minor = this.drawGrid(definitions.minor, this.opts.minorWidth);
     this.texts = new SmithGroup()
       .attr('stroke', 'none')
-      .attr('font-size', '7')
-      .attr('font-family', 'Verdana');
+      .attr('font-size', this.opts.textFontSize)
+      .attr('font-family', this.opts.textFontFamily)
+      .attr('fill', this.opts.textColor);
     for (const tick of real ? GridLabels.resistance() : GridLabels.reactance()) {
       const label = GridGeometry.label(kind, tick.definition);
       const text = new SmithText(this.scaler.point(label.point), label.text, {

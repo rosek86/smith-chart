@@ -1,3 +1,6 @@
+import { Theme } from '../appearance/Theme.js';
+import { SvgTheme } from '../appearance/SvgTheme.js';
+import type { SmithAppearance } from '../appearance/types.js';
 import { select, format } from 'd3';
 import type { Complex } from '../math/Complex.js';
 import { RadialScaleDefinitions } from './RadialScaleDefinitions.js';
@@ -27,25 +30,26 @@ export class SmithScales {
     .style('width', '100%')
     .style('height', 'auto');
 
-  public constructor() {
+  public constructor(appearance: SmithAppearance = {}) {
+    this.setAppearance(appearance);
     const labels = this.axes.append('g').attr('data-role', 'labels').attr('pointer-events', 'none');
     labels
       .append('text')
       .attr('x', this.start)
       .attr('y', 12)
-      .attr('font-family', 'system-ui, sans-serif')
-      .attr('font-size', 12)
-      .attr('fill', '#334155')
+      .attr('font-family', 'var(--smithkit-fontFamily)')
+      .attr('font-size', 'var(--smithkit-scales-titleFontSize)')
+      .attr('fill', 'var(--smithkit-scales-textColor)')
       .text((scale) => scale.title);
     labels
       .append('text')
       .attr('class', 'scale-value')
       .attr('x', this.start)
       .attr('y', 25)
-      .attr('font-family', 'system-ui, sans-serif')
-      .attr('font-size', 11)
+      .attr('font-family', 'var(--smithkit-fontFamily)')
+      .attr('font-size', 'var(--smithkit-scales-valueFontSize)')
       .attr('font-weight', 600)
-      .attr('fill', '#b42318')
+      .attr('fill', 'var(--smithkit-scales-valueColor)')
       .text('—');
     this.axes
       .append('line')
@@ -54,7 +58,7 @@ export class SmithScales {
       .attr('x2', this.start + this.length)
       .attr('y1', 36)
       .attr('y2', 36)
-      .attr('stroke', '#64748b')
+      .attr('stroke', 'var(--smithkit-scales-stroke)')
       .attr('stroke-width', 1);
     const start = this.start;
     const length = this.length;
@@ -65,7 +69,11 @@ export class SmithScales {
         .join('g')
         .attr('class', 'scale-tick')
         .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`);
-      ticks.append('line').attr('y2', 5).attr('stroke', '#64748b').attr('stroke-width', 1);
+      ticks
+        .append('line')
+        .attr('y2', 5)
+        .attr('stroke', 'var(--smithkit-scales-stroke)')
+        .attr('stroke-width', 1);
       select(this)
         .select('[data-role=labels]')
         .selectAll('g')
@@ -74,9 +82,9 @@ export class SmithScales {
         .attr('transform', (value) => `translate(${start + length * scale.position(value)},36)`)
         .append('text')
         .attr('y', 17)
-        .attr('font-size', 10)
-        .attr('font-family', 'system-ui, sans-serif')
-        .attr('fill', '#334155')
+        .attr('font-size', 'var(--smithkit-scales-fontSize)')
+        .attr('font-family', 'var(--smithkit-fontFamily)')
+        .attr('fill', 'var(--smithkit-scales-textColor)')
         .attr('text-anchor', (_, i) =>
           i === 0 ? 'start' : i === scale.values.length - 1 ? 'end' : 'middle',
         )
@@ -89,11 +97,17 @@ export class SmithScales {
       .attr('cx', this.start)
       .attr('cy', 36)
       .attr('r', 4)
-      .attr('fill', '#dc2626')
-      .attr('stroke', 'white')
+      .attr('fill', 'var(--smithkit-scales-indicatorColor)')
+      .attr('stroke', 'var(--smithkit-scales-indicatorOutline)')
       .attr('stroke-width', 1);
     labels.raise();
     this.axes.append('title').text((scale) => scale.description ?? scale.title);
+  }
+
+  /** Replace the preset and overrides without changing readings or layout. */
+  public setAppearance(appearance: SmithAppearance): void {
+    this.assertAlive();
+    SvgTheme.apply(this.container.node()!, Theme.resolve(appearance));
   }
 
   public draw(target: string | HTMLElement): void {

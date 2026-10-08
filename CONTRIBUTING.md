@@ -79,6 +79,7 @@ src/
   math/                    complex arithmetic and geometry types, independent of the DOM
   rf/                      readings, conversions, components, and renormalization
   grid/                    grid definitions, labels, renderers, and layer controls
+  appearance/              shared presets, validation, and scoped SVG presentation tokens
   rendering/               internal chart renderers; SVG composition, view and lifecycle
   svg/                     reusable SVG primitives and coordinate scaling
   traces/                  sample/marker state, trace rendering, and their coordinator

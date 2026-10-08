@@ -100,3 +100,14 @@ The next boundary to extract is shared view and interaction state, followed by a
 second rendering implementation that can validate an internal renderer contract.
 Keep renderer classes internal until that contract has been exercised by another
 backend.
+
+## Appearance
+
+`appearance/Theme` validates and resolves light/dark presets and partial overrides
+without touching the DOM. `appearance/SvgTheme` applies component-scoped presentation
+tokens to the chart SVG or the independent scale container. SVG components inherit
+those tokens; explicit layer styles keep their precedence. `Smith` tracks automatic
+trace color slots separately from explicit user colors, preserving IDs and selection
+when a palette changes. Appearance updates remeasure grid labels without rebuilding
+the SVG or resetting the view. The exporter resolves the tokens and includes the
+configured background in standalone files.

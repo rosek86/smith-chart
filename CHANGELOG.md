@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add shared light/dark appearance presets and typed overrides for charts, scales, cursors, markers, and automatic trace palettes, with live updates and a demo theme selector.
+- Preserve configured backgrounds and resolved theme styling in standalone SVG exports.
+
 - Extract the internal `SvgChartRenderer` from `Smith`, separating SVG composition, view updates, and rendering lifecycle from the public chart API without changing chart behavior.
 
 ## 0.2.0 — 2026-10-07
