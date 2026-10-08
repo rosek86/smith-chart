@@ -7,6 +7,12 @@
   </head>
   <body>
     <main>
+      <nav>
+        <a href="https://rosek86.github.io/smithkit/examples/index.html">All examples</a> ·
+        <a href="https://github.com/rosek86/smithkit/blob/main/examples/basic/main.ts"
+          >View TypeScript source</a
+        >
+      </nav>
       <h1>Smithkit integration example</h1>
       <p>Mount a chart, replace a measured sweep, resize its container, and release it.</p>
       <div class="controls">
@@ -18,7 +24,11 @@
       <div id="chart" aria-label="Smith chart"></div>
       <output id="reading" aria-live="polite">No chart mounted.</output>
       <p>Drag the marker to select a sample. Replacing the sweep preserves its frequency.</p>
+      <section>
+        <h2>TypeScript</h2>
+        <pre><code id="source"></code></pre>
+      </section>
     </main>
-    <script type="module" src="/main.ts"></script>
+    <script type="module" src="./page.ts"></script>
   </body>
 </html>

@@ -6,7 +6,9 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "noEmit": true,
+    "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["vite.config.ts"]
 }

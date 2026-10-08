@@ -9,7 +9,10 @@
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node"],
+    "paths": {
+      "smithkit": ["./src/index.ts"]
+    }
   },
-  "include": ["src/**/*.ts", "demo/**/*.ts", "tests/**/*.ts", "*.config.ts"]
+  "include": ["src/**/*.ts", "demo/**/*.ts", "tests/**/*.ts", "*.config.ts", "examples/**/*.ts"]
 }

@@ -33,5 +33,5 @@ When running a copied example, use the archive's absolute path instead.
 
 `npm run build` produces a standalone site in `dist/`. The repository's
 `check:example` command installs the release archive in a temporary copy, compiles
-this consumer against the installed types, builds it, and exercises these controls
+this consumer as part of the full examples gallery against the installed types, builds it, and exercises these controls
 in Chromium and WebKit.

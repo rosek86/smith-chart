@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a navigable integration gallery linked from the demo, with runnable static chart, marker, theme, export, and lifecycle examples using the public API; refresh the API review for 0.3.0.
+
 ## 0.3.0 — 2026-10-08
 
 - Add optional SVG/PNG marker legends with trace colors/names, marker numbers, selectable readings and markers, wrapped descriptions, and independent controls in the demo export dialog.

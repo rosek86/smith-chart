@@ -3,7 +3,10 @@
 **`smithkit`** is a framework-independent JavaScript and TypeScript library for
 interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
-[Try the interactive demo](https://rosek86.github.io/smithkit/).
+[Try the interactive demo](https://rosek86.github.io/smithkit/) or browse the
+[integration examples](https://rosek86.github.io/smithkit/examples/index.html):
+static charts, marker controls, themes, report exports, and lifecycle cleanup.
+Each example includes its TypeScript source.
 
 Upgrading from 0.2.x? Version 0.3.0 replaces `GridLayer.setMinorVisible()` with
 `setDetail('basic' | 'standard' | 'detailed')`. Replace `false` with `'standard'`

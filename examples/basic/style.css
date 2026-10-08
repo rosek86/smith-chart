@@ -32,3 +32,13 @@ output {
   min-height: 1.5em;
   font-variant-numeric: tabular-nums;
 }
+
+pre {
+  overflow: auto;
+  padding: 16px;
+  background: #e8eef4;
+  font-size: 13px;
+}
+nav a {
+  color: #17695f;
+}

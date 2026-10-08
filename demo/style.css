@@ -618,3 +618,18 @@ select,
   overflow-wrap: anywhere;
   min-width: 0;
 }
+
+.header-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.header-heading a {
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+.header-heading a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
