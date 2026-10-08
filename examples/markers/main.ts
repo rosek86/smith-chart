@@ -1,6 +1,6 @@
 import { Smith, SmithEventType, SmithFormatter } from 'smithkit';
 
-const chart = new Smith({ referenceImpedanceOhms: 50, peripheralScalesVisible: false });
+const chart = new Smith();
 chart.draw('#chart');
 const traceId = chart.addTrace(
   [

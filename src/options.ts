@@ -3,6 +3,7 @@ import type { CircleStyle, GridDetail, GridStyle } from './layers.js';
 
 /** Shared defaults for all four impedance/admittance grid layers. */
 export interface GridOptions {
+  /** Default: standard. */
   detail?: GridDetail;
   labelsVisible?: boolean;
   style?: Partial<GridStyle>;
@@ -24,9 +25,11 @@ export interface SmithOptions {
   referenceImpedanceOhms?: number;
   /** Default: the light preset. Use overrides for fonts, colors, and marker/cursor styling. */
   appearance?: SmithAppearance;
-  /** Enable wheel/pan/pinch gestures. Default: true. */
+  /** Enable wheel/pan/pinch gestures. Default: false. */
   zoomEnabled?: boolean;
-  /** Show the peripheral rulers as one group. Default: true. */
+  /** Enable cursor overlay and pointer readings. Default: false. */
+  cursorEnabled?: boolean;
+  /** Show the peripheral rulers as one group. Default: false. */
   peripheralScalesVisible?: boolean;
   /** Shared settings, applied before individual layer overrides. */
   grid?: GridOptions;

@@ -1,11 +1,6 @@
 import { Smith } from 'smithkit';
 
-const chart = new Smith({
-  referenceImpedanceOhms: 50,
-  grid: { detail: 'basic' },
-  peripheralScalesVisible: false,
-  zoomEnabled: false,
-});
+const chart = new Smith();
 chart.draw('#chart');
 chart.addTrace(
   [

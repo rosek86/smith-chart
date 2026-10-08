@@ -7,7 +7,13 @@ test('trace and marker IDs survive removals, updates, and queued notifications',
   await page.setContent('<div id="chart" style="width:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith({ referenceImpedanceOhms: 75 });
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 75,
+    });
     chart.draw('#chart');
     const a = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
     chart.addMarker(a);
@@ -182,7 +188,12 @@ test('hiding an actively dragged trace ends the gesture and permits future dragg
   await page.setContent('<div id="chart" style="width:500px"></div>');
   await loadLibrary(page);
   await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const id = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
     chart.addMarker(id);

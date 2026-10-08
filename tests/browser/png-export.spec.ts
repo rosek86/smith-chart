@@ -11,7 +11,14 @@ test('PNG preserves the view, replaces backgrounds, fits dimensions, and adds on
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 50,
+      appearance: { theme: 'dark' },
+    });
     chart.draw('#chart');
     chart.layers.resistance.setDetail('basic');
     chart.layers.reactance.setDetail('basic');
@@ -120,7 +127,12 @@ test('PNG rejects invalid sizes, colors, unmounted and destroyed components with
   await page.setContent('<div id="chart" style="width:300px;height:300px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     const scales = new window.SmithTest.SmithScales();
     let rejected = 0;
     for (const component of [chart, scales]) {
@@ -177,7 +189,12 @@ test('PNG releases its temporary image URL even when SVG decoding fails', async 
   await page.setContent('<div id="chart" style="width:300px;height:300px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const decode = HTMLImageElement.prototype.decode;
     const revoke = URL.revokeObjectURL;
@@ -255,7 +272,12 @@ test('combined PNG centers differently sized chart and scales in a vertical layo
   );
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     const scales = new window.SmithTest.SmithScales();
     chart.draw('#chart');
     scales.draw('#scales');

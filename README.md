@@ -82,27 +82,38 @@ contain at least one sample.
 
 Traces start without markers. Call `chart.addMarker(traceId)` to add one at the
 first sample, or pass a sample index to choose its initial position. Drag markers to select
-samples with a mouse or touch, scroll to zoom, and drag the chart to pan. Markers
+samples with a mouse or touch. Enable zoom to scroll to zoom and drag the chart to pan. Markers
 and their focus indicators stay above grid labels and sample points. `chart.resetView()` restores the initial view, including peripheral rulers.
 
 Construct `Smith` only in a browser, such as your framework's mount hook. Importing
 the package and using its calculation or parsing methods does not require a DOM.
 
-Zoom is enabled by default. For a fixed view, call `chart.setZoomEnabled(false)` before or after mounting.
-It disables wheel/double-click zoom and mouse/touch panning and pinch zoom while
-preserving the current view. Set it back to `true` to restore gestures. This is a
-view control: cursor readings and marker dragging stay available. `resetView()`
-also remains available when zoom is disabled. New wheel gestures do not consume
-page scrolling. Disabling during an active gesture freezes the view while that
-gesture finishes normally.
+The default chart is a static presentation: standard impedance grid with labels,
+no peripheral scales, and zoom and cursor tracking disabled. Markers are optional
+and remain interactive when explicitly added.
+
+Enable interactions through constructor options or the corresponding setters:
 
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith({ referenceImpedanceOhms: 50 });
-chart.setZoomEnabled(false);
+const chart = new Smith({ zoomEnabled: true, cursorEnabled: true });
 chart.draw('#smith');
+
+chart.setZoomEnabled(false); // Freeze the current view; page scrolling is unaffected.
+chart.setCursorEnabled(false); // Hide cursor geometry and cancel pending readings.
 ```
+
+Zoom controls wheel/double-click zoom and mouse/touch panning and pinch gestures;
+it is independent of cursor tracking and marker interaction. `resetView()` remains
+available with zoom disabled. Disabling during an active gesture freezes the view
+while that gesture finishes normally.
+
+Cursor tracking controls the cursor overlay and `Cursor` events. Disabling it
+clears the current readout with one `Cursor` event carrying `undefined`, cancels
+queued readings, and suppresses further cursor events. Enabling waits for a new
+pointer movement. The last `cursorReading` remains available; marker controls and
+events work independently.
 
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
@@ -141,8 +152,8 @@ chart.setGridDetail('standard');
 chart.layers.reactance.setDetail('basic');
 ```
 
-Defaults are 50 Ω, the light theme, zoom enabled, peripheral scales visible,
-and detailed grids with labels. Resistance/reactance are visible;
+Defaults are 50 Ω, the light theme, zoom and cursor disabled, peripheral scales hidden,
+and standard grids with labels. Resistance/reactance are visible;
 conductance/susceptance and Q/VSWR circles are hidden. Q defaults to
 `[0.5, 1, 2, 5, 10]`; VSWR defaults to `[1.2, 1.5, 2, 3, 5, 10]`.
 
@@ -500,8 +511,8 @@ or `layer.setDetail(...)` to override one layer:
 
 - **Basic:** complete circles and arcs for normalized values 0.2, 0.5, 1, 2, and 5,
   with matching axis/rim labels and the zero label. Intended for small or static charts.
-- **Standard:** the full major grid and its labels, without minor lines.
-- **Detailed** (default): the full major and minor grid.
+- **Standard** (default): the full major grid and its labels, without minor lines.
+- **Detailed:** the full major and minor grid.
 
 Changing detail preserves layer visibility, styles, and the current view. Label
 collision handling still applies at every level. Peripheral scales and Q/VSWR
@@ -577,6 +588,8 @@ assumes a matched line or attenuator terminated in an open or short: the reflect
 wave traverses it twice. It does not measure insertion loss of an arbitrary load
 from S11 alone. At \|Γ\| = 0.1 it reads 10 dB, while return loss reads 20 dB.
 
+Peripheral rulers are hidden by default. Enable them with
+`{ peripheralScalesVisible: true }` or `chart.peripheralScales.setVisible(true)`.
 `chart.peripheralScales` supports `setVisible(boolean)` and `update(Complex | null)`.
 Its four rulers zoom with the chart: reflection phase, voltage transmission phase,
 wavelengths toward generator, and wavelengths toward load. Wavelength rulers start

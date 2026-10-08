@@ -11,7 +11,14 @@ test('marker legends identify visible markers, select fields, wrap names, and pr
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const { Smith, SmithScales } = window.SmithTest;
-    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 50,
+      appearance: { theme: 'dark' },
+    });
     chart.draw('#chart');
     const trace = chart.addTrace(
       [
@@ -123,7 +130,12 @@ test('PNG captures marker legend readings at invocation and uses the same text a
   await page.setContent('<div id="chart" style="width:400px;height:400px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     chart.addMarker(
       chart.addTrace(

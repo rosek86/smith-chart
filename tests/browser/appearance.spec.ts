@@ -20,11 +20,21 @@ test('live themes preserve chart state, focus, explicit styles, and other chart 
 }) => {
   const result = await page.evaluate(() => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = (window.appearanceChart = new Smith());
+    const chart = (window.appearanceChart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    }));
     const scales = (window.appearanceScales = new SmithScales());
     chart.draw('#chart');
     scales.draw('#scales');
-    const other = new Smith();
+    const other = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     other.draw('#other');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 1e9, reflectionCoefficient: [0, 0] },
@@ -128,6 +138,10 @@ test('appearance validation is atomic and retained components reject changes aft
 }) => {
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
       referenceImpedanceOhms: 50,
       appearance: { theme: 'dark' },
     });
@@ -170,7 +184,14 @@ test('dark SVG exports resolve theme tokens and include independent backgrounds'
       theme: 'dark',
       overrides: { fontFamily: 'Arial', scales: { indicatorColor: '#00ffff' } },
     };
-    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: appearance });
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 50,
+      appearance: appearance,
+    });
     const scales = new SmithScales(appearance);
     chart.draw('#chart');
     scales.draw('#scales');

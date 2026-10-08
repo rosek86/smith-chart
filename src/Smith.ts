@@ -102,6 +102,7 @@ export class Smith {
         apply(value);
       }
     };
+    applyBooleanOption(options.cursorEnabled, (value) => this.setCursorEnabled(value));
     applyBooleanOption(options.zoomEnabled, (value) => this.setZoomEnabled(value));
     applyBooleanOption(options.peripheralScalesVisible, (value) =>
       this.peripheralScales.setVisible(value),
@@ -238,9 +239,6 @@ export class Smith {
       return;
     }
     this.renderer.setMarkerDragging(isDragging);
-    if (isDragging) {
-      this.emit({ type: SmithEventType.Cursor, data: undefined });
-    }
   }
 
   /** Last cursor position. Use cursor events to detect pointer leave. */
@@ -252,6 +250,12 @@ export class Smith {
   public setZoomEnabled(enabled: boolean): void {
     this.assertAlive();
     this.renderer.setZoomEnabled(enabled);
+  }
+
+  /** Enable or disable the cursor overlay and readings independently of zoom and markers. */
+  public setCursorEnabled(enabled: boolean): void {
+    this.assertAlive();
+    this.renderer.setCursorEnabled(enabled);
   }
 
   public resetView(): void {
@@ -476,7 +480,6 @@ export class Smith {
     this.referenceOhms = referenceImpedanceOhms;
     this.data.forEach((data, index) => data.update(samples[index], 'sample-index'));
     this.renderer.hideCursor();
-    this.emit({ type: SmithEventType.Cursor, data: undefined });
   }
 
   public clearTraces(): void {

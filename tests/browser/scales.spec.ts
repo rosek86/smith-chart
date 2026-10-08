@@ -41,7 +41,12 @@ test('peripheral scales hide undefined angles and invalid input', async ({ page 
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const { Smith, Complex } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const scales = chart.peripheralScales;
     const visible = () =>
@@ -282,7 +287,12 @@ test('leaving the chart cancels queued cursor updates before they can restore do
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, SmithEventType } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     const scales = new SmithScales();
     chart.draw('#chart');
     scales.draw('#scales');

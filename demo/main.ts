@@ -26,7 +26,13 @@ const settingsButton = element<HTMLButtonElement>('open-settings');
 settingsButton.addEventListener('click', () => settingsDialog.showModal());
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
-const smith = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
+const smith = new Smith({
+  appearance: { theme: 'dark' },
+  grid: { detail: 'detailed' },
+  peripheralScalesVisible: true,
+  zoomEnabled: true,
+  cursorEnabled: true,
+});
 smith.draw('#smith');
 const scales = new SmithScales({ theme: 'dark' });
 scales.draw('#smith-scales');

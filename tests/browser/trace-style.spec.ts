@@ -7,7 +7,12 @@ test('trace styles preserve samples, markers, visibility, and ordering across ch
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 3, reflectionCoefficient: [0.5, 0] },
@@ -125,7 +130,12 @@ test('20,000-sample sweeps retain full data in every rendering mode', async ({
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = Array.from({ length: 20000 }, (_, i) => ({
       frequencyHz: 1e9 + i * 1e4,
@@ -188,7 +198,12 @@ test('updating an earlier trace preserves its stacking order and marker layer', 
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 10, reflectionCoefficient: [0, 0] },

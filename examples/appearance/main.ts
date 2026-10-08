@@ -1,11 +1,7 @@
 import { Smith } from 'smithkit';
 import type { SmithAppearance } from 'smithkit';
 
-const chart = new Smith({
-  referenceImpedanceOhms: 50,
-  grid: { detail: 'standard' },
-  peripheralScalesVisible: false,
-});
+const chart = new Smith({ cursorEnabled: true });
 chart.draw('#chart');
 const traceId = chart.addTrace(
   [

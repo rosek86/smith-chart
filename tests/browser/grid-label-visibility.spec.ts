@@ -7,7 +7,12 @@ test('grid labels toggle independently and preserve their preference through upd
   await page.setContent('<div id="chart" style="width:600px;height:600px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     // Layer controls also work before mounting.
     chart.layers.resistance.setLabelsVisible(false);
     chart.draw('#chart');

@@ -7,7 +7,12 @@ test('replacement supports frequency, index, and reflection selection without ch
   await page.setContent('<div id="chart"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const original: import('../../src').TraceSamples = [
       { frequencyHz: 10, reflectionCoefficient: [0, 0] },
@@ -67,7 +72,12 @@ test('frequency ties, duplicates, out-of-range values and invalid updates have d
   await page.setContent('<div id="chart"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const indices = [];
     for (const [frequencyHz, frequencies] of [
@@ -137,7 +147,12 @@ test('queued marker events coalesce independently, expose latest snapshots, and 
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const trace = chart.addTrace(
       [10, 20, 30].map((frequencyHz, i) => ({ frequencyHz, reflectionCoefficient: [i / 10, 0] })),

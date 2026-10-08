@@ -68,13 +68,19 @@ const gridLayer: GridLayerOptions = { visible: true, style: { majorWidth: 2 } };
 const circles: CircleLayerOptions = { values: [1, 2] as const, visible: true };
 const configuration: SmithOptions = {
   referenceImpedanceOhms: parsed.referenceImpedanceOhms,
-  appearance: { theme: 'dark' }, zoomEnabled: false, peripheralScalesVisible: false,
+  appearance: { theme: 'dark' }, cursorEnabled: true, zoomEnabled: false, peripheralScalesVisible: false,
   grid, layers: { resistance: gridLayer, q: circles, vswr: { values: [] } },
 };
 const chart = new Smith(configuration);
 new Smith();
 new Smith({});
 chart.setGridDetail('basic');
+chart.setCursorEnabled(true);
+chart.setCursorEnabled(false);
+// @ts-expect-error Cursor tracking requires a boolean.
+chart.setCursorEnabled('false');
+// @ts-expect-error Cursor configuration requires a boolean.
+new Smith({ cursorEnabled: 'true' });
 chart.layers.q.setValues([1, 2] as const);
 // @ts-expect-error Positional constructor arguments are no longer supported.
 new Smith(50);

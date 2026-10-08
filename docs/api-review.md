@@ -1,7 +1,8 @@
 # Public API review
 
 This review describes `smithkit` on the development branch targeting 0.4.0.
-The constructor options and explicit marker creation differ from published 0.3.0.
+The constructor options, static presentation defaults, and explicit marker creation
+differ from published 0.3.0. Zoom and cursor tracking are independent opt-in features.
 The [integration gallery](../examples/README.md) exercises static rendering, marker
 controls, appearance, exports, and lifecycle using only public imports. These
 integrations require no renderer access or additional public API.

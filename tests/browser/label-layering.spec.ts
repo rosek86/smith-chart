@@ -10,7 +10,12 @@ test('grid and scale labels stay above geometry after updates, with markers on t
   await loadLibrary(page);
   const visibility = await page.evaluate(() => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const scales = new SmithScales();
     scales.draw('#scales');

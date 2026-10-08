@@ -17,7 +17,12 @@ async function setup(page: Page): Promise<void> {
   );
   await loadLibrary(page);
   await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     chart.setZoomEnabled(false);
     const trace = chart.addTrace(

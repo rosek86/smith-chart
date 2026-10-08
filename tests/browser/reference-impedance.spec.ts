@@ -8,7 +8,13 @@ test('chart renormalization preserves physical Z, marker samples, identity, and 
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
-    const chart = new Smith({ referenceImpedanceOhms: 50 });
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 50,
+    });
     chart.draw('#chart');
     const trace = chart.addTrace(
       [
@@ -69,7 +75,13 @@ test('a singular trace rejects the complete chart change without partial mutatio
   await page.setContent('<div id="chart"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith({ referenceImpedanceOhms: 50 });
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 50,
+    });
     chart.draw('#chart');
     chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]));
     chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [5, 0] }]));

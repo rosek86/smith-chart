@@ -118,6 +118,7 @@ test('invalid constructor settings reject and disconnect allocated observers', a
       { referenceImpedanceOhms: null },
       { appearance: { theme: 'invalid' } },
       { zoomEnabled: 'false' },
+      { cursorEnabled: 'false' },
       { peripheralScalesVisible: 0 },
       { grid: null },
       { layers: [] },
@@ -247,4 +248,174 @@ test('default charts have no implicit markers, including after replacement and r
     { empty: true, number: 1, stillEmpty: true },
     { empty: true, number: 1, stillEmpty: true },
   ]);
+});
+
+test('default and partially configured charts render a static standard impedance grid', async ({
+  page,
+}) => {
+  const results = await page.evaluate(async () => {
+    const results = [];
+    for (const options of [undefined, {}, { appearance: { theme: 'dark' as const } }]) {
+      const chart = new window.SmithTest.Smith(options);
+      chart.draw('#chart');
+      const svg = document.querySelector('svg')!;
+      const surface = svg.querySelector<SVGCircleElement>('circle[fill=transparent]')!;
+      const box = surface.getBoundingClientRect();
+      const events: string[] = [];
+      chart.onEvent((event) => events.push(event.type));
+      surface.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: box.x + box.width / 2,
+          clientY: box.y + box.height / 2,
+        }),
+      );
+      surface.dispatchEvent(new PointerEvent('pointerleave'));
+      const transform = svg.firstElementChild!.getAttribute('transform');
+      const wheel = new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true });
+      svg.dispatchEvent(wheel);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      const layers = ['resistance', 'reactance', 'conductance', 'susceptance'].map((name) => {
+        const layer = svg.querySelector(`[data-layer=${name}]`)!;
+        return {
+          visible: layer.getAttribute('opacity') !== '0',
+          minorHidden: layer.children[0].getAttribute('opacity') === '0',
+          count: layer.children[1].childElementCount,
+        };
+      });
+      const readingEvents = events.length;
+      const trace = chart.addTrace([
+        { frequencyHz: 1e9, reflectionCoefficient: [0, 0] },
+        { frequencyHz: 2e9, reflectionCoefficient: [0.5, 0] },
+      ]);
+      const markersAbsent = chart.getTraces()[0].markers.length === 0;
+      const marker = chart.addMarker(trace)!;
+      chart.focusMarker(marker);
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+      );
+      const markerWorks = chart.getMarker(marker)!.sampleIndex === 1;
+      const exported = new DOMParser().parseFromString(chart.toSvg(), 'image/svg+xml');
+      results.push({
+        layers,
+        readingEvents,
+        markersAbsent,
+        markerWorks,
+        labelsVisible: [...svg.querySelectorAll('[data-label-layer=resistance] text')].some(
+          (text) => getComputedStyle(text).display !== 'none',
+        ),
+        scalesHidden:
+          svg.querySelector('[data-layer=peripheral-scales]')!.getAttribute('opacity') === '0',
+        cursorHidden: svg.querySelector('.smith-cursor')!.getAttribute('opacity') === '0',
+        viewUnchanged: svg.firstElementChild!.getAttribute('transform') === transform,
+        scrollingUnblocked: !wheel.defaultPrevented,
+        exportedScalesHidden:
+          exported.querySelector<SVGElement>('[data-layer=peripheral-scales]')!.style.opacity ===
+          '0',
+      });
+      chart.destroy();
+    }
+    return results;
+  });
+  for (const result of results) {
+    expect(result).toMatchObject({
+      readingEvents: 0,
+      markersAbsent: true,
+      markerWorks: true,
+      labelsVisible: true,
+      scalesHidden: true,
+      cursorHidden: true,
+      viewUnchanged: true,
+      scrollingUnblocked: true,
+      exportedScalesHidden: true,
+    });
+    expect(result.layers.map((layer) => layer.visible)).toEqual([true, true, false, false]);
+    expect(result.layers.every((layer) => layer.minorHidden)).toBe(true);
+    expect(result.layers[0].count).toBeGreaterThan(5);
+    expect(result.layers[1].count).toBeGreaterThan(11);
+  }
+});
+
+test('cursor tracking can be enabled independently, disabled during a queued move, and safely re-enabled', async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    const chart = new window.SmithTest.Smith({ cursorEnabled: true });
+    chart.draw('#chart');
+    const events: boolean[] = [];
+    chart.onEvent((event) => {
+      if (event.type === window.SmithTest.SmithEventType.Cursor) {
+        events.push(Boolean(event.data));
+        if (!event.data) {
+          // Calling the setter from a clearing notification must be safe and idempotent.
+          chart.setCursorEnabled(false);
+        }
+      }
+    });
+    const surface = document.querySelector<SVGCircleElement>('circle[fill=transparent]')!;
+    const box = surface.getBoundingClientRect();
+    const move = () =>
+      surface.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: box.x + box.width * 0.6,
+          clientY: box.y + box.height / 2,
+        }),
+      );
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+    move();
+    await settle();
+    const initial = [...events];
+    const reading = chart.cursorReading.reflectionCoefficient.re;
+    move();
+    chart.setCursorEnabled(false);
+    chart.setCursorEnabled(false);
+    move();
+    surface.dispatchEvent(new PointerEvent('pointerleave'));
+    chart.renormalize(75);
+    await settle();
+    const disabled = [...events];
+    const hidden = document.querySelector('.smith-cursor')!.getAttribute('opacity') === '0';
+    const retainedPosition = chart.cursorReading.reflectionCoefficient.re === reading;
+    chart.setCursorEnabled(true);
+    await settle();
+    const waiting = events.length === disabled.length;
+    move();
+    await settle();
+    const resumed = [...events];
+    const shown = document.querySelector('.smith-cursor')!.getAttribute('opacity') !== '0';
+    let invalid = false;
+    try {
+      chart.setCursorEnabled('false' as unknown as boolean);
+    } catch (error) {
+      invalid = error instanceof TypeError;
+    }
+    chart.destroy();
+    let disposed = false;
+    try {
+      chart.setCursorEnabled(true);
+    } catch {
+      disposed = true;
+    }
+    return {
+      initial,
+      disabled,
+      resumed,
+      hidden,
+      retainedPosition,
+      waiting,
+      shown,
+      invalid,
+      disposed,
+    };
+  });
+  expect(result).toEqual({
+    initial: [true],
+    disabled: [true, false],
+    resumed: [true, false, true],
+    hidden: true,
+    retainedPosition: true,
+    waiting: true,
+    shown: true,
+    invalid: true,
+    disposed: true,
+  });
 });

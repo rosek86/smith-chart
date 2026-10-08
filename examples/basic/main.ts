@@ -44,11 +44,7 @@ function unmount(): void {
 
 function mount(): void {
   unmount();
-  chart = new Smith({
-    referenceImpedanceOhms: 50,
-    grid: { detail: 'standard' },
-    peripheralScalesVisible: false,
-  });
+  chart = new Smith();
   chart.draw(host);
   unsubscribe = chart.onEvent((event) => {
     if (event.type === SmithEventType.Marker) {

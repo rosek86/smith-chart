@@ -7,7 +7,12 @@ test('static charts adapt label density to available space without changing the 
   await page.setContent('<div id="chart" style="width:240px;height:240px"></div>');
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.setZoomEnabled(false);
     chart.draw('#chart');
     const host = document.getElementById('chart')!;
@@ -104,7 +109,12 @@ test('layout reacts to layer visibility, text styling, zoom and reset', async ({
   await page.setContent('<div id="chart" style="width:320px;height:320px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const svg = document.querySelector<SVGSVGElement>('svg')!;
     const visible = () =>
@@ -174,7 +184,12 @@ test('successive zoom frames and reset preserve labels, including after a zoomed
   await page.setContent('<div id="chart" style="width:320px;height:320px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const host = document.getElementById('chart')!;
     const svg = host.querySelector('svg')!;
@@ -229,7 +244,12 @@ test('grid endpoint labels survive compact layouts and combined impedance/admitt
   await page.setContent('<div id="chart" style="width:320px;height:320px"></div>');
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const host = document.getElementById('chart')!;
     const results = [];
@@ -277,7 +297,12 @@ test('peripheral rulers keep complete labels in two outlined groups at every cha
   await page.setContent('<div id="chart" style="width:240px;height:240px"></div>');
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const host = document.getElementById('chart')!;
     const results = [];

@@ -20,7 +20,22 @@ const chart = new Smith({
 });
 ```
 
-`new Smith()` retains the same presentation defaults. Initial configuration can
+`new Smith()` now starts with a standard impedance grid and labels, hidden
+peripheral scales, and zoom/cursor tracking disabled. To retain the 0.3.x
+interactive defaults explicitly:
+
+```ts
+const chart = new Smith({
+  grid: { detail: 'detailed' },
+  peripheralScalesVisible: true,
+  zoomEnabled: true,
+  cursorEnabled: true,
+});
+```
+
+`setCursorEnabled()` changes tracking at runtime; disabling clears the readout
+and cancels queued cursor events, without affecting markers or zoom.
+Initial configuration can
 replace sequences of layer setter calls. Shared `grid` settings are applied first,
 then per-layer options under `layers`. Styles merge by property. Runtime setters
 remain available, including `chart.setGridDetail(detail)` for all four grids and

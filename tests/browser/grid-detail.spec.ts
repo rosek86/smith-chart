@@ -9,6 +9,10 @@ for (const theme of ['light', 'dark'] as const) {
     await loadLibrary(page);
     const results = await page.evaluate((theme) => {
       const chart = new window.SmithTest.Smith({
+        zoomEnabled: true,
+        cursorEnabled: true,
+        peripheralScalesVisible: true,
+        grid: { detail: 'detailed' },
         referenceImpedanceOhms: 50,
         appearance: { theme },
       });
@@ -79,7 +83,12 @@ test('invalid detail is rejected without changing the chart; destroyed controls 
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const before = document.querySelector('svg')!.outerHTML;
     let invalidRejected = false;

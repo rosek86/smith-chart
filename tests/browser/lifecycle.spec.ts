@@ -22,9 +22,24 @@ test('mounts by element, moves without duplicating SVG, and validates containers
       }
     };
     const invalid = [0, -1, NaN, Infinity].every((z) =>
-      fails(() => new Smith({ referenceImpedanceOhms: z })),
+      fails(
+        () =>
+          new Smith({
+            zoomEnabled: true,
+            cursorEnabled: true,
+            peripheralScalesVisible: true,
+            grid: { detail: 'detailed' },
+            referenceImpedanceOhms: z,
+          }),
+      ),
     );
-    const chart = new Smith({ referenceImpedanceOhms: 75 });
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+      referenceImpedanceOhms: 75,
+    });
     chart.draw(document.getElementById('first')!);
     chart.draw('#first');
     const once = document.querySelectorAll('svg').length;
@@ -42,7 +57,12 @@ test('updates samples and markers, keeps colors, and retains stable IDs after re
 }) => {
   const result = await page.evaluate(async () => {
     const { Smith } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#first');
     const events: import('../../src/index').MarkerSnapshot[] = [];
     chart.onEvent((event) => {
@@ -143,12 +163,22 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
   const result = await page.evaluate(async () => {
     const { Smith } = window.SmithTest;
     let calls = 0;
-    const other = new Smith();
+    const other = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     other.draw('#second');
     other.onEvent(() => calls++);
     let invalidCalls = 0;
     for (let i = 0; i < 5; i++) {
-      const chart = new Smith();
+      const chart = new Smith({
+        zoomEnabled: true,
+        cursorEnabled: true,
+        peripheralScalesVisible: true,
+        grid: { detail: 'detailed' },
+      });
       chart.draw('#first');
       chart.onEvent(() => invalidCalls++);
       chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]));
@@ -186,7 +216,12 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
 for (const gesture of ['zoom', 'drag'] as const) {
   test(`destroy during ${gesture} releases window listeners`, async ({ page }) => {
     await page.evaluate(() => {
-      const chart = new window.SmithTest.Smith();
+      const chart = new window.SmithTest.Smith({
+        zoomEnabled: true,
+        cursorEnabled: true,
+        peripheralScalesVisible: true,
+        grid: { detail: 'detailed' },
+      });
       chart.draw('#first');
       chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]));
       (window as typeof window & { destroyChart: () => void }).destroyChart = () => chart.destroy();
@@ -219,7 +254,12 @@ test('all markers stay above all sample points after adding and updating dataset
   page,
 }) => {
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#first');
     const snapshots: boolean[] = [];
     const recordOrder = () => {
@@ -265,7 +305,12 @@ test('event subscriptions are independent, removable, and cleared on destruction
 }) => {
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#first');
     let count = 0;
     const listener = (event: import('../../src').SmithEvent) => {
@@ -308,7 +353,12 @@ test('traces share the current view when created before mounting or after zoom a
   page,
 }) => {
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 1e9, reflectionCoefficient: [0.25, 0.1] },
     ];

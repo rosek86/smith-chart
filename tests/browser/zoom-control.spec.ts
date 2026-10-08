@@ -11,7 +11,12 @@ async function setup(page: import('@playwright/test').Page, enabled = true): Pro
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   await page.evaluate((enabled) => {
-    window.zoomChart = new window.SmithTest.Smith();
+    window.zoomChart = new window.SmithTest.Smith({
+      zoomEnabled: true,
+      cursorEnabled: true,
+      peripheralScalesVisible: true,
+      grid: { detail: 'detailed' },
+    });
     window.zoomChart.setZoomEnabled(enabled);
     window.zoomChart.draw('#chart');
   }, enabled);
