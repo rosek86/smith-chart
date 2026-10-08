@@ -376,8 +376,13 @@ footer {
     margin: 4px 0;
   }
   .toolbar {
+    gap: 12px;
     padding: 10px 16px;
     margin-bottom: 12px;
+  }
+  .toolbar fieldset {
+    /* Reserve room for wider system fonts and native select controls. */
+    column-gap: 12px;
   }
   .workspace {
     grid-template-columns: 1fr;
