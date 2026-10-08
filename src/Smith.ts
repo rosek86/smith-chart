@@ -1,40 +1,11 @@
-import * as d3 from 'd3';
-import { ZoomTransform } from 'd3';
-
-import { Point } from './math/geometry.js';
-
-import { MouseGesture } from './interaction/MouseGesture.js';
-import { SmithSvg } from './svg/SmithSvg.js';
-import { LabelLayout } from './svg/LabelLayout.js';
-import { SvgExporter } from './svg/SvgExporter.js';
-import { SmithGroup } from './svg/SmithGroup.js';
-import { SmithCircle } from './svg/SmithCircle.js';
-
-import { SmithData } from './traces/SmithData.js';
+import { color as parseColor, schemeCategory10 } from 'd3';
+import { SvgChartRenderer } from './rendering/SvgChartRenderer.js';
+import type { SmithData } from './traces/SmithData.js';
 import type { SmithMarker } from './traces/SmithMarker.js';
-import { SmithCursor } from './interaction/SmithCursor.js';
-
-import { ConstResistance } from './grid/ConstResistance.js';
-import { ConstReactance } from './grid/ConstReactance.js';
-import { ConstConductance } from './grid/ConstConductance.js';
-import { ConstSusceptance } from './grid/ConstSusceptance.js';
-import { ConstQCircles } from './grid/ConstQCircles.js';
-import { ConstSwrCircles } from './grid/ConstSwrCircles.js';
-
-import { SmithDrawOptions } from './svg/SmithDrawOptions.js';
-import { SmithScaler } from './svg/SmithScaler.js';
-
-import { TraceSamples } from './samples.js';
-import { SmithConstantCircle } from './rf/SmithConstantCircle.js';
-import { GridDefinitions } from './grid/GridDefinitions.js';
-
+import type { TraceSamples } from './samples.js';
 import { Complex } from './math/Complex.js';
-import { SmithPeripheralScales } from './scales/SmithPeripheralScales.js';
-import { GridLayerControl } from './grid/GridLayerControl.js';
-import { CircleLayerControl } from './grid/CircleLayerControl.js';
 import type { ChartLayers, PeripheralScales } from './layers.js';
 import { RfCalculations } from './rf/RfCalculations.js';
-
 import type { SmithReading } from './rf/RfCalculations.js';
 import { MarkerMeasurements } from './MarkerMeasurements.js';
 import type {
@@ -64,51 +35,16 @@ export type SmithEvent =
       data: MarkerSnapshot;
     };
 
-interface Scalers {
-  default: SmithScaler;
-  impedance: SmithScaler;
-  admittance: SmithScaler;
-}
-
 export class Smith {
-  private calcs: SmithConstantCircle = new SmithConstantCircle();
-  private scalers: Scalers;
-
-  private readonly defaultTransform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
-  private transform = d3.zoomIdentity;
-  private zoomEnabled = true;
-  private applyingView = false;
-  private zoomBehavior = d3.zoom<SVGElement, unknown>();
-
-  private svg: SmithSvg;
-  private resizeObserver: ResizeObserver;
-  private readonly labelLayout: LabelLayout;
-  private container: SmithGroup;
-  private dataContainer: SmithGroup;
-  private markerContainer: SmithGroup;
-
-  private reactanceAxis: SmithCircle;
-
-  private constResistance: ConstResistance;
-  private constReactance: ConstReactance;
-  private constConductance: ConstConductance;
-  private constSusceptance: ConstSusceptance;
-  private constSwrCircles: ConstSwrCircles;
-  private constQCircles: ConstQCircles;
-
-  private cursor: SmithCursor;
-  private peripheralScaleRenderer = new SmithPeripheralScales();
+  private readonly renderer: SvgChartRenderer;
   private data: SmithData[] = [];
   private destroyed = false;
-  private mouseGesture = new MouseGesture();
   private nextDatasetColor = 0;
   private nextTraceId = 1;
   private nextMarkerId = 1;
   private traceMetadata = new WeakMap<SmithData, { id: string; name: string }>();
   private markerIds = new WeakMap<SmithMarker, string>();
   private draggedMarkers = new Set<SmithMarker>();
-  private cursorBeforeMarkerDrag: string | null = null;
-
   private listeners = new Set<(event: SmithEvent) => void>();
 
   public readonly layers: ChartLayers;
@@ -118,141 +54,25 @@ export class Smith {
     if (!Number.isFinite(referenceOhms) || referenceOhms <= 0) {
       throw new RangeError('Reference impedance must be positive and finite.');
     }
-    const viewBoxSize = 500;
-    const gridData = GridDefinitions.create();
-    this.scalers = this.createScalers(viewBoxSize);
-
-    this.svg = new SmithSvg(viewBoxSize);
-    this.container = new SmithGroup();
-
-    this.constResistance = new ConstResistance({
-      data: gridData,
-      scaler: this.scalers.default,
-      showMinor: true,
+    this.renderer = new SvgChartRenderer((position) => {
+      this.emit({
+        type: SmithEventType.Cursor,
+        data: position ? RfCalculations.readReflection(position, this.referenceOhms) : undefined,
+      });
     });
-    this.constResistance.show();
-
-    this.constReactance = new ConstReactance({
-      data: gridData,
-      scaler: this.scalers.default,
-      showMinor: true,
-    });
-    this.constReactance.show();
-
-    this.constConductance = new ConstConductance({
-      data: gridData,
-      scaler: this.scalers.default,
-      showMinor: true,
-    });
-    this.constConductance.hide();
-
-    this.constSusceptance = new ConstSusceptance({
-      data: gridData,
-      scaler: this.scalers.default,
-      showMinor: true,
-    });
-    this.constSusceptance.hide();
-
-    this.constQCircles = new ConstQCircles(this.scalers.default);
-    this.constQCircles.hide();
-
-    this.constSwrCircles = new ConstSwrCircles(this.scalers.default);
-    this.constSwrCircles.hide();
-
-    this.cursor = this.initCursor();
-    const cursorContainer = this.cursorContainer();
-
-    this.reactanceAxis = this.drawReactanceAxis({
-      stroke: '#334155',
-      strokeWidth: '1',
-      fill: 'none',
-    });
-
-    this.dataContainer = new SmithGroup().attr('data-layer', 'samples');
-    this.markerContainer = new SmithGroup().attr('data-layer', 'markers');
-
-    // build chart
-    this.svg.append(this.container);
-    this.container.append(this.constConductance.draw().attr('data-layer', 'conductance'));
-    this.container.append(this.constSusceptance.draw().attr('data-layer', 'susceptance'));
-    this.container.append(this.constResistance.draw().attr('data-layer', 'resistance'));
-    this.container.append(this.constReactance.draw().attr('data-layer', 'reactance'));
-    this.container.append(this.constQCircles.draw());
-    this.container.append(this.constSwrCircles.draw());
-    this.container.append(this.peripheralScaleRenderer);
-    this.container.append(this.cursor.Group);
-    this.container.append(this.reactanceAxis);
-    this.container.append(cursorContainer);
-    this.container.append(this.dataContainer);
-    const labels = new SmithGroup().attr('data-layer', 'labels').attr('pointer-events', 'none');
-    for (const [name, layer] of [
-      ['conductance', this.constConductance],
-      ['susceptance', this.constSusceptance],
-      ['resistance', this.constResistance],
-      ['reactance', this.constReactance],
-    ] as const) {
-      labels.append(layer.labels.attr('data-label-layer', name));
-    }
-    labels.append(this.peripheralScaleRenderer.labels);
-    this.container.append(labels);
-    this.container.append(this.markerContainer);
-    this.labelLayout = new LabelLayout(
-      this.svg.Node as SVGSVGElement,
-      labels.Node as SVGGElement,
-      this.defaultTransform,
-    );
-
-    const assertAlive = () => this.assertAlive();
-    this.layers = {
-      resistance: new GridLayerControl(this.constResistance, assertAlive, () =>
-        this.labelLayout.update(true),
-      ),
-      reactance: new GridLayerControl(this.constReactance, assertAlive, () =>
-        this.labelLayout.update(true),
-      ),
-      conductance: new GridLayerControl(this.constConductance, assertAlive, () =>
-        this.labelLayout.update(true),
-      ),
-      susceptance: new GridLayerControl(this.constSusceptance, assertAlive, () =>
-        this.labelLayout.update(true),
-      ),
-      q: new CircleLayerControl(this.constQCircles, 0, assertAlive),
-      vswr: new CircleLayerControl(this.constSwrCircles, 1, assertAlive),
-    };
-    this.peripheralScales = {
-      setVisible: (visible) => {
-        assertAlive();
-        if (visible) {
-          this.peripheralScaleRenderer.show();
-        } else {
-          this.peripheralScaleRenderer.hide();
-        }
-        this.labelLayout.update(true);
-      },
-      update: (gamma) => {
-        assertAlive();
-        this.peripheralScaleRenderer.update(gamma);
-      },
-    };
-    this.initializeZoom();
-    this.resizeObserver = new ResizeObserver(() => this.updateViewportScale());
-    this.resizeObserver.observe(this.svg.Node!);
+    this.layers = this.renderer.layers;
+    this.peripheralScales = this.renderer.peripheralScales;
   }
 
   public draw(target: string | HTMLElement): void {
     this.assertAlive();
-    const host = typeof target === 'string' ? document.querySelector(target) : target;
-    if (!host) {
-      throw new Error('Chart container was not found.');
-    }
-    host.appendChild(this.svg.Node!);
-    this.updateViewportScale();
+    this.renderer.draw(target);
   }
 
   /** Export the current mounted view as standalone SVG with a transparent background. */
   public toSvg(): string {
     this.assertAlive();
-    return SvgExporter.chart(this.svg.Node!);
+    return this.renderer.toSvg();
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */
@@ -260,61 +80,16 @@ export class Smith {
     if (this.destroyed) {
       return;
     }
-    this.resizeObserver.disconnect();
     this.listeners.clear();
     this.clearTraces();
     this.destroyed = true;
-    this.cursor.setMoveHandler(null);
-    this.mouseGesture.destroy();
-    this.zoomBehavior.on('start', null).on('zoom', null);
-    this.svg.Element.interrupt().on('.zoom', null);
-    this.svg.Element.selectAll('*').interrupt().on('.smithkit', null).on('.drag', null);
-    this.svg.Element.remove();
-  }
-
-  private updateViewportScale(): void {
-    if (this.destroyed) {
-      return;
-    }
-    const matrix = (this.svg.Node as SVGSVGElement).getScreenCTM();
-    if (matrix) {
-      const scale = Math.hypot(matrix.a, matrix.b);
-      this.data.forEach((trace) => trace.setViewportScale(scale));
-    }
-    this.labelLayout.update();
+    this.renderer.destroy();
   }
 
   private assertAlive(): void {
     if (this.destroyed) {
       throw new Error('This Smith chart has been destroyed. Create a new instance.');
     }
-  }
-
-  private createScalers(size: number): Scalers {
-    const impedance = new SmithScaler(
-      d3.scaleLinear().domain([-1, 1]).range([0, size]),
-      d3.scaleLinear().domain([1, -1]).range([0, size]),
-      d3
-        .scaleLinear()
-        .domain([0, 1])
-        .range([0, size / 2]),
-    );
-    const admittance = new SmithScaler(
-      d3.scaleLinear().domain([1, -1]).range([0, size]),
-      d3.scaleLinear().domain([-1, 1]).range([0, size]),
-      d3
-        .scaleLinear()
-        .domain([0, 1])
-        .range([0, size / 2]),
-    );
-    return { default: impedance, impedance, admittance };
-  }
-
-  private cursorMove(p: Point): void {
-    if (this.draggedMarkers.size > 0) {
-      return;
-    }
-    this.cursor.Position = Complex.from(this.scalers.default.pointInvert(p));
   }
 
   private markerDragChanged(marker: SmithMarker, dragging: boolean): void {
@@ -328,123 +103,26 @@ export class Smith {
     if (isDragging === wasDragging) {
       return;
     }
+    this.renderer.setMarkerDragging(isDragging);
     if (isDragging) {
-      this.cursorBeforeMarkerDrag = this.svg.Node!.style.getPropertyValue('cursor') || null;
-      this.svg.Element.style('cursor', 'grabbing').style('--smithkit-marker-cursor', 'grabbing');
-      this.cursor.hide();
       this.emit({ type: SmithEventType.Cursor, data: undefined });
-    } else {
-      this.svg.Element.style('cursor', () => this.cursorBeforeMarkerDrag).style(
-        '--smithkit-marker-cursor',
-        null,
-      );
-      this.cursorBeforeMarkerDrag = null;
     }
-  }
-
-  private initCursor(): SmithCursor {
-    const cursor = new SmithCursor(this.scalers.default);
-    cursor.Group.attr('class', 'smith-cursor');
-    cursor.setMoveHandler(() => {
-      this.emit({ type: SmithEventType.Cursor, data: this.cursorReading });
-    });
-    return cursor;
   }
 
   /** Last cursor position. Use cursor events to detect pointer leave. */
   public get cursorReading(): SmithReading {
-    return RfCalculations.readReflection(this.cursor.Position, this.referenceImpedanceOhms);
-  }
-
-  private initializeZoom(): void {
-    const zoom = this.zoomBehavior
-      .scaleExtent([0.6, 1000])
-      .filter(
-        (event: MouseEvent | WheelEvent) =>
-          this.zoomEnabled &&
-          this.draggedMarkers.size === 0 &&
-          (!event.ctrlKey || event.type === 'wheel') &&
-          !event.button,
-      )
-      .on('start', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
-        if (event.sourceEvent) {
-          this.mouseGesture.capture(event.sourceEvent, 'zoom');
-        }
-      })
-      .on('zoom', (event: d3.D3ZoomEvent<SVGElement, unknown>) => {
-        if ((!this.zoomEnabled || this.draggedMarkers.size > 0) && !this.applyingView) {
-          // An already active mouse/touch gesture still needs its normal end event.
-          // Restore D3's view through its public API while that gesture finishes.
-          this.applyView(this.transform);
-          return;
-        }
-        this.onZoom(event.transform);
-      });
-
-    this.svg.Element.call(zoom);
-    this.resetView();
+    return RfCalculations.readReflection(this.renderer.cursorPosition, this.referenceOhms);
   }
 
   /** Enable or disable wheel, double-click, and mouse/touch zoom/pan. Keeps the current view. */
   public setZoomEnabled(enabled: boolean): void {
     this.assertAlive();
-    if (typeof enabled !== 'boolean') {
-      throw new TypeError('Zoom enabled must be a boolean.');
-    }
-    if (this.zoomEnabled === enabled) {
-      return;
-    }
-    this.zoomEnabled = enabled;
-    if (!enabled) {
-      this.svg.Element.interrupt();
-    }
-  }
-
-  private applyView(transform: ZoomTransform): void {
-    this.applyingView = true;
-    try {
-      this.svg.Element.call(this.zoomBehavior.transform, transform);
-    } finally {
-      this.applyingView = false;
-    }
+    this.renderer.setZoomEnabled(enabled);
   }
 
   public resetView(): void {
     this.assertAlive();
-    const transform = this.defaultTransform;
-    this.applyView(transform);
-  }
-
-  private onZoom(transform: ZoomTransform): void {
-    if (this.destroyed) {
-      return;
-    }
-    this.transform = transform;
-    this.container.Element.attr('transform', transform.toString());
-    this.data.forEach((d) => d.zoom(transform));
-  }
-
-  private cursorContainer(): SmithCircle {
-    const shape = this.drawReactanceAxis({ fill: 'transparent', stroke: 'none' });
-
-    shape.Element.style('pointer-events', 'all')
-      .on('pointermove.smithkit', (event: PointerEvent) => {
-        this.cursorMove(d3.pointer(event));
-      })
-      .on('pointerleave.smithkit', () => {
-        this.cursor.hide();
-        this.emit({ type: SmithEventType.Cursor, data: undefined });
-      });
-
-    return shape;
-  }
-
-  private drawReactanceAxis(opts: SmithDrawOptions): SmithCircle {
-    const c = this.calcs.resistanceCircle(0);
-    c.p[0] = this.scalers.default.x(c.p[0]);
-    c.p[1] = this.scalers.default.y(c.p[1]);
-    c.r = this.scalers.default.r(c.r);
-    return new SmithCircle(c, opts);
+    this.renderer.resetView();
   }
 
   /** Add a named trace with one initial marker. Returns a chart-local, stable ID. */
@@ -457,7 +135,6 @@ export class Smith {
     const data = this.createSmithData(values, this.nextDatasetColor, options);
     this.nextDatasetColor++;
     this.data.push(data);
-    this.updateViewportScale();
     const id = this.traceMetadata.get(data)!.id;
     this.setTraceOptions(id, options);
     return id;
@@ -517,7 +194,7 @@ export class Smith {
     }
     if (
       options.color !== undefined &&
-      (typeof options.color !== 'string' || !d3.color(options.color))
+      (typeof options.color !== 'string' || !parseColor(options.color))
     ) {
       throw new TypeError('Trace color must be a solid CSS color.');
     }
@@ -568,7 +245,7 @@ export class Smith {
     if (index < 0) {
       return false;
     }
-    this.data[index].destroy();
+    this.renderer.removeTrace(this.data[index]);
     this.data.splice(index, 1);
     return true;
   }
@@ -662,37 +339,28 @@ export class Smith {
     this.data.forEach((data) => data.Markers.forEach((entry) => entry.marker.cancelDrag()));
     this.referenceOhms = referenceImpedanceOhms;
     this.data.forEach((data, index) => data.update(samples[index], 'sample-index'));
-    this.cursor.hide();
+    this.renderer.hideCursor();
     this.emit({ type: SmithEventType.Cursor, data: undefined });
   }
 
   public clearTraces(): void {
     this.assertAlive();
-    this.data.forEach((dataset) => dataset.destroy());
+    this.data.forEach((dataset) => this.renderer.removeTrace(dataset));
     this.data = [];
   }
 
   private createSmithData(values: TraceSamples, dataset: number, options: TraceOptions): SmithData {
-    const color = d3.schemeCategory10[(1 + dataset) % d3.schemeCategory10.length];
-    const data = new SmithData(
-      values,
-      color,
-      this.transform,
-      this.dataContainer,
-      this.scalers.default,
-      (marker, dragging) => {
-        this.markerDragChanged(marker, dragging);
-        const snapshot = this.getMarker(this.markerId(marker));
-        if (snapshot) {
-          this.emit({
-            type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
-            data: snapshot,
-          });
-        }
-      },
-      this.markerContainer,
-      options,
-    );
+    const color = schemeCategory10[(1 + dataset) % schemeCategory10.length];
+    const data = this.renderer.createTrace(values, color, options, (marker, dragging) => {
+      this.markerDragChanged(marker, dragging);
+      const snapshot = this.getMarker(this.markerId(marker));
+      if (snapshot) {
+        this.emit({
+          type: dragging ? SmithEventType.MarkerDragStart : SmithEventType.MarkerDragEnd,
+          data: snapshot,
+        });
+      }
+    });
     const number = this.nextTraceId++;
     this.traceMetadata.set(data, { id: `trace-${number}`, name: `Trace ${number}` });
     data.setName(`Trace ${number}`);

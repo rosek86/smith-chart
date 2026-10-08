@@ -70,7 +70,7 @@ a visual overview of the library.
 ```text
 src/
   index.ts                 public package exports
-  Smith.ts                 chart composition, events, and public API
+  Smith.ts                 public API, trace/marker identities, RF readings and events
   measurements.ts          trace/marker type contracts
   MarkerMeasurements.ts    stateless marker comparisons
   SmithFormatter.ts        stateless numeric and complex formatting
@@ -79,6 +79,7 @@ src/
   math/                    complex arithmetic and geometry types, independent of the DOM
   rf/                      readings, conversions, components, and renormalization
   grid/                    grid definitions, labels, renderers, and layer controls
+  rendering/               internal chart renderers; SVG composition, view and lifecycle
   svg/                     reusable SVG primitives and coordinate scaling
   traces/                  sample/marker state, trace rendering, and their coordinator
   interaction/             mouse gestures and chart cursor
@@ -93,7 +94,8 @@ scripts/                   library build and demo deployment tools
 and `demo/main.ts` are the demo entry points. Keep file selection and other
 application controls in the demo; parsers and calculations belong in the library.
 
-`Smith` owns the square chart SVG and its zoom transform. `SmithScales` mounts
+`Smith` delegates the square chart SVG, zoom transform, resize observation, and
+SVG export to the internal `SvgChartRenderer`. `SmithScales` mounts
 its own responsive container; the demo connects it to cursor events. Keep scale
 rendering outside the chart transform and RF scale mappings in `RadialScaleDefinitions.ts`.
 The demo throttles moving cursor/marker readouts to one update per 33 ms, using

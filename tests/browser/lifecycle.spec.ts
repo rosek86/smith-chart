@@ -296,3 +296,92 @@ test('event subscriptions are independent, removable, and cleared on destruction
   });
   expect(result).toEqual({ both: 2, one: 3, stopped: 3, destroyed: 3, rejected: true });
 });
+
+test('traces share the current view when created before mounting or after zoom and remount', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith();
+    const samples: import('../../src').TraceSamples = [
+      { frequencyHz: 1e9, reflectionCoefficient: [0.25, 0.1] },
+    ];
+    chart.addTrace(samples, { pointRadius: 3 });
+    document.getElementById('first')!.style.width = '320px';
+    chart.draw('#first');
+    const svg = document.querySelector('#first svg')!;
+    const view = svg.firstElementChild!;
+    const initial = view.getAttribute('transform');
+    svg.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -200,
+        clientX: 160,
+        clientY: 160,
+      }),
+    );
+    const zoomed = view.getAttribute('transform') !== initial;
+    chart.addTrace(samples, { pointRadius: 3 });
+    const sizes = () =>
+      [...svg.querySelectorAll('[data-role=samples] circle, .marker-hit-area')].map(
+        (node) => node.getBoundingClientRect().width,
+      );
+    const afterZoom = sizes();
+    const pointBoxes = [...svg.querySelectorAll('[data-role=samples] circle')].map((node) =>
+      node.getBoundingClientRect(),
+    );
+    const aligned = pointBoxes[0].x === pointBoxes[1].x && pointBoxes[0].y === pointBoxes[1].y;
+    chart.draw('#second');
+    const afterRemount = sizes();
+    const sameView = view.getAttribute('transform');
+    chart.clearTraces();
+    const emptied = svg.querySelectorAll('[data-role=samples], [data-role=marker]').length;
+    chart.addTrace(samples, { pointRadius: 3 });
+    const afterClear = sizes();
+    const viewPreserved = view.getAttribute('transform') === sameView;
+    chart.resetView();
+    const reset = view.getAttribute('transform') === initial;
+    const afterReset = sizes();
+    const layers = chart.layers;
+    const peripheral = chart.peripheralScales;
+    chart.destroy();
+    let rejectedControls = 0;
+    for (const action of [
+      () => layers.resistance.setVisible(false),
+      () => peripheral.setVisible(false),
+    ]) {
+      try {
+        action();
+      } catch {
+        rejectedControls++;
+      }
+    }
+    return {
+      zoomed,
+      aligned,
+      afterZoom,
+      afterRemount,
+      emptied,
+      afterClear,
+      viewPreserved,
+      reset,
+      afterReset,
+      rejectedControls,
+    };
+  });
+  expect(result).toMatchObject({
+    zoomed: true,
+    aligned: true,
+    emptied: 0,
+    viewPreserved: true,
+    reset: true,
+    rejectedControls: 2,
+  });
+  for (const sizes of [result.afterZoom, result.afterRemount]) {
+    sizes.forEach((size, index) => expect(size).toBeCloseTo(index < 2 ? 6 : 44, 1));
+  }
+  for (const sizes of [result.afterClear, result.afterReset]) {
+    expect(sizes[0]).toBeCloseTo(6, 1);
+    expect(sizes[1]).toBeCloseTo(44, 1);
+  }
+});
