@@ -211,7 +211,9 @@ test('demo theme switch updates chart and scales without losing marker selection
   await page.getByRole('button', { name: 'Load sample trace', exact: true }).click();
   await page.getByRole('tab', { name: 'Marker', exact: true }).click();
   const selected = await page.locator('#marker-select').inputValue();
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.getByLabel('Theme', { exact: true }).selectOption('dark');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(page.locator('#smith svg')).toHaveCSS('background-color', 'rgb(15, 23, 42)');
   await expect(page.locator('#smith-scales .radial-scales')).toHaveCSS(
     'background-color',
@@ -221,6 +223,8 @@ test('demo theme switch updates chart and scales without losing marker selection
   await page.getByRole('button', { name: 'Focus on chart' }).click();
   await page.keyboard.press('End');
   await expect(page.locator('#marker-readout')).toContainText('2 GHz');
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(page.locator('#smith svg')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });

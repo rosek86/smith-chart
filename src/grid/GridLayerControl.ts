@@ -18,6 +18,12 @@ export class GridLayerControl extends LayerControl implements GridLayer {
     this.changed();
   }
 
+  public setLabelsVisible(visible: boolean): void {
+    this.assertAlive();
+    this.layer.setLabelsVisible(visible);
+    this.changed();
+  }
+
   public setDetail(detail: GridDetail): void {
     this.assertAlive();
     if (!['basic', 'standard', 'detailed'].includes(detail)) {

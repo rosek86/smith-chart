@@ -34,6 +34,7 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   await expect(chart).not.toHaveAttribute('transform', original!);
   await page.getByRole('button', { name: 'Reset view' }).click();
   await expect(chart).toHaveAttribute('transform', original!);
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.getByLabel('Impedance', { exact: true }).uncheck();
   for (const layer of ['resistance', 'reactance']) {
     await expect(svg.locator(`[data-layer=${layer}]`)).toHaveAttribute('opacity', '0');
@@ -44,6 +45,7 @@ test('renders labels and supports cursor, zoom, layers and marker drag under /sm
   }
   await page.getByLabel('Impedance', { exact: true }).check();
   await page.getByLabel('Admittance', { exact: true }).uncheck();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.getByRole('button', { name: 'Load sample trace' }).click();
   await expect(page.locator('#marker-readout')).toContainText('Frequency: 1 GHz');
   const marker = svg.locator('polygon').first();

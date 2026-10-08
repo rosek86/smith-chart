@@ -12,13 +12,6 @@
   <body>
     <main>
       <header>
-        <div class="theme-control">
-          <label for="theme">Theme</label>
-          <select id="theme">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
         <span class="eyebrow">RF WORKBENCH</span>
         <h1>Smith chart</h1>
         <p>
@@ -27,22 +20,14 @@
         </p>
       </header>
       <div class="toolbar" aria-label="Chart controls">
-        <fieldset>
-          <legend>Chart layers</legend>
-          <label><input type="checkbox" id="impedance" checked /> Impedance</label>
-          <label><input type="checkbox" id="admittance" /> Admittance</label>
-          <label for="grid-detail"
-            >Grid detail
-            <select id="grid-detail">
-              <option value="basic">Basic</option>
-              <option value="standard">Standard</option>
-              <option value="detailed" selected>Detailed</option>
-            </select>
-          </label>
-          <label><input type="checkbox" id="constantQ" /> Constant Q</label>
-          <label><input type="checkbox" id="constantSwr" /> Constant VSWR</label>
-          <label><input type="checkbox" id="peripheral-scales" checked /> Peripheral scales</label>
-        </fieldset>
+        <button
+          id="open-settings"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="chart-settings"
+        >
+          Chart settings
+        </button>
         <button id="reset-view" type="button">Reset view</button>
         <button id="export-chart" type="button">Export chart SVG</button>
         <button id="export-scales" type="button">Export scales SVG</button>
@@ -122,18 +107,6 @@
         <aside>
           <section class="panel">
             <h2>Measurements</h2>
-            <div class="reference-controls">
-              <label for="reference-impedance">Chart Z₀ (Ω)</label>
-              <input id="reference-impedance" type="number" min="0" step="any" value="50" />
-              <button id="apply-reference" type="button">Apply Z₀</button>
-            </div>
-            <p class="hint">
-              Applying Z₀ renormalizes existing traces and preserves their physical impedance.
-            </p>
-            <label class="import-reference-option"
-              ><input id="renormalize-import" type="checkbox" checked /> Renormalize imported data
-              to chart Z₀</label
-            >
             <label class="file-label" for="file">Import Touchstone (.s1p)</label>
             <input type="file" id="file" accept=".s1p" aria-describedby="file-help file-status" />
             <p id="file-help" class="hint">
@@ -178,6 +151,65 @@
       </div>
       <footer>Smithkit</footer>
     </main>
+    <dialog
+      id="chart-settings"
+      aria-labelledby="chart-settings-title"
+      aria-describedby="chart-settings-help"
+    >
+      <div class="settings-heading">
+        <h2 id="chart-settings-title">Chart settings</h2>
+        <form method="dialog"><button type="submit" autofocus>Close</button></form>
+      </div>
+      <p id="chart-settings-help" class="hint">
+        Customize the grid, labels, appearance, and reference impedance.
+      </p>
+      <fieldset>
+        <legend>Appearance</legend>
+        <div class="settings-select">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Chart layers</legend>
+        <label><input type="checkbox" id="impedance" checked /> Impedance</label>
+        <label><input type="checkbox" id="admittance" /> Admittance</label>
+        <label><input type="checkbox" id="constantQ" /> Constant Q</label>
+        <label><input type="checkbox" id="constantSwr" /> Constant VSWR</label>
+        <label><input type="checkbox" id="peripheral-scales" checked /> Peripheral scales</label>
+      </fieldset>
+      <fieldset>
+        <legend>Grid</legend>
+        <div class="settings-select">
+          <label for="grid-detail">Grid detail</label>
+          <select id="grid-detail">
+            <option value="basic">Basic</option>
+            <option value="standard">Standard</option>
+            <option value="detailed" selected>Detailed</option>
+          </select>
+        </div>
+        <label><input type="checkbox" id="grid-labels" checked /> Grid labels</label>
+      </fieldset>
+      <fieldset class="settings-reference">
+        <legend>Reference impedance</legend>
+        <div class="reference-controls">
+          <label for="reference-impedance">Chart Z₀ (Ω)</label>
+          <input id="reference-impedance" type="number" min="0" step="any" value="50" />
+          <button id="apply-reference" type="button">Apply Z₀</button>
+        </div>
+        <p class="hint">
+          Applying Z₀ renormalizes existing traces and preserves their physical impedance.
+        </p>
+        <label class="import-reference-option"
+          ><input id="renormalize-import" type="checkbox" checked /> Renormalize imported data to
+          chart Z₀</label
+        >
+        <p id="reference-status" class="hint" role="status" aria-live="polite"></p>
+      </fieldset>
+    </dialog>
     <script type="module" src="/demo/main.ts"></script>
   </body>
 </html>

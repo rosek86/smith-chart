@@ -22,6 +22,8 @@ export type GridDetail = 'basic' | 'standard' | 'detailed';
 /** Grid styling uses SVG user units, except non-scaling stroke widths in screen pixels. */
 export interface GridLayer {
   setVisible(visible: boolean): void;
+  /** Show or hide labels independently of grid lines. Default: true. */
+  setLabelsVisible(visible: boolean): void;
   /** Default: detailed. Basic shows only the principal normalized values. */
   setDetail(detail: GridDetail): void;
   setStyle(style: Partial<GridStyle>): void;

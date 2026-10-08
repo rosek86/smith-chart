@@ -52,7 +52,7 @@ header p {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -263,7 +263,8 @@ input[type='file'] {
   margin-bottom: 0;
   overflow-wrap: anywhere;
 }
-#file-status[data-error='true'] {
+#file-status[data-error='true'],
+#reference-status[data-error='true'] {
   color: var(--error);
 }
 footer {
@@ -380,10 +381,6 @@ footer {
     padding: 8px 16px;
     margin-bottom: 12px;
   }
-  .toolbar fieldset {
-    /* Reserve room for wider system fonts and native select controls. */
-    column-gap: 12px;
-  }
   .workspace {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -450,25 +447,87 @@ footer {
   --error: #fca5a5;
   color-scheme: dark;
 }
-.theme-control {
-  float: right;
+#chart-settings {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 16px 64px rgb(0 0 0 / 25%);
+}
+#chart-settings::backdrop {
+  background: rgb(2 6 23 / 45%);
+}
+.settings-heading {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 16px;
 }
-.theme-control select,
-#grid-detail {
-  padding: 6px;
+.settings-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+#chart-settings fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+#chart-settings legend {
+  padding-right: 8px;
+  margin-bottom: 0;
+}
+#chart-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+#chart-settings .settings-select,
+#chart-settings .settings-reference {
+  grid-column: 1 / -1;
+}
+#chart-settings .settings-reference {
+  display: block;
+}
+.settings-select {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-select select {
+  margin-left: auto;
+  width: 150px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 8px;
   border: 1px solid var(--input-border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-}
-
-#grid-detail {
-  /* Native select heights vary across operating systems, especially in WebKit. */
-  height: 24px;
-  min-height: 0;
   font: inherit;
-  padding: 1px 6px;
+}
+#chart-settings input[type='number'] {
+  color: var(--text);
+  background: var(--surface);
+}
+#reference-status:empty {
+  display: none;
+}
+#chart-settings .import-reference-option {
+  margin-bottom: 0;
+}
+@media (max-width: 480px) {
+  #chart-settings {
+    padding: 16px;
+  }
+  #chart-settings fieldset {
+    grid-template-columns: 1fr;
+  }
 }

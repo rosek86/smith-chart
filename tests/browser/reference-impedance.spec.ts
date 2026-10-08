@@ -108,17 +108,22 @@ test('demo explicitly converts imported references and retains physical readouts
   await expect(page.locator('#parameter-impedance')).toHaveText('75.000 + 0.000i');
   await expect(page.locator('#parameter-gamma')).toHaveText('0.200 + 0.000i');
   await expect(page.locator('#file-status')).toContainText('converted to 50 Ω');
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.locator('#reference-impedance').fill('75');
   await page.locator('#apply-reference').click();
   await expect(page.locator('#reference-value')).toHaveText('Z₀ = 75 Ω');
   await expect(page.locator('#parameter-impedance')).toHaveText('75.000 + 0.000i');
   // Floating-point round trips may format a signed zero.
   await expect(page.locator('#parameter-gamma')).toHaveText(/^-?0\.000 [+-] 0\.000i\s*$/);
+  await expect(page.locator('#reference-status')).toContainText('Chart renormalized to 75 Ω');
   await page.locator('#reference-impedance').fill('0');
   await page.locator('#apply-reference').click();
   await expect(page.locator('#reference-value')).toHaveText('Z₀ = 75 Ω');
   await expect(page.locator('#reference-impedance')).toHaveValue('75');
+  await expect(page.locator('#reference-status')).toHaveAttribute('data-error', 'true');
+  await expect(page.locator('#reference-status')).toBeVisible();
   await page.locator('#renormalize-import').uncheck();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page
     .locator('#file')
     .setInputFiles({ ...file, name: '50-ohm.s1p', buffer: Buffer.from('# GHz S RI R 50\n1 0 0') });
