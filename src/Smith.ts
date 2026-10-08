@@ -1,3 +1,4 @@
+import { MarkerLegend } from './svg/MarkerLegend.js';
 import { ImageExporter } from './svg/ImageExporter.js';
 import type { SmithImageExportOptions } from './svg/export.js';
 import { Theme } from './appearance/Theme.js';
@@ -107,12 +108,18 @@ export class Smith {
     if (options.scales) {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
-    return ImageExporter.svg(sources, options, options.legend ? this.exportLegend() : undefined);
+    return ImageExporter.svg(sources, options, this.exportLegend(options));
   }
 
-  private exportLegend() {
+  private exportLegend(options: SmithImageExportOptions) {
+    const traces = this.getTraces();
     return {
-      entries: this.getTraces().filter((trace) => trace.visible),
+      entries: [
+        ...(options.legend ? traces.filter((trace) => trace.visible) : []),
+        ...(options.markerLegend
+          ? MarkerLegend.entries(traces, (id) => this.getMarker(id)!, options.markerLegend)
+          : []),
+      ],
       textColor: this.theme.grid.textColor,
       fontFamily: this.theme.fontFamily,
     };
@@ -124,7 +131,7 @@ export class Smith {
     if (options.scales) {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
-    return ImageExporter.png(sources, options, options.legend ? this.exportLegend() : undefined);
+    return ImageExporter.png(sources, options, this.exportLegend(options));
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */

@@ -36,6 +36,8 @@ export type { ReactiveComponent } from './rf/RfCalculations.js';
 export type { SmithAppearance, SmithTheme, SmithThemeOverrides } from './appearance/types.js';
 
 export type {
+  MarkerLegendField,
+  MarkerLegendOptions,
   ImageExportOptions,
   SmithImageExportOptions,
   ScaleImageExportOptions,

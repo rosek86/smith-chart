@@ -600,9 +600,29 @@ const scalePng = await scales.toPng({ width: 1200, background: 'transparent' });
   configured; choose a suitable chart theme for your report background.
 - `legend` (chart only): append the names and colors of visible traces. Long names
   wrap; hidden traces are omitted. Default: `false`.
+- `markerLegend` (chart only): independently append marker descriptions below the chart/scales.
+  Default: `false`. `true` includes every marker of visible traces, with trace name,
+  marker number, frequency, and impedance. Use an options object to select `markerIds`
+  and `fields` (`frequency`, `impedance`, `admittance`, `reflectionCoefficient`, `vswr`,
+  `returnLoss`). Fields use Hz with SI prefixes, Ω, mS, dimensionless Γ, VSWR ratios,
+  and dB respectively. Empty `markerIds` selects none; empty `fields` keeps only names
+  and marker numbers. Hidden traces are always omitted, duplicate selections appear
+  once, and unknown IDs/fields throw. Long descriptions wrap. Readings are captured at
+  export invocation, without moving markers or changing the live view.
 - `scales` (chart only): a mounted `SmithScales` instance to place centered below the chart.
-  Its current responsive layout and readings are preserved. Update scales with
-  the selected marker before export if the report should include marker readings.
+  Its current responsive layout and readings are preserved. Use `scaleReadout` to
+  export a specific reading independently of the live view.
+
+```ts
+// Works with toSvg() as well. Trace and marker legends are independent.
+const png = await chart.toPng({
+  legend: false,
+  markerLegend: {
+    fields: ['frequency', 'impedance', 'vswr'],
+    // Omit markerIds to include all markers of visible traces.
+  },
+});
+```
 
 Dimensions must be positive integers, at most 8192 px per side and 32 megapixels
 in total. Invalid options and unavailable/destroyed components reject the promise.
@@ -611,7 +631,7 @@ Fonts must be available to the browser; external font files are not embedded.
 Export size increases resolution; it does not change the current label density.
 
 The demo's **Export** dialog supports chart, scales, or a combined report,
-custom dimensions/background, and the optional trace legend. The default output width is 3200 px. Choose PNG or SVG in the same dialog; both formats support these report options. The demo starts in dark mode. For exports containing parameter scales, **Scale readings** explicitly selects a marker or **None**, independently of the Cursor/Marker tab. Marker exports include the trace name, marker number, and frequency; cursor readings are not exported.
+custom dimensions/background, and independent trace and marker legends. **Include marker legend** reveals field and marker checkboxes; it is disabled for scales-only exports. The default output width is 3200 px. Choose PNG or SVG in the same dialog; both formats support these report options. The demo starts in dark mode. For exports containing parameter scales, **Scale readings** explicitly selects a marker or **None**, independently of the Cursor/Marker tab. Marker exports include the trace name, marker number, and frequency; cursor readings are not exported.
 
 To export a specific scale reading without changing the live view, pass `readout` to
 `scales.toSvg()` / `scales.toPng()`, or `scaleReadout` to a combined chart export:
