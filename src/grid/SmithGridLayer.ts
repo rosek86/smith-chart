@@ -63,6 +63,11 @@ export class SmithGridLayer extends ConstCircles {
     this.setDetail(params.detail);
   }
 
+  public setLabelsVisible(visible: boolean): void {
+    // Keep this separate from whole-layer opacity and detail-specific label filtering.
+    this.texts.attr('display', visible ? null : 'none');
+  }
+
   public setDetail(detail: GridDetail): void {
     if (detail === this.detail) {
       return;

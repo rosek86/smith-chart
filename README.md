@@ -418,12 +418,14 @@ chart.layers.reactance.setVisible(false);
 chart.layers.conductance.setVisible(true);
 chart.layers.susceptance.setVisible(true);
 chart.layers.conductance.setDetail('standard');
+chart.layers.conductance.setLabelsVisible(false);
+chart.layers.susceptance.setLabelsVisible(false);
 chart.layers.susceptance.setStyle({ stroke: '#64748b', textColor: '#2a7f62' });
 chart.layers.vswr.addValue(4);
 chart.layers.vswr.setVisible(true);
 ```
 
-The four grid layers support `setVisible`, `setDetail`, and
+The four grid layers support `setVisible`, `setLabelsVisible`, `setDetail`, and
 `setStyle(Partial<GridStyle>)`. Style fields: `stroke`, `majorWidth`, `minorWidth`,
 `textColor`, `textFontFamily`, `textFontSize`. Widths are positive finite numbers
 in CSS pixels. Font size is a positive finite base size in chart units; adaptive
@@ -441,6 +443,13 @@ Choose `setDetail('basic' | 'standard' | 'detailed')` independently for each gri
 Changing detail preserves layer visibility, styles, and the current view. Label
 collision handling still applies at every level. Peripheral scales and Q/VSWR
 circles are independent. The demo's **Grid detail** selector updates all four grid layers.
+
+Use `setLabelsVisible(false)` to hide a grid layer's labels while keeping its lines.
+Labels default to visible. The setting persists through detail, style, theme, and
+whole-layer visibility changes and is included in SVG exports. Calling
+`setLabelsVisible(true)` restores labels allowed by the current detail and collision
+layout; it does not show a hidden layer. The **Grid labels** checkbox below the demo
+chart controls all four grid layers together. Peripheral scale labels are unaffected.
 
 `layers.q` and `layers.vswr` support `setVisible`,
 `setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.

@@ -48,14 +48,24 @@ for (const [id, groups] of layers) {
   checkbox.addEventListener('change', update);
   update();
 }
+const gridLayers = [
+  smith.layers.resistance,
+  smith.layers.reactance,
+  smith.layers.conductance,
+  smith.layers.susceptance,
+];
+const gridLabels = element<HTMLInputElement>('grid-labels');
+const updateGridLabels = () => {
+  for (const layer of gridLayers) {
+    layer.setLabelsVisible(gridLabels.checked);
+  }
+};
+gridLabels.addEventListener('change', updateGridLabels);
+updateGridLabels();
+
 const gridDetail = element<HTMLSelectElement>('grid-detail');
 const updateGridDetail = () => {
-  for (const layer of [
-    smith.layers.resistance,
-    smith.layers.reactance,
-    smith.layers.conductance,
-    smith.layers.susceptance,
-  ]) {
+  for (const layer of gridLayers) {
     layer.setDetail(gridDetail.value as GridDetail);
   }
 };
