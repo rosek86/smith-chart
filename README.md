@@ -405,7 +405,7 @@ those individual overrides. Invalid appearance settings throw before making chan
 
 SVG exports resolve the appearance without requiring theme CSS. A configured
 background is included in the exported image; `transparent` preserves transparency.
-The demo's **Theme** selector updates both library components and the demo UI.
+The **Theme** selector in the demo's **Chart settings** dialog updates both library components and the demo UI.
 
 ## Grid layers
 
@@ -442,14 +442,13 @@ Choose `setDetail('basic' | 'standard' | 'detailed')` independently for each gri
 
 Changing detail preserves layer visibility, styles, and the current view. Label
 collision handling still applies at every level. Peripheral scales and Q/VSWR
-circles are independent. The demo's **Grid detail** selector updates all four grid layers.
+circles are independent. The demo's **Chart settings → Grid detail** selector updates all four grid layers.
 
 Use `setLabelsVisible(false)` to hide a grid layer's labels while keeping its lines.
 Labels default to visible. The setting persists through detail, style, theme, and
 whole-layer visibility changes and is included in SVG exports. Calling
 `setLabelsVisible(true)` restores labels allowed by the current detail and collision
-layout; it does not show a hidden layer. The **Grid labels** checkbox below the demo
-chart controls all four grid layers together. Peripheral scale labels are unaffected.
+layout; it does not show a hidden layer. The **Grid labels** checkbox in the demo’s **Chart settings** dialog controls all four grid layers together. Peripheral scale labels are unaffected.
 
 `layers.q` and `layers.vswr` support `setVisible`,
 `setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.

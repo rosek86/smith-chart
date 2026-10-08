@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Group demo appearance, layers, grid detail, labels, and reference impedance in an accessible Chart settings dialog.
+
 - Add `GridLayer.setLabelsVisible(boolean)` and a shared demo checkbox to toggle grid labels independently of grid lines, preserving the setting across updates and SVG export.
 
 - Add basic, standard, and detailed impedance/admittance grids, with principal circles and matching labels in basic mode and a shared demo selector.

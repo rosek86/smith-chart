@@ -102,6 +102,7 @@ test('demo selector applies all three levels to both grids and exports the basic
   page,
 }) => {
   await page.goto('./');
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   const detail = page.getByLabel('Grid detail');
   await expect(detail).toHaveValue('detailed');
   for (const level of ['basic', 'standard', 'detailed', 'basic']) {
@@ -123,10 +124,13 @@ test('demo selector applies all three levels to both grids and exports the basic
     }
   }
   await page.locator('#peripheral-scales').uncheck();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.screenshot({ path: 'test-results/basic-impedance.png', fullPage: true });
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await page.locator('#impedance').uncheck();
   await page.locator('#admittance').check();
   await page.locator('#theme').selectOption('dark');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.screenshot({ path: 'test-results/basic-admittance-dark.png', fullPage: true });
   const download = page.waitForEvent('download');
   await page.locator('#export-chart').click();

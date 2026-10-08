@@ -96,6 +96,7 @@ test('demo checkbox controls all grid labels across detail, visibility, zoom, an
 }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('./');
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   const checkbox = page.getByRole('checkbox', { name: 'Grid labels', exact: true });
   await expect(checkbox).toBeChecked();
   await checkbox.uncheck();
@@ -107,6 +108,7 @@ test('demo checkbox controls all grid labels across detail, visibility, zoom, an
   await page.getByLabel('Impedance', { exact: true }).uncheck();
   await page.getByLabel('Admittance', { exact: true }).check();
   await page.locator('#theme').selectOption('dark');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.locator('#smith').hover();
   await page.mouse.wheel(0, -100);
   await page.setViewportSize({ width: 1100, height: 800 });
@@ -118,7 +120,9 @@ test('demo checkbox controls all grid labels across detail, visibility, zoom, an
     'none',
   );
   await expect(page.locator('[data-layer=conductance]')).not.toHaveAttribute('opacity', '0');
+  await page.getByRole('button', { name: 'Chart settings', exact: true }).click();
   await checkbox.check();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   for (const group of await groups.all()) {
     await expect(group).not.toHaveCSS('display', 'none');
   }

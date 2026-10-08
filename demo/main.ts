@@ -20,6 +20,11 @@ function element<T extends HTMLElement>(id: string): T {
   return node as T;
 }
 
+const settingsDialog = element<HTMLDialogElement>('chart-settings');
+const settingsButton = element<HTMLButtonElement>('open-settings');
+settingsButton.addEventListener('click', () => settingsDialog.showModal());
+settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
+
 const smith = new Smith(50);
 smith.draw('#smith');
 const scales = new SmithScales();
@@ -247,8 +252,8 @@ function updateReadout(event: SmithEvent): void {
 }
 smith.onEvent(updateReadout);
 
-function status(message: string, error = false): void {
-  const node = element('file-status');
+function status(message: string, error = false, target = 'file-status'): void {
+  const node = element(target);
   node.textContent = message;
   node.dataset.error = String(error);
 }
@@ -264,10 +269,16 @@ element('apply-reference').addEventListener('click', () => {
     refreshMarkerOptions();
     status(
       `Chart renormalized to ${smith.referenceImpedanceOhms} Ω. Physical impedances and selected samples are preserved.`,
+      false,
+      'reference-status',
     );
   } catch (error) {
     input.value = String(smith.referenceImpedanceOhms);
-    status(error instanceof Error ? error.message : 'Could not change reference impedance.', true);
+    status(
+      error instanceof Error ? error.message : 'Could not change reference impedance.',
+      true,
+      'reference-status',
+    );
   }
 });
 element<HTMLInputElement>('file').addEventListener('change', async (event) => {
