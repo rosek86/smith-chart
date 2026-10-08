@@ -9,6 +9,7 @@ for (const spacing of [0, 0.2]) {
     await page.goto('./');
     // Leave room for platform font metrics instead of fitting the toolbar to one OS.
     await page.addStyleTag({ content: `.toolbar { letter-spacing: ${spacing}px; }` });
+    await expect(page.getByLabel('Grid detail')).toHaveCSS('height', '24px');
     const selector = page.getByRole('combobox', { name: 'Selected marker' });
     await expect(page.locator('#marker-select')).toBeHidden();
     await page.getByRole('tab', { name: 'Marker', exact: true }).click();

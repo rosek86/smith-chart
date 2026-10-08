@@ -377,7 +377,7 @@ footer {
   }
   .toolbar {
     gap: 12px;
-    padding: 10px 16px;
+    padding: 8px 16px;
     margin-bottom: 12px;
   }
   .toolbar fieldset {
@@ -466,5 +466,9 @@ footer {
 }
 
 #grid-detail {
+  /* Native select heights vary across operating systems, especially in WebKit. */
+  height: 24px;
+  min-height: 0;
+  font: inherit;
   padding: 1px 6px;
 }
