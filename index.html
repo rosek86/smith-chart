@@ -286,6 +286,43 @@
         <label class="image-legend"
           ><input id="image-legend" type="checkbox" checked /> Include visible trace legend</label
         >
+        <label class="image-legend">
+          <input id="image-marker-legend" type="checkbox" /> Include marker legend
+        </label>
+        <fieldset id="image-marker-legend-settings" hidden>
+          <legend>Marker legend</legend>
+          <p class="hint">
+            Independent of Scale readings. Only markers of visible traces are included.
+          </p>
+          <fieldset class="export-marker-fields">
+            <legend>Readings</legend>
+            <label
+              ><input type="checkbox" name="image-marker-field" value="frequency" checked />
+              Frequency</label
+            >
+            <label
+              ><input type="checkbox" name="image-marker-field" value="impedance" checked />
+              Impedance (Ω)</label
+            >
+            <label
+              ><input type="checkbox" name="image-marker-field" value="admittance" /> Admittance
+              (mS)</label
+            >
+            <label
+              ><input type="checkbox" name="image-marker-field" value="reflectionCoefficient" />
+              Reflection coefficient (Γ)</label
+            >
+            <label><input type="checkbox" name="image-marker-field" value="vswr" /> VSWR</label>
+            <label
+              ><input type="checkbox" name="image-marker-field" value="returnLoss" /> Return loss
+              (dB)</label
+            >
+          </fieldset>
+          <fieldset id="image-marker-choices">
+            <legend>Markers</legend>
+            <div id="image-marker-list"></div>
+          </fieldset>
+        </fieldset>
         <button id="download-image" type="submit">Download</button>
         <p id="image-status" class="hint" role="status" aria-live="polite"></p>
       </form>

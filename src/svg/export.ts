@@ -21,9 +21,21 @@ export interface ScaleImageExportOptions extends ImageExportOptions {
   readout?: ScaleExportReadout;
 }
 
+export type MarkerLegendField =
+  'frequency' | 'impedance' | 'admittance' | 'reflectionCoefficient' | 'vswr' | 'returnLoss';
+
+export interface MarkerLegendOptions {
+  /** Default: all markers of visible traces, in trace/marker order. Empty selects none. Unknown IDs throw. */
+  markerIds?: readonly string[];
+  /** Default: frequency and impedance. Empty keeps only the trace name and marker number. */
+  fields?: readonly MarkerLegendField[];
+}
+
 export interface SmithImageExportOptions extends ImageExportOptions {
   /** Include a footer with the names and colors of visible traces. Default: false. */
   legend?: boolean;
+  /** Include a marker legend below the chart/scales, independently of the trace legend. Default: false. */
+  markerLegend?: boolean | MarkerLegendOptions;
   /** Include mounted radial scales centered below the chart, preserving their current layout/readings. */
   scales?: SmithScales;
   /** Override readings in the included radial scales without changing the live view. */

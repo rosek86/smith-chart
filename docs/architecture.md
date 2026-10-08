@@ -121,3 +121,8 @@ returns a PNG Blob or a standalone SVG string. Explicit export backgrounds repla
 rectangles in the copies. Export dimensions affect only the output image; live SVG
 nodes, chart state, and label density stay unchanged. The demo owns download links
 and export controls, while the library owns image composition and encoding.
+
+Marker legends are formatted by `svg/MarkerLegend` from detached public marker
+readings. `Smith` combines their entries with the optional trace legend before
+passing them to `ImageExporter`; SVG and PNG share wrapping and footer layout.
+The demo selects legend fields and marker IDs through the public export options.

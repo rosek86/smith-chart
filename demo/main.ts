@@ -7,6 +7,7 @@ import type {
   TraceSamples,
   SmithAppearance,
   GridDetail,
+  MarkerLegendField,
 } from '../src';
 import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
@@ -84,6 +85,9 @@ const exportForm = element<HTMLFormElement>('image-export-form');
 const exportTarget = element<HTMLSelectElement>('image-target');
 const exportBackground = element<HTMLSelectElement>('image-background');
 const exportLegend = element<HTMLInputElement>('image-legend');
+const exportMarkerLegend = element<HTMLInputElement>('image-marker-legend');
+const exportMarkerList = element('image-marker-list');
+const exportMarkerSelection = new Map<string, boolean>();
 const exportReadout = element<HTMLSelectElement>('image-readout');
 exportButton.addEventListener('click', () => {
   const options = smith
@@ -98,9 +102,34 @@ exportButton.addEventListener('click', () => {
   exportReadout.value = options.some((option) => option.value === selectedMarkerId)
     ? selectedMarkerId!
     : '';
+  for (const input of exportMarkerList.querySelectorAll<HTMLInputElement>('input')) {
+    exportMarkerSelection.set(input.value, input.checked);
+  }
+  exportMarkerList.replaceChildren();
+  for (const trace of smith.getTraces().filter((trace) => trace.visible)) {
+    for (const marker of trace.markers) {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = marker.id;
+      input.checked = exportMarkerSelection.get(marker.id) ?? true;
+      label.append(input, document.createTextNode(markerLabel(trace, marker.number)));
+      exportMarkerList.append(label);
+    }
+  }
+  if (!exportMarkerList.childElementCount) {
+    exportMarkerList.textContent = 'No markers on visible traces.';
+  }
   updateExportReadout();
+  updateMarkerLegendSettings();
   exportDialog.showModal();
 });
+function updateMarkerLegendSettings(): void {
+  exportMarkerLegend.disabled = exportTarget.value === 'scales';
+  element('image-marker-legend-settings').hidden =
+    !exportMarkerLegend.checked || exportMarkerLegend.disabled;
+}
+exportMarkerLegend.addEventListener('change', updateMarkerLegendSettings);
 function updateExportReadout(): void {
   element('image-readout-settings').hidden = exportTarget.value === 'chart';
   const marker = exportReadout.value ? smith.getMarker(exportReadout.value) : undefined;
@@ -114,6 +143,7 @@ exportReadout.addEventListener('change', updateExportReadout);
 exportDialog.addEventListener('close', () => exportButton.focus({ preventScroll: true }));
 exportTarget.addEventListener('change', () => {
   exportLegend.disabled = exportTarget.value === 'scales';
+  updateMarkerLegendSettings();
   updateExportReadout();
 });
 exportBackground.addEventListener('change', () => {
@@ -153,6 +183,16 @@ exportForm.addEventListener('submit', async (event) => {
     ...options,
     scaleReadout: readout,
     legend: exportLegend.checked,
+    markerLegend: exportMarkerLegend.checked
+      ? {
+          markerIds: [...exportMarkerList.querySelectorAll<HTMLInputElement>('input:checked')].map(
+            (input) => input.value,
+          ),
+          fields: [
+            ...exportForm.querySelectorAll<HTMLInputElement>('[name="image-marker-field"]:checked'),
+          ].map((input) => input.value as MarkerLegendField),
+        }
+      : false,
     scales: target === 'combined' ? scales : undefined,
   };
   download.disabled = true;

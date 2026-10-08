@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add optional SVG/PNG marker legends with trace colors/names, marker numbers, selectable readings and markers, wrapped descriptions, and independent controls in the demo export dialog.
+
 - Select a specific marker or no readings for demo scale exports, with trace, marker, and frequency printed in the image; add independent scale readout overrides for SVG/PNG exports.
 
 - Add PNG export for charts and radial scales with configurable dimensions/backgrounds, an optional visible-trace legend, and combined report images with scales centered below the chart; default to 3200 px width in the demo and share PNG/SVG options in one Export dialog.
