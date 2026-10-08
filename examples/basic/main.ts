@@ -47,7 +47,7 @@ function mount(): void {
   chart = new Smith(50);
   chart.draw(host);
   for (const layer of [chart.layers.resistance, chart.layers.reactance]) {
-    layer.setMinorVisible(false);
+    layer.setDetail('standard');
   }
   chart.peripheralScales.setVisible(false);
   unsubscribe = chart.onEvent((event) => {

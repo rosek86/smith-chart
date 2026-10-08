@@ -48,3 +48,37 @@ describe('normalized grid geometry', () => {
     }
   });
 });
+
+describe('basic grid geometry', () => {
+  it('uses complete principal circles and symmetric arcs that reach the boundary', () => {
+    const definitions = GridDefinitions.basic();
+    expect(definitions.resistance.circles).toEqual([0.2, 0.5, 1, 2, 5]);
+    expect(definitions.resistance.arcs).toEqual([]);
+    expect(definitions.reactance.arcs.map(([value]) => value)).toEqual([
+      0.2, -0.2, 0.5, -0.5, 1, -1, 2, -2, 5, -5,
+    ]);
+    for (const kind of kinds) {
+      const real = kind === 'resistance' || kind === 'conductance';
+      const geometry = GridGeometry.shapes(kind, definitions[real ? 'resistance' : 'reactance']);
+      for (const { p, r } of geometry.circles) {
+        expect([...p, r].every(Number.isFinite)).toBe(true);
+        expect(Math.hypot(...p) + r).toBeCloseTo(1, 8);
+      }
+      for (const [a, b, radius] of geometry.arcs) {
+        expect([...a, ...b, radius].every(Number.isFinite)).toBe(true);
+        expect(radius).toBeGreaterThan(0);
+        expect(Math.hypot(...a)).toBeCloseTo(1, 8);
+        expect(Math.hypot(...b)).toBeCloseTo(1, 8);
+        expect(Math.hypot(a[0] - b[0], a[1] - b[1])).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('returns independent definitions', () => {
+    const first = GridDefinitions.basic();
+    first.resistance.circles.push(99);
+    first.reactance.arcs[0][1][0][0] = 99;
+    expect(GridDefinitions.basic().resistance.circles).toEqual([0.2, 0.5, 1, 2, 5]);
+    expect(GridDefinitions.basic().reactance.arcs[0][1][0][0]).toBe(0);
+  });
+});

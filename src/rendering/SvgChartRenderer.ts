@@ -92,28 +92,28 @@ export class SvgChartRenderer {
     this.constResistance = new ConstResistance({
       data: gridData,
       scaler: this.scalers.default,
-      showMinor: true,
+      detail: 'detailed',
     });
     this.constResistance.show();
 
     this.constReactance = new ConstReactance({
       data: gridData,
       scaler: this.scalers.default,
-      showMinor: true,
+      detail: 'detailed',
     });
     this.constReactance.show();
 
     this.constConductance = new ConstConductance({
       data: gridData,
       scaler: this.scalers.default,
-      showMinor: true,
+      detail: 'detailed',
     });
     this.constConductance.hide();
 
     this.constSusceptance = new ConstSusceptance({
       data: gridData,
       scaler: this.scalers.default,
-      showMinor: true,
+      detail: 'detailed',
     });
     this.constSusceptance.hide();
 

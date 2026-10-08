@@ -31,7 +31,14 @@
           <legend>Chart layers</legend>
           <label><input type="checkbox" id="impedance" checked /> Impedance</label>
           <label><input type="checkbox" id="admittance" /> Admittance</label>
-          <label><input type="checkbox" id="detailed-grid" checked /> Detailed grid</label>
+          <label for="grid-detail"
+            >Grid detail
+            <select id="grid-detail">
+              <option value="basic">Basic</option>
+              <option value="standard">Standard</option>
+              <option value="detailed" selected>Detailed</option>
+            </select>
+          </label>
           <label><input type="checkbox" id="constantQ" /> Constant Q</label>
           <label><input type="checkbox" id="constantSwr" /> Constant VSWR</label>
           <label><input type="checkbox" id="peripheral-scales" checked /> Peripheral scales</label>

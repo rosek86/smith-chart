@@ -60,22 +60,6 @@ export abstract class ConstCircles {
     this.texts.hide();
   }
 
-  public displayMinor(display: boolean): void {
-    if (display) {
-      this.minor.show();
-    } else {
-      this.minor.hide();
-    }
-  }
-
-  public showMinor(): void {
-    this.minor.show();
-  }
-
-  public hideMinor(): void {
-    this.minor.hide();
-  }
-
   protected build(): SmithGroup {
     this.texts.hide();
     return this.container.append(this.minor).append(this.major).hide();

@@ -19,7 +19,7 @@ test('SVG export preserves the mounted chart, computed styles, zoom, and text re
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith();
     chart.draw('#chart');
-    chart.layers.resistance.setMinorVisible(false);
+    chart.layers.resistance.setDetail('standard');
     const trace = chart.addTrace(
       [
         { frequencyHz: 1e9, reflectionCoefficient: [0.2, 0.3] },

@@ -23,6 +23,7 @@ export type {
   GridStyle,
   CircleStyle,
   GridLayer,
+  GridDetail,
   CircleLayer,
   ChartLayers,
   PeripheralScales,

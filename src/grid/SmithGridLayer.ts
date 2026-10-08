@@ -4,11 +4,13 @@ import { SmithText } from '../svg/SmithText.js';
 import type { SmithScaler } from '../svg/SmithScaler.js';
 import type { SmithTicksData, SmithTicksShapes } from './types.js';
 import { GridGeometry, type GridKind } from './GridGeometry.js';
+import type { GridDetail } from '../layers.js';
+import { GridDefinitions } from './GridDefinitions.js';
 import { GridLabels } from './GridLabels.js';
 
 export interface GridLayerParams {
   scaler: SmithScaler;
-  showMinor: boolean;
+  detail: GridDetail;
   data: SmithTicksData;
 }
 
@@ -17,6 +19,9 @@ export class SmithGridLayer extends ConstCircles {
   protected major: SmithGroup;
   protected minor: SmithGroup;
   protected texts: SmithGroup;
+  private readonly standardDefinitions: SmithTicksShapes;
+  private readonly basicDefinitions: SmithTicksShapes;
+  private detail: GridDetail = 'detailed';
 
   public constructor(
     params: GridLayerParams,
@@ -25,6 +30,8 @@ export class SmithGridLayer extends ConstCircles {
     super(params.scaler);
     const real = kind === 'resistance' || kind === 'conductance';
     const definitions = params.data[real ? 'resistance' : 'reactance'];
+    this.standardDefinitions = definitions.major;
+    this.basicDefinitions = GridDefinitions.basic()[real ? 'resistance' : 'reactance'];
     this.major = this.drawGrid(definitions.major, this.opts.majorWidth);
     this.minor = this.drawGrid(definitions.minor, this.opts.minorWidth);
     this.texts = new SmithGroup()
@@ -45,12 +52,39 @@ export class SmithGridLayer extends ConstCircles {
         'data-label-priority',
         SmithGridLayer.labelPriority(tick.definition.point.r, tick.definition.point.i),
       );
+      const { r, i } = tick.definition.point;
+      const basic = real
+        ? i === 0 && (r === 0 || GridDefinitions.basicValues.includes(r))
+        : r === 0 && GridDefinitions.basicValues.includes(Math.abs(i));
+      text.Element.attr('data-basic-label', String(basic));
       this.texts.append(text);
     }
     this.build();
-    if (!params.showMinor) {
+    this.setDetail(params.detail);
+  }
+
+  public setDetail(detail: GridDetail): void {
+    if (detail === this.detail) {
+      return;
+    }
+    if ((detail === 'basic') !== (this.detail === 'basic')) {
+      this.major.Element.selectAll('*').remove();
+      this.drawGrid(
+        detail === 'basic' ? this.basicDefinitions : this.standardDefinitions,
+        this.opts.majorWidth,
+        this.major,
+      );
+    }
+    if (detail === 'detailed') {
+      this.minor.show();
+    } else {
       this.minor.hide();
     }
+    this.texts.Element.selectAll('[data-basic-label="false"]').attr(
+      'display',
+      detail === 'basic' ? 'none' : null,
+    );
+    this.detail = detail;
   }
 
   private static labelPriority(real: number, imaginary: number): number {
@@ -70,9 +104,12 @@ export class SmithGridLayer extends ConstCircles {
     return importance + (imaginary === 0 ? 20 : real === 0 ? 10 : 0);
   }
 
-  private drawGrid(definitions: SmithTicksShapes, width: string): SmithGroup {
+  private drawGrid(
+    definitions: SmithTicksShapes,
+    width: string,
+    group = new SmithGroup(),
+  ): SmithGroup {
     const geometry = GridGeometry.shapes(this.kind, definitions);
-    const group = new SmithGroup();
     this.drawShapes(group.Element, this.opts.stroke, width, {
       lines: geometry.lines.map((line) => this.scaler.line(line)),
       circles: geometry.circles.map((circle) => this.scaler.circle(circle)),

@@ -62,6 +62,7 @@ header p {
 }
 fieldset {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px 24px;
   border: 0;
@@ -375,8 +376,13 @@ footer {
     margin: 4px 0;
   }
   .toolbar {
-    padding: 10px 16px;
+    gap: 12px;
+    padding: 8px 16px;
     margin-bottom: 12px;
+  }
+  .toolbar fieldset {
+    /* Reserve room for wider system fonts and native select controls. */
+    column-gap: 12px;
   }
   .workspace {
     grid-template-columns: 1fr;
@@ -450,10 +456,19 @@ footer {
   align-items: center;
   gap: 6px;
 }
-.theme-control select {
+.theme-control select,
+#grid-detail {
   padding: 6px;
   border: 1px solid var(--input-border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
+}
+
+#grid-detail {
+  /* Native select heights vary across operating systems, especially in WebKit. */
+  height: 24px;
+  min-height: 0;
+  font: inherit;
+  padding: 1px 6px;
 }
