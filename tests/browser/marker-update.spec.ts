@@ -8,9 +8,8 @@ test('replacement supports frequency, index, and reflection selection without ch
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -73,9 +72,8 @@ test('frequency ties, duplicates, out-of-range values and invalid updates have d
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -148,9 +146,8 @@ test('queued marker events coalesce independently, expose latest snapshots, and 
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');

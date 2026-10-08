@@ -2,14 +2,21 @@
 
 ## Unreleased
 
+- Add `Smith.setOptions(SmithOptions)` for validated configuration patches, preserving omitted settings and renormalizing existing data when reference impedance changes. Share validation with the constructor and layer controls.
+
+- Group constructor configuration into `appearance`, `interaction`, `grid` (including `grid.layers`), `circles`, and `peripheralScales`; reject unknown structural keys without retaining interim flat aliases. Keep the physical reference impedance at the top level.
+- Align layer/peripheral visibility and grid-label setter validation with constructor booleans; reject invalid values before changing presentation.
+- Reject chart export `scaleReadout` without included radial `scales` with `TypeError` for both SVG and PNG.
+- Complete the pre-1.0 API review with verified configuration precedence, event delivery, errors, export semantics, integration evidence, and a defined compatibility policy for 1.x.
+
 - **Breaking:** default to static presentation: standard impedance grid with labels, no peripheral scales, zoom disabled, and cursor tracking disabled. The demo enables its interactive features explicitly.
-- Add `cursorEnabled` constructor configuration and `setCursorEnabled()` with pending-reading cancellation and independent marker controls.
+- Add `interaction.cursor` constructor configuration and `setCursorEnabled()` with pending-reading cancellation and independent marker controls.
 
 - **Breaking (next minor, 0.4.0):** replace the positional `Smith(referenceImpedanceOhms, appearance)` constructor with optional `SmithOptions`, covering reference impedance, appearance, zoom, peripheral scales, shared grid settings, per-layer overrides, and Q/VSWR values. See [the migration guide](docs/migration-0.4.md).
 - **Breaking:** traces no longer create a marker automatically. Use `addMarker(traceId, sampleIndex?)` explicitly; update demo and interactive examples accordingly.
 - Add `Smith.setGridDetail()` to update all four grid layers together and `CircleLayer.setValues()` to replace Q/VSWR values with validation and copied input.
 
-- Add a navigable integration gallery linked from the demo, with runnable static chart, marker, theme, export, and lifecycle examples using the public API; refresh the API review for 0.3.0.
+- Add a navigable integration gallery linked from the demo, with runnable static chart, marker, theme, export, and lifecycle examples using the public API; verify the grouped configuration and runtime updates through public APIs.
 
 ## 0.3.0 — 2026-10-08
 

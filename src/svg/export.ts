@@ -38,6 +38,6 @@ export interface SmithImageExportOptions extends ImageExportOptions {
   markerLegend?: boolean | MarkerLegendOptions;
   /** Include mounted radial scales centered below the chart, preserving their current layout/readings. */
   scales?: SmithScales;
-  /** Override readings in the included radial scales without changing the live view. */
+  /** Override readings in the included radial scales without changing the live view. Requires scales. */
   scaleReadout?: ScaleExportReadout;
 }

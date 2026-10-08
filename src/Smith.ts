@@ -1,3 +1,4 @@
+import { OptionsValidation } from './OptionsValidation.js';
 import type { SmithOptions } from './options.js';
 import { MarkerLegend } from './svg/MarkerLegend.js';
 import { ImageExporter } from './svg/ImageExporter.js';
@@ -62,7 +63,7 @@ export class Smith {
   public readonly peripheralScales: PeripheralScales;
 
   constructor(options: SmithOptions = {}) {
-    Smith.assertOptionsObject(options, 'Smith options');
+    OptionsValidation.chart(options);
     this.referenceOhms =
       options.referenceImpedanceOhms === undefined ? 50 : options.referenceImpedanceOhms;
     if (!Number.isFinite(this.referenceOhms) || this.referenceOhms <= 0) {
@@ -79,7 +80,7 @@ export class Smith {
     this.layers = this.renderer.layers;
     this.peripheralScales = this.renderer.peripheralScales;
     try {
-      this.configure(options);
+      this.applyOptions(options);
     } catch (error) {
       // Invalid constructor options must not retain observers or event handlers.
       this.renderer.destroy();
@@ -87,62 +88,67 @@ export class Smith {
     }
   }
 
-  private static assertOptionsObject(value: unknown, name: string): void {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      throw new TypeError(`${name} must be an object.`);
+  /** Apply a validated patch. Omitted fields retain their current settings. */
+  public setOptions(options: SmithOptions): void {
+    this.assertAlive();
+    OptionsValidation.chart(options);
+    // Renormalization can reject otherwise valid options for the loaded samples.
+    // Do it before presentation changes so rejection preserves the entire chart.
+    if (options.referenceImpedanceOhms !== undefined) {
+      this.renormalize(options.referenceImpedanceOhms);
     }
+    if (options.appearance !== undefined) {
+      this.setAppearance(options.appearance);
+    }
+    this.applyOptions(options);
   }
 
-  private configure(options: SmithOptions): void {
-    const applyBooleanOption = (value: boolean | undefined, apply: (value: boolean) => void) => {
-      if (value !== undefined) {
-        if (typeof value !== 'boolean') {
-          throw new TypeError('Visibility and interaction options must be booleans.');
-        }
-        apply(value);
-      }
-    };
-    applyBooleanOption(options.cursorEnabled, (value) => this.setCursorEnabled(value));
-    applyBooleanOption(options.zoomEnabled, (value) => this.setZoomEnabled(value));
-    applyBooleanOption(options.peripheralScalesVisible, (value) =>
-      this.peripheralScales.setVisible(value),
-    );
-    if (options.layers !== undefined) {
-      Smith.assertOptionsObject(options.layers, 'Layers');
+  private applyOptions(options: SmithOptions): void {
+    if (options.interaction?.zoom !== undefined) {
+      this.setZoomEnabled(options.interaction.zoom);
+    }
+    if (options.interaction?.cursor !== undefined) {
+      this.setCursorEnabled(options.interaction.cursor);
+    }
+    if (options.peripheralScales?.visible !== undefined) {
+      this.peripheralScales.setVisible(options.peripheralScales.visible);
     }
     for (const name of ['resistance', 'reactance', 'conductance', 'susceptance'] as const) {
       const layer = this.layers[name];
-      for (const settings of [options.grid, options.layers?.[name]]) {
+      for (const settings of [options.grid, options.grid?.layers?.[name]]) {
         if (settings === undefined) {
           continue;
         }
-        Smith.assertOptionsObject(settings, 'Grid settings');
         if (settings.detail !== undefined) {
           layer.setDetail(settings.detail);
         }
-        applyBooleanOption(settings.labelsVisible, (value) => layer.setLabelsVisible(value));
+        if (settings.labelsVisible !== undefined) {
+          layer.setLabelsVisible(settings.labelsVisible);
+        }
         if (settings.style !== undefined) {
-          Smith.assertOptionsObject(settings.style, 'Grid style');
           layer.setStyle(settings.style);
         }
       }
-      applyBooleanOption(options.layers?.[name]?.visible, (value) => layer.setVisible(value));
+      const visible = options.grid?.layers?.[name]?.visible;
+      if (visible !== undefined) {
+        layer.setVisible(visible);
+      }
     }
     for (const name of ['q', 'vswr'] as const) {
-      const settings = options.layers?.[name];
+      const settings = options.circles?.[name];
       if (settings === undefined) {
         continue;
       }
-      Smith.assertOptionsObject(settings, 'Circle settings');
       const layer = this.layers[name];
       if (settings.values !== undefined) {
         layer.setValues(settings.values);
       }
       if (settings.style !== undefined) {
-        Smith.assertOptionsObject(settings.style, 'Circle style');
         layer.setStyle(settings.style);
       }
-      applyBooleanOption(settings.visible, (value) => layer.setVisible(value));
+      if (settings.visible !== undefined) {
+        layer.setVisible(settings.visible);
+      }
     }
   }
 
@@ -176,6 +182,7 @@ export class Smith {
   /** Export the current mounted view as standalone SVG with its configured background. */
   public toSvg(options?: SmithImageExportOptions): string {
     this.assertAlive();
+    this.validateExportOptions(options);
     const source = this.renderer.toSvg();
     if (options === undefined) {
       return source;
@@ -185,6 +192,12 @@ export class Smith {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
     return ImageExporter.svg(sources, options, this.exportLegend(options));
+  }
+
+  private validateExportOptions(options: SmithImageExportOptions | undefined): void {
+    if (options?.scaleReadout !== undefined && !options.scales) {
+      throw new TypeError('Scale readout requires included radial scales.');
+    }
   }
 
   private exportLegend(options: SmithImageExportOptions) {
@@ -203,6 +216,8 @@ export class Smith {
 
   /** Export the mounted view as PNG, optionally with radial scales and a trace legend. */
   public async toPng(options: SmithImageExportOptions = {}): Promise<Blob> {
+    this.assertAlive();
+    this.validateExportOptions(options);
     const sources = [this.toSvg()];
     if (options.scales) {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));

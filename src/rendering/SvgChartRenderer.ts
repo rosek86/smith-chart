@@ -187,6 +187,9 @@ export class SvgChartRenderer {
     this.peripheralScales = {
       setVisible: (visible) => {
         assertAlive();
+        if (typeof visible !== 'boolean') {
+          throw new TypeError('Peripheral scale visibility must be a boolean.');
+        }
         if (visible) {
           this.peripheralScaleRenderer.show();
         } else {

@@ -8,9 +8,8 @@ test('grid labels toggle independently and preserve their preference through upd
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     // Layer controls also work before mounting.

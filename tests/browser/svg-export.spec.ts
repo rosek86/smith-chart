@@ -18,9 +18,8 @@ test('SVG export preserves the mounted chart, computed styles, zoom, and text re
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -128,9 +127,8 @@ test('SVG export requires a mounted, measurable, live chart', async ({ page }) =
   await loadLibrary(page);
   const errors = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     const messages: string[] = [];
@@ -277,9 +275,8 @@ test('standalone SVG paints the same chart as the live view', async ({ page }, t
   await loadLibrary(page);
   const svg = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -359,12 +356,11 @@ test('SVG reports share vertical composition, sizing, backgrounds, and trace leg
   const result = await page.evaluate(() => {
     const { Smith, SmithScales } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
-      grid: { detail: 'detailed' },
       referenceImpedanceOhms: 50,
       appearance: { theme: 'dark' },
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
     });
     const scales = new SmithScales({ theme: 'dark' });
     chart.draw('#chart');
@@ -434,12 +430,11 @@ test('scale exports override readings and label them without changing the live s
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
-      grid: { detail: 'detailed' },
       referenceImpedanceOhms: 50,
       appearance: { theme: 'dark' },
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
     const scales = new SmithScales({ theme: 'dark' });

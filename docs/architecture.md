@@ -126,3 +126,15 @@ Marker legends are formatted by `svg/MarkerLegend` from detached public marker
 readings. `Smith` combines their entries with the optional trace legend before
 passing them to `ImageExporter`; SVG and PNG share wrapping and footer layout.
 The demo selects legend fields and marker IDs through the public export options.
+
+## Configuration flow
+
+`SmithOptions` groups appearance, interaction, grid settings, constant circles, and
+peripheral scales. `Smith` accepts it in the constructor and in `setOptions()`.
+`OptionsValidation` checks complete patches before mutation and shares style/value
+validation with layer controls. Reference impedance updates run through RF
+renormalization before presentation changes. Omitted patch fields preserve state;
+there is no serialized application session or second configuration schema.
+
+See [the API review](api-review.md) for precedence, events, errors, exports, and the
+compatibility boundary intended for 1.x.

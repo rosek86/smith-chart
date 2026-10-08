@@ -12,12 +12,11 @@ test('PNG preserves the view, replaces backgrounds, fits dimensions, and adds on
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
-      grid: { detail: 'detailed' },
       referenceImpedanceOhms: 50,
       appearance: { theme: 'dark' },
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
     chart.layers.resistance.setDetail('basic');
@@ -128,9 +127,8 @@ test('PNG rejects invalid sizes, colors, unmounted and destroyed components with
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     const scales = new window.SmithTest.SmithScales();
@@ -190,9 +188,8 @@ test('PNG releases its temporary image URL even when SVG decoding fails', async 
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -273,9 +270,8 @@ test('combined PNG centers differently sized chart and scales in a vertical layo
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     const scales = new window.SmithTest.SmithScales();

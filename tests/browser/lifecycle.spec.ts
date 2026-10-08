@@ -25,20 +25,18 @@ test('mounts by element, moves without duplicating SVG, and validates containers
       fails(
         () =>
           new Smith({
-            zoomEnabled: true,
-            cursorEnabled: true,
-            peripheralScalesVisible: true,
-            grid: { detail: 'detailed' },
             referenceImpedanceOhms: z,
+            interaction: { zoom: true, cursor: true },
+            peripheralScales: { visible: true },
+            grid: { detail: 'detailed' },
           }),
       ),
     );
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
-      grid: { detail: 'detailed' },
       referenceImpedanceOhms: 75,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
     });
     chart.draw(document.getElementById('first')!);
     chart.draw('#first');
@@ -58,9 +56,8 @@ test('updates samples and markers, keeps colors, and retains stable IDs after re
   const result = await page.evaluate(async () => {
     const { Smith } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#first');
@@ -164,9 +161,8 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
     const { Smith } = window.SmithTest;
     let calls = 0;
     const other = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     other.draw('#second');
@@ -174,9 +170,8 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
     let invalidCalls = 0;
     for (let i = 0; i < 5; i++) {
       const chart = new Smith({
-        zoomEnabled: true,
-        cursorEnabled: true,
-        peripheralScalesVisible: true,
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
         grid: { detail: 'detailed' },
       });
       chart.draw('#first');
@@ -217,9 +212,8 @@ for (const gesture of ['zoom', 'drag'] as const) {
   test(`destroy during ${gesture} releases window listeners`, async ({ page }) => {
     await page.evaluate(() => {
       const chart = new window.SmithTest.Smith({
-        zoomEnabled: true,
-        cursorEnabled: true,
-        peripheralScalesVisible: true,
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
         grid: { detail: 'detailed' },
       });
       chart.draw('#first');
@@ -255,9 +249,8 @@ test('all markers stay above all sample points after adding and updating dataset
 }) => {
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#first');
@@ -306,9 +299,8 @@ test('event subscriptions are independent, removable, and cleared on destruction
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#first');
@@ -354,9 +346,8 @@ test('traces share the current view when created before mounting or after zoom a
 }) => {
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     const samples: import('../../src').TraceSamples = [

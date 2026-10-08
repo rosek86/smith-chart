@@ -28,10 +28,9 @@ settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScr
 
 const smith = new Smith({
   appearance: { theme: 'dark' },
+  interaction: { zoom: true, cursor: true },
+  peripheralScales: { visible: true },
   grid: { detail: 'detailed' },
-  peripheralScalesVisible: true,
-  zoomEnabled: true,
-  cursorEnabled: true,
 });
 smith.draw('#smith');
 const scales = new SmithScales({ theme: 'dark' });
@@ -40,7 +39,7 @@ scales.draw('#smith-scales');
 element<HTMLSelectElement>('theme').addEventListener('change', (event) => {
   const theme = (event.target as HTMLSelectElement).value as SmithAppearance['theme'];
   const appearance: SmithAppearance = { theme };
-  smith.setAppearance(appearance);
+  smith.setOptions({ appearance });
   scales.setAppearance(appearance);
   document.documentElement.dataset.theme = theme;
   measurements.render();
@@ -185,7 +184,7 @@ exportForm.addEventListener('submit', async (event) => {
   const scaleOptions = { ...options, readout };
   const chartOptions = {
     ...options,
-    scaleReadout: readout,
+    scaleReadout: target === 'combined' ? readout : undefined,
     legend: exportLegend.checked,
     markerLegend: exportMarkerLegend.checked
       ? {

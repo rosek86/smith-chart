@@ -62,16 +62,26 @@ const readonlySamples: TraceSamples = immutableSamples;
 Complex.from(immutableSamples[0].reflectionCoefficient);
 void readonlySamples;
 const parsed: TouchstoneData = Touchstone.parse('# GHz S RI R 50\\n1 0 0');
-import type { SmithOptions, GridOptions, GridLayerOptions, CircleLayerOptions } from 'smithkit';
+import type { SmithOptions, GridOptions, GridLayerOptions, CircleLayerOptions, CircleOptions, InteractionOptions, PeripheralScalesOptions } from 'smithkit';
 const grid: GridOptions = { detail: 'basic', labelsVisible: true };
 const gridLayer: GridLayerOptions = { visible: true, style: { majorWidth: 2 } };
 const circles: CircleLayerOptions = { values: [1, 2] as const, visible: true };
-const configuration: SmithOptions = {
-  referenceImpedanceOhms: parsed.referenceImpedanceOhms,
-  appearance: { theme: 'dark' }, cursorEnabled: true, zoomEnabled: false, peripheralScalesVisible: false,
-  grid, layers: { resistance: gridLayer, q: circles, vswr: { values: [] } },
-};
+const interaction: InteractionOptions = { zoom: true, cursor: true };
+const peripheralScales: PeripheralScalesOptions = { visible: false };
+const constantCircles: CircleOptions = { q: circles };
+new Smith({ interaction, peripheralScales, circles: constantCircles });
+// @ts-expect-error Flat interaction fields are not part of the grouped API.
+new Smith({ zoomEnabled: true });
+// @ts-expect-error Constant circles do not belong to the impedance/admittance grid.
+new Smith({ grid: { layers: { q: circles } } });
+// @ts-expect-error Per-ruler visibility is not supported.
+new Smith({ peripheralScales: { phase: false } });
+const configuration: SmithOptions = { referenceImpedanceOhms: parsed.referenceImpedanceOhms, appearance: { theme: 'dark' }, interaction: { zoom: false, cursor: true }, peripheralScales: { visible: false }, grid: { ...grid, layers: {resistance: gridLayer} }, circles: {q: circles, vswr: { values: [] }} };
 const chart = new Smith(configuration);
+chart.setOptions(configuration);
+chart.setOptions({ interaction: { cursor: false }, grid: { layers: { resistance: { visible: true } } } });
+// @ts-expect-error Patches use the same grouped schema as the constructor.
+chart.setOptions({ cursorEnabled: true });
 new Smith();
 new Smith({});
 chart.setGridDetail('basic');
@@ -80,14 +90,14 @@ chart.setCursorEnabled(false);
 // @ts-expect-error Cursor tracking requires a boolean.
 chart.setCursorEnabled('false');
 // @ts-expect-error Cursor configuration requires a boolean.
-new Smith({ cursorEnabled: 'true' });
+new Smith({ interaction: { cursor: 'true' } });
 chart.layers.q.setValues([1, 2] as const);
 // @ts-expect-error Positional constructor arguments are no longer supported.
 new Smith(50);
 // @ts-expect-error Unknown detail levels must not compile.
 new Smith({ grid: { detail: 'sparse' } });
 // @ts-expect-error Grid and circle layer options are distinct.
-new Smith({ layers: { q: { detail: 'basic' } } });
+new Smith({ circles: {q: { detail: 'basic' }} });
 // @ts-expect-error Shared detail accepts only documented levels.
 chart.setGridDetail('sparse');
 // @ts-expect-error Circle values are numeric.
@@ -204,6 +214,8 @@ const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), im
 assert.equal(MarkerMeasurements.compare(reading, reading).phaseDeltaDegrees, 0);
 assert.equal(typeof SmithScales.prototype.update, 'function');
 assert.equal(typeof Smith.prototype.destroy, 'function');
+assert.equal(typeof Smith.prototype.setOptions, 'function');
+await assert.rejects(import('smithkit/dist/lib/Smith.js'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
 assert.equal(typeof Smith.prototype.toSvg, 'function');
 assert.equal(typeof SmithScales.prototype.toSvg, 'function');
 assert.equal(typeof Smith.prototype.updateTrace, 'function');

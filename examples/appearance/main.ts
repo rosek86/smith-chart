@@ -1,7 +1,7 @@
 import { Smith } from 'smithkit';
 import type { SmithAppearance } from 'smithkit';
 
-const chart = new Smith({ cursorEnabled: true });
+const chart = new Smith({ interaction: { cursor: true } });
 chart.draw('#chart');
 const traceId = chart.addTrace(
   [
@@ -16,9 +16,11 @@ chart.addMarker(traceId);
 
 const select = document.querySelector<HTMLSelectElement>('#theme')!;
 function applyTheme(): void {
-  chart.setAppearance({
-    theme: select.value as SmithAppearance['theme'],
-    overrides: { grid: { fontSize: 11 }, cursor: { pointColor: '#f97316' } },
+  chart.setOptions({
+    appearance: {
+      theme: select.value as SmithAppearance['theme'],
+      overrides: { grid: { fontSize: 11 }, cursor: { pointColor: '#f97316' } },
+    },
   });
 }
 select.addEventListener('change', applyTheme);

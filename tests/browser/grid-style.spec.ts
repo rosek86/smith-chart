@@ -10,9 +10,8 @@ test('grid setters and drawing options update the rendered geometry of all four 
     const { Smith } = (window as typeof window & { SmithTest: typeof import('../../src/index') })
       .SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -108,9 +107,8 @@ for (const width of [340, 900]) {
     await loadLibrary(page);
     const layers = await page.evaluate(() => {
       const chart = new window.SmithTest.Smith({
-        zoomEnabled: true,
-        cursorEnabled: true,
-        peripheralScalesVisible: true,
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
         grid: { detail: 'detailed' },
       });
       chart.draw('#chart');
@@ -163,9 +161,8 @@ test('numeric layer styles reject invalid lengths before changing any style', as
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');

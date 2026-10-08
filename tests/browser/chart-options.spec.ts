@@ -13,12 +13,18 @@ test('constructor settings apply shared defaults, then per-layer overrides witho
     const options: import('../../src').SmithOptions = {
       referenceImpedanceOhms: 75,
       appearance: { theme: 'dark' },
-      zoomEnabled: false,
-      peripheralScalesVisible: false,
-      grid: { detail: 'basic', labelsVisible: false, style: { stroke: '#123456', majorWidth: 2 } },
-      layers: {
-        resistance: { labelsVisible: true, style: { stroke: '#abcdef' } },
-        conductance: { visible: true, detail: 'standard' },
+      interaction: { zoom: false },
+      peripheralScales: { visible: false },
+      grid: {
+        detail: 'basic',
+        labelsVisible: false,
+        style: { stroke: '#123456', majorWidth: 2 },
+        layers: {
+          resistance: { labelsVisible: true, style: { stroke: '#abcdef' } },
+          conductance: { visible: true, detail: 'standard' },
+        },
+      },
+      circles: {
         q: { visible: true, values: [1, 2, 2], style: { stroke: '#654321', strokeWidth: 3 } },
         vswr: { visible: true, values: [], style: { stroke: '#fedcba' } },
       },
@@ -26,7 +32,7 @@ test('constructor settings apply shared defaults, then per-layer overrides witho
     const chart = new window.SmithTest.Smith(options);
     options.grid!.style!.majorWidth = 8;
     options.grid!.detail = 'detailed';
-    options.layers!.q!.values = [5];
+    options.circles!.q!.values = [5];
     chart.draw('#chart');
     const svg = document.querySelector('svg')!;
     const grids = (['resistance', 'reactance', 'conductance', 'susceptance'] as const).map(
@@ -117,17 +123,25 @@ test('invalid constructor settings reject and disconnect allocated observers', a
       { referenceImpedanceOhms: 0 },
       { referenceImpedanceOhms: null },
       { appearance: { theme: 'invalid' } },
-      { zoomEnabled: 'false' },
-      { cursorEnabled: 'false' },
-      { peripheralScalesVisible: 0 },
+      { interaction: { zoom: 'false' } },
+      { interaction: { cursor: 'false' } },
+      { peripheralScales: { visible: 0 } },
       { grid: null },
-      { layers: [] },
+      { interaction: null },
+      { peripheralScales: [] },
+      { circles: null },
+      { zoomEnabled: true },
+      { interaction: { zoomEnabled: true } },
+      { grid: { layers: { q: {} } } },
+      { circles: { resistance: {} } },
+      { peripheralScales: { phase: false } },
+      { grid: { layers: [] } },
       { grid: { detail: 'invalid' } },
       { grid: { style: { majorWidth: -1 } } },
-      { layers: { resistance: { labelsVisible: 1 } } },
-      { layers: { q: { values: [1, 0] } } },
-      { layers: { vswr: { values: [0.5] } } },
-      { layers: { q: { values: '1' } } },
+      { grid: { layers: { resistance: { labelsVisible: 1 } } } },
+      { circles: { q: { values: [1, 0] } } },
+      { circles: { vswr: { values: [0.5] } } },
+      { circles: { q: { values: '1' } } },
     ];
     const rejected = invalid.map((options) => {
       try {
@@ -151,7 +165,7 @@ test('shared detail and circle replacement preserve presentation and reject inva
     const values = [1, 2];
     const chart = new window.SmithTest.Smith({
       grid: { labelsVisible: false, style: { stroke: '#123456' } },
-      layers: { q: { values, style: { stroke: '#654321' } } },
+      circles: { q: { values, style: { stroke: '#654321' } } },
     });
     chart.draw('#chart');
     values.push(5);
@@ -296,7 +310,6 @@ test('default and partially configured charts render a static standard impedance
       const markerWorks = chart.getMarker(marker)!.sampleIndex === 1;
       const exported = new DOMParser().parseFromString(chart.toSvg(), 'image/svg+xml');
       results.push({
-        layers,
         readingEvents,
         markersAbsent,
         markerWorks,
@@ -311,6 +324,7 @@ test('default and partially configured charts render a static standard impedance
         exportedScalesHidden:
           exported.querySelector<SVGElement>('[data-layer=peripheral-scales]')!.style.opacity ===
           '0',
+        layers,
       });
       chart.destroy();
     }
@@ -339,7 +353,7 @@ test('cursor tracking can be enabled independently, disabled during a queued mov
   page,
 }) => {
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith({ cursorEnabled: true });
+    const chart = new window.SmithTest.Smith({ interaction: { cursor: true } });
     chart.draw('#chart');
     const events: boolean[] = [];
     chart.onEvent((event) => {
@@ -418,4 +432,189 @@ test('cursor tracking can be enabled independently, disabled during a queued mov
     invalid: true,
     disposed: true,
   });
+});
+
+test('setOptions patches supplied fields and renormalizes data without resetting identity or presentation', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith({
+      appearance: { theme: 'dark' },
+      interaction: { zoom: true },
+      grid: { style: { stroke: '#123456', majorWidth: 2 } },
+    });
+    chart.draw('#chart');
+    const trace = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] }]);
+    const marker = chart.addMarker(trace)!;
+    const svg = document.querySelector('svg')!;
+    svg.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -100,
+        bubbles: true,
+        cancelable: true,
+        clientX: 300,
+        clientY: 300,
+      }),
+    );
+    const view = svg.firstElementChild!.getAttribute('transform');
+    const background = getComputedStyle(svg).backgroundColor;
+    const values = [2, 3];
+    const options: import('../../src').SmithOptions = {
+      referenceImpedanceOhms: 75,
+      interaction: { cursor: true },
+      grid: { detail: 'basic', layers: { resistance: { style: { majorWidth: 3 } } } },
+      circles: { vswr: { values, visible: true, style: { stroke: '#abcdef' } } },
+      peripheralScales: { visible: true },
+    };
+    chart.setOptions(options);
+    values.push(5);
+    options.grid!.detail = 'detailed';
+    chart.setOptions({ grid: {}, interaction: { zoom: undefined }, appearance: undefined });
+    const unchanged =
+      view === svg.firstElementChild!.getAttribute('transform') &&
+      getComputedStyle(svg).backgroundColor === background;
+    const resistance = svg.querySelector('[data-layer=resistance] > g:last-child')!;
+    const style = getComputedStyle(resistance.firstElementChild!);
+    const reading = chart.getMarker(marker)!;
+    const beforeNoop = svg.outerHTML;
+    chart.setOptions({});
+    const noop = beforeNoop === svg.outerHTML;
+    chart.setOptions({ appearance: { theme: 'light' }, grid: { labelsVisible: false } });
+    const preservedStyle =
+      getComputedStyle(resistance.firstElementChild!).stroke === 'rgb(18, 52, 86)';
+    const circleCount = svg.querySelector('g[stroke="#abcdef"]')!.childElementCount;
+    const scales =
+      svg.querySelector('[data-layer=peripheral-scales]')!.getAttribute('opacity') !== '0';
+    const labelsHidden =
+      svg.querySelector('[data-label-layer=resistance]')!.getAttribute('display') === 'none';
+    const output = {
+      unchanged,
+      noop,
+      preservedStyle,
+      circleCount,
+      scales,
+      labelsHidden,
+      reference: chart.referenceImpedanceOhms,
+      impedance: reading.impedanceOhms!.re,
+      gamma: reading.reflectionCoefficient.re,
+      sameId: reading.markerId === marker && reading.traceId === trace,
+      width: style.strokeWidth,
+      count: resistance.childElementCount,
+    };
+    chart.destroy();
+    let disposed = false;
+    try {
+      chart.setOptions({});
+    } catch {
+      disposed = true;
+    }
+    return { ...output, disposed };
+  });
+  expect(result).toMatchObject({
+    unchanged: true,
+    noop: true,
+    preservedStyle: true,
+    circleCount: 2,
+    scales: true,
+    labelsHidden: true,
+    reference: 75,
+    sameId: true,
+    width: '3px',
+    count: 5,
+    disposed: true,
+  });
+  expect(result.gamma).toBeCloseTo(1 / 3);
+  expect(result.impedance).toBeCloseTo(150);
+});
+
+test('configuration patches reject all invalid fields before any mutation, including singular reference conversion', async ({
+  page,
+}) => {
+  const result = await page.evaluate(() => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    const trace = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [5, 0] }]);
+    const marker = chart.addMarker(trace)!;
+    const svg = document.querySelector('svg')!;
+    const before = svg.outerHTML;
+    const patches: unknown[] = [
+      { appearance: { theme: 'dark' }, grid: { style: { majorWidth: -1 } } },
+      { interaction: { cursor: true }, circles: { vswr: { values: [2, 0] } } },
+      { grid: { detail: 'basic', layers: { resistance: { visible: 'false' } } } },
+      { grid: { style: { unknown: 1 } } },
+      { grid: { detail: 'basic', style: { textColor: null } } },
+      { appearance: { unknown: true } },
+      {
+        referenceImpedanceOhms: 75,
+        appearance: { theme: 'dark' },
+        peripheralScales: { visible: true },
+      },
+      { zoomEnabled: true },
+      null,
+    ];
+    const rejected = patches.map((options) => {
+      let caught = false;
+      try {
+        chart.setOptions(options as import('../../src').SmithOptions);
+      } catch (error) {
+        caught = error instanceof TypeError || error instanceof RangeError;
+      }
+      return (
+        caught &&
+        before === svg.outerHTML &&
+        chart.referenceImpedanceOhms === 50 &&
+        chart.getMarker(marker)!.reflectionCoefficient.re === 5
+      );
+    });
+    chart.destroy();
+    return rejected;
+  });
+  expect(result).toEqual(Array(9).fill(true));
+});
+
+test('visibility controls reject non-booleans and SVG/PNG reject unattached scale readings consistently', async ({
+  page,
+}) => {
+  const result = await page.evaluate(async () => {
+    const chart = new window.SmithTest.Smith();
+    chart.draw('#chart');
+    const before = document.querySelector('svg')!.outerHTML;
+    const controls = [chart.layers.resistance, chart.layers.q, chart.peripheralScales];
+    let errors = 0;
+    for (const control of controls) {
+      try {
+        control.setVisible('false' as unknown as boolean);
+      } catch (error) {
+        if (error instanceof TypeError) {
+          errors++;
+        }
+      }
+    }
+    try {
+      chart.layers.resistance.setLabelsVisible(1 as unknown as boolean);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        errors++;
+      }
+    }
+    const options = { scaleReadout: { reflectionCoefficient: null } };
+    try {
+      chart.toSvg(options);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        errors++;
+      }
+    }
+    try {
+      await chart.toPng(options);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        errors++;
+      }
+    }
+    const unchanged = before === document.querySelector('svg')!.outerHTML;
+    chart.destroy();
+    return { errors, unchanged };
+  });
+  expect(result).toEqual({ errors: 6, unchanged: true });
 });

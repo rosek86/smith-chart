@@ -8,9 +8,8 @@ test('static charts adapt label density to available space without changing the 
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.setZoomEnabled(false);
@@ -110,9 +109,8 @@ test('layout reacts to layer visibility, text styling, zoom and reset', async ({
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -185,9 +183,8 @@ test('successive zoom frames and reset preserve labels, including after a zoomed
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -245,9 +242,8 @@ test('grid endpoint labels survive compact layouts and combined impedance/admitt
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');
@@ -298,9 +294,8 @@ test('peripheral rulers keep complete labels in two outlined groups at every cha
   await loadLibrary(page);
   const results = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');

@@ -1,131 +1,277 @@
-# Public API review
+# Public API review and compatibility policy
 
-This review describes `smithkit` on the development branch targeting 0.4.0.
-The constructor options, static presentation defaults, and explicit marker creation
-differ from published 0.3.0. Zoom and cursor tracking are independent opt-in features.
-The [integration gallery](../examples/README.md) exercises static rendering, marker
-controls, appearance, exports, and lifecycle using only public imports. These
-integrations require no renderer access or additional public API.
+Reviewed against the development API targeting **0.4.0**, including the installed
+integration examples. Published 0.3.0 uses positional constructor arguments,
+interactive defaults, and an automatic marker. See [migration to 0.4](migration-0.4.md).
+This review defines the compatibility scope intended for **1.x**; it does not
+publish 1.0 or retroactively promise compatibility for 0.x releases.
 
-## Surface and consistency
+## Decision
 
-| Responsibility    | Public API                                        | Contract                                                                |
-| ----------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
-| Chart lifecycle   | `Smith`, `draw`, `destroy`                        | Mount into a measurable host; destroy releases listeners and observers. |
-| Measurements      | trace/marker methods on `Smith`                   | Stable IDs, detached readouts, explicit physical units.                 |
-| Appearance        | `SmithAppearance`, `setAppearance`                | Replace the preset and overrides; default light.                        |
-| Grid              | `GridLayer`, `CircleLayer`, `PeripheralScales`    | Detail, labels, styles and visibility without SVG access.               |
-| Radial scales     | `SmithScales`                                     | Independently mounted; caller chooses the reading source.               |
-| Reports           | `toSvg`, `toPng`, typed export options            | SVG returns a string; PNG returns a promise of a Blob.                  |
-| RF/math           | `RfCalculations`, `Complex`, `MarkerMeasurements` | DOM-independent calculations; documented singularities.                 |
-| Import/formatting | `Touchstone`, `SmithFormatter`                    | Class-based stateless operations.                                       |
+Keep one public entry point, `smithkit`, and a small class-based API. The examples
+can be implemented without renderer access. The remaining configuration mismatch
+was corrected by grouping constructor options by responsibility. Do not introduce
+a general scene API, backend abstraction, session serialization, or a second
+configuration schema for this release.
 
-Appearance updates replace prior overrides, while layer `setStyle` and trace
-`setTraceOptions` patch their respective settings. These are different, documented
-operations; examples should not imply that `setAppearance` merges with old overrides.
+The reviewed shape is the candidate API for 1.0. During 0.x, breaking changes still
+require a minor release, migration instructions, and updates to the examples.
+Use real consumer feedback to identify necessary changes before declaring 1.0,
+rather than treating additional features as prerequisites.
 
-Report legends and scale readouts are independent options. Exports capture the
-current view and readings without changing the live chart. Size/background options
-are shared; chart-only options add trace/marker legends and optional radial scales.
-Downloads and user interface controls remain consumer responsibilities.
+## Configuration by responsibility
 
-## Migration
+```ts
+const chart = new Smith({
+  referenceImpedanceOhms: 50,
+  appearance: { theme: 'dark' },
+  interaction: { zoom: true, cursor: true },
+  grid: {
+    detail: 'standard',
+    labelsVisible: true,
+    style: { majorWidth: 1.5 },
+    layers: {
+      resistance: { style: { stroke: '#60a5fa' } },
+      conductance: { visible: true, detail: 'basic' },
+    },
+  },
+  circles: { vswr: { visible: true, values: [2, 3] } },
+  peripheralScales: { visible: true },
+});
+```
 
-The next minor release replaces positional constructor arguments with `SmithOptions`
-and makes marker creation explicit. See the [0.4 migration guide](migration-0.4.md).
-Shared `grid` defaults precede per-layer overrides; `setGridDetail()` changes all
-four grids together, preserving visibility and styles.
+| Responsibility             | Constructor                                                      | Later changes                                                   |
+| -------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| Physical reference         | `referenceImpedanceOhms`                                         | `renormalize()` preserves physical impedance                    |
+| Visual defaults            | `appearance`                                                     | `setAppearance()` replaces preset/overrides                     |
+| Interaction                | `interaction.zoom`, `interaction.cursor`                         | `setZoomEnabled()`, `setCursorEnabled()`                        |
+| Impedance/admittance grid  | `grid.detail`, `grid.labelsVisible`, `grid.style`, `grid.layers` | `setGridDetail()` or individual `layers` controls               |
+| Auxiliary constant circles | `circles.q`, `circles.vswr`                                      | `layers.q`, `layers.vswr`                                       |
+| Peripheral rulers          | `peripheralScales.visible`                                       | `peripheralScales.setVisible()`; `update()` supplies indicators |
 
-0.3.0 replaces `setMinorVisible(false/true)` with `setDetail('standard'/'detailed')`.
-`'basic'` adds a sparse grid. The default remains `'detailed'`. Class-based changes
-from 0.1.x are documented in the [0.2.0 migration guide](migration-0.2.md).
+The reference impedance remains a single top-level physical quantity rather than
+an otherwise empty RF group. `grid.layers` contains only resistance, reactance,
+conductance, and susceptance. Q/VSWR belong to `circles`, since they have values and
+visibility but no grid detail or label-density setting. Peripheral rulers are
+shown/hidden as one group. The runtime `layers` collection remains a flat set of
+controls: callers need not traverse configuration objects to change one layer.
 
-## Decisions
+`appearance` describes how features look; `interaction` determines whether zoom
+and cursor tracking run. A marker's appearance does not create that marker.
+Traces and markers are added separately with `addTrace()` and `addMarker()`.
+Report options belong to each export call, not the chart constructor.
 
-- Favor clarity over compatibility with historical APIs. There are no deprecated
-  aliases or index-based public trace operations.
-- `addTrace`, `updateTrace`, `removeTrace`, and `clearTraces` form one lifecycle API.
-  Markers are managed through chart methods and stable IDs. No mutable renderer
-  instances are returned to callers.
-- `TraceSample` explicitly names `frequencyHz` and `reflectionCoefficient`.
-  Touchstone parsing produces `samples` and `referenceImpedanceOhms`.
-- Cursor and marker readings share `SmithReading`. Physical quantities include
-  units in their names: ohms, siemens, hertz, degrees, and decibels. Presentation layers may
-  display millisiemens; underlying readings remain in siemens.
-- Marker events always contain a complete `MarkerSnapshot`. Event types are
-  discriminated string values; no casts or optional identity fields are needed.
-- `onEvent` supports independent subscriptions with returned unsubscribe functions.
-  Destruction suppresses callbacks and clears subscriptions.
-- `chart.layers` provides visibility, grid detail, label visibility, style, and circle-value controls.
-  `chart.peripheralScales` exposes visibility and indicator updates. Neither
-  exposes internal SVG wrappers.
-- Public RF functions operate on physical units and do not require a DOM.
-  `SmithConstantCircle` remains an internal implementation of normalized math and
-  geometry. Its historical abbreviated methods are not package exports.
-- Input validation precedes mutation. Empty trace input is rejected for both add
-  and update; deletion is explicit. Missing IDs return false/undefined as described
-  in the README.
+`setOptions(SmithOptions)` applies the same grouped schema as a patch. Omitted and
+`undefined` fields retain their current values, including nested fields. Empty
+groups are no-ops. Within each call, shared grid settings precede per-layer overrides;
+a later shared setting replaces that field on all four grids. Styles patch fields,
+circle lists replace, and `appearance` replaces its preset/overrides as a unit,
+matching `setAppearance()`. Reference changes renormalize measurements.
 
-- `updateTrace` defaults to nearest-frequency marker selection. Callers can opt
-  into sample-index selection (clamped on shrink) or nearest-reflection selection.
-  Ties select the earliest input sample; renormalization always retains indices.
+Validation of the complete patch and reference conversion precedes presentation
+changes. Invalid input or an impossible conversion leaves the live chart unchanged.
+Updates retain traces, markers, identity, selection, and the current view. Consumer
+callbacks must not throw; this guarantee is about validation, not rollback of
+arbitrary side effects from application callbacks.
 
-## Numerical conventions
+### Defaults and precedence
 
-- Open-circuit impedance, short-circuit admittance, and undefined phase/Q are
-  `undefined`. Finite points near singularities are not clipped by a fixed epsilon.
-- Meaningful infinite scalar limits are retained. Passive-only quantities are
-  undefined for active loads. Non-finite public RF inputs throw `RangeError`.
-- Reference impedance is positive and finite. Z and Y conversions round-trip in
-  physical units, including non-default reference impedances.
-- Comparisons use B − A. Phase is wrapped to [−180°, 180°); undefined phase or
-  impedance does not suppress a valid frequency difference.
-- Marker position events are queued and resolve the latest snapshot. Multiple
-  updates for one marker coalesce before delivery. Metadata changes are read back
-  explicitly after management methods.
+- `new Smith()` is a static presentation: 50 Ω, light theme, standard impedance
+  grid with labels, no admittance/Q/VSWR layers or peripheral rulers, no zoom or
+  cursor tracking. Traces do not create markers.
+- Omitted/`undefined` fields use defaults; `{}` groups do not reset other groups.
+  `false` and empty circle arrays are meaningful overrides. `null` is not an
+  omission in constructor options.
+- Resolve appearance, apply shared `grid` settings, then apply `grid.layers`
+  overrides by field. Explicit styles take precedence over the theme and remain
+  after later theme changes. Options and circle arrays are not retained by reference.
+- `setAppearance()` replaces its preset and overrides. Layer `setStyle()` and
+  `setTraceOptions()` patch fields. `setValues()` replaces the whole circle list,
+  copies it, removes duplicates, and validates before mutation.
+- `setGridDetail()` affects all four grids, including hidden ones, without changing
+  visibility, explicit styles, label visibility, or the current view.
+- Cursor tracking, zoom, and explicitly added markers are independent. Disabling
+  zoom preserves the view; `resetView()` still works. Disabling cursor tracking
+  hides geometry, cancels queued readings, and clears the readout. Enabling waits
+  for a new pointer movement. `cursorReading` retains the last position.
 
-## Verification
+`SmithScales` is a separate component whose constructor takes only
+`SmithAppearance`. It does not inherit chart options or listen to chart events
+implicitly. Consumers select the source reading with `update(Complex | null)`.
+Keeping this constructor focused avoids grid/interaction options that do not apply.
 
-Unit tests cover conversions, units, singularities, active loads, and comparison
-sign/wrapping. Browser tests cover sample validation, stable IDs, copied input,
-subscriptions, lifecycle cleanup, trace controls, dragging, hiding, and comparison
-updates. The package check installs a tarball in a separate consumer, checks
-NodeNext/Bundler declarations, and imports calculation/parsing helpers without DOM
-globals. README TypeScript examples are checked against the packaged declarations.
+## Data, identity, and lifecycle
 
-[Complex tests](../tests/complex.test.ts) compare supported operations against
-independent Python `cmath` reference values and check principal branches,
-signed zeros, poles, and non-finite inputs. Arithmetic tests also cover extreme
-finite magnitudes, subnormal values, product cancellation, and selected power
-identities. This is targeted regression coverage, not an exhaustive numerical
-certification of every operation and input.
+`TraceSample` uses `frequencyHz` and a dimensionless voltage
+`reflectionCoefficient: [real, imaginary]`. Input samples are copied; all
+coordinates and frequencies must be finite, and frequencies non-negative.
+An empty trace is invalid. Names and colors are trace metadata, not sample data.
 
-## Remaining scope
+Trace/marker IDs are opaque, chart-local strings, stable across sample replacement
+and renormalization, and never reused within a chart. Do not depend on their text
+prefixes. Marker display numbers start at 1 per trace and are not reused after
+removal. Markers select actual samples; no interpolation is implied.
 
-- Renormalization supports positive real reference impedances and preserves
-  physical impedance and selected sample indices. Complex reference impedances
-  and multiport support remain separate features.
-- Cross-browser visual limitations are tracked in CONTRIBUTING.md.
+`updateTrace()` defaults to nearest-frequency selection, with input-order tie
+breaking. `sample-index` clamps when the trace shrinks; `reflection` selects the
+nearest complex point. Renormalization retains sample indices and physical Z.
+`getTraces()` and `getMarker()` return detached snapshots, not renderer objects.
 
-## Release contract checks
+Mount after the host exists and has measurable dimensions. `draw()` can move an
+existing component. `destroy()` is idempotent and releases listeners/observers;
+retained layer controls, mutations, subscriptions, and exports then throw.
+Trace/marker lookups return empty/missing results after destruction. Reference
+impedance and last cursor position remain readable. There is no implicit DOM
+requirement for importing the package or using RF/math/parsing classes.
 
-The isolated package consumer compiles positive and negative API examples with
-NodeNext and Bundler resolution. Marker update tests verify all three strategies,
-atomic validation, ID/metadata retention, and independent/coalesced notifications.
-The isolated examples gallery also compiles and runs against the packed library;
-the root demo's source alias is not used in that check.
+## Events
 
-## Before declaring 1.0
+`onEvent()` returns an unsubscribe function. Registering the same callback twice
+creates independent subscriptions. Each payload is discriminated by
+`SmithEventType`; marker payloads include trace/marker identity, sample index,
+frequency, and the complete RF reading.
 
-- Keep the current entry point and typed IDs/readings stable while collecting
-  feedback from consumers outside the full demo.
-- Document missing-ID results (`false`/`undefined`), invalid numeric inputs
-  (`RangeError`), and lifecycle/parser errors (`Error`) rather than silently
-  normalizing all failure modes.
-- Touchstone currently reads one-port 1.x files only. Multiport selection and
-  writing files need their own API design and tests.
-- Keep application features such as session storage outside the chart library
-  and demonstration pages. No serialization API is required by these examples.
+| Event                              | Delivery and meaning                                                                                                  |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `Cursor` with a reading            | Queued pointer-position update when tracking is enabled                                                               |
+| `Cursor` with `undefined`          | Synchronous clearing on pointer leave, cursor disable, marker drag start, or renormalization when tracking is enabled |
+| `Marker`                           | Queued position reading; also emitted after explicit marker creation                                                  |
+| `MarkerSelect`                     | Synchronous focus or pointer/keyboard engagement; does not itself mean a position change                              |
+| `MarkerDragStart`, `MarkerDragEnd` | Synchronous mouse/touch gesture lifecycle                                                                             |
 
-The API supports these examples without renderer access; this review does not declare a
-1.0 compatibility guarantee or propose another broad refactor.
+Repeated queued updates to the same marker coalesce and deliver the latest
+snapshot; different markers have independent notifications. Cursor moves coalesce
+separately. Exact timer delays and notification counts during continuous movement
+are not part of the contract. Removed markers cannot deliver stale queued readings.
+Disabled cursors do not emit readings, including during marker interactions.
+
+Trace metadata changes do not emit a synthetic marker event: refresh metadata
+after such mutations. Removing a dragged trace/marker ends its gesture.
+Destroying a chart suppresses further application callbacks. Callbacks should not
+throw or mutate event payloads: consumer exceptions are not isolated, and payloads
+are detached from chart state but not frozen or copied for every listener.
+
+## Results and errors
+
+Missing identity is an expected lookup result, not an exception. For ID-based
+operations, lifecycle validation comes first; on a live chart, a missing ID is
+resolved before validating the remaining arguments.
+
+| Operation / invalid input                                                                                                             | Result                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Missing trace in `addMarker()`; missing marker in `getMarker()`; missing comparison endpoint                                          | `undefined`                                                 |
+| Missing trace/marker in update, remove, focus, or selection methods                                                                   | `false`                                                     |
+| Hidden/unmounted marker in `focusMarker()`                                                                                            | `false`                                                     |
+| Invalid constructor or patch object/group or unknown structural key; non-boolean interaction/visibility                               | `TypeError`                                                 |
+| Invalid theme, appearance shape/color/font, trace mode/name/color, marker-selection strategy                                          | `TypeError`                                                 |
+| Invalid reference impedance, sample/frequency/index, positive numeric style/appearance dimension, Q/VSWR value                        | `RangeError`                                                |
+| Invalid grid detail, marker-legend ID/field, export dimension/background/size limit                                                   | `RangeError`                                                |
+| `scaleReadout` without included `scales` in chart export                                                                              | `TypeError`                                                 |
+| Destroyed instance, missing mount host, unmounted/zero-size export, invalid Touchstone content, unavailable browser export facilities | `Error` (browser operations can also raise platform errors) |
+
+The classes above are operation-specific contracts, not a universal JSON-schema
+validator. Consumers should branch on error classes rather than message text.
+Messages, stack traces, and parser wording may improve between releases.
+Grid/circle text styles must be strings; their CSS interpretation is browser-owned
+(including CSS variables), unlike validated solid theme/trace colors.
+TypeScript declares the supported inputs; arbitrary malformed objects outside that
+surface are not promised identical diagnostics across releases.
+
+Validated trace updates, numeric style updates, circle replacements, and appearance
+updates reject before changing their live values. A failed constructor returns no
+instance and disconnects any allocated renderer resources. Visibility setters now
+validate booleans just like constructor options, instead of coercing strings.
+
+## Export contract
+
+`Smith.toSvg()` and `SmithScales.toSvg()` return standalone SVG strings
+synchronously. Their `toPng()` counterparts return `Promise<Blob>` with PNG data;
+validation/lifecycle failures become promise rejections. Both formats capture the
+mounted view without changing live geometry, readings, theme, or selection.
+
+Shared `width`, `height`, and `background` options describe the output image.
+One dimension preserves aspect ratio; both fit and center without cropping or
+stretching. Dimensions must be integers from 1 to 8192; final output is also
+limited to 32 megapixels. SVG dimensions affect layout/intrinsic size, not vector
+resolution. Omitted backgrounds preserve the configured backgrounds.
+
+For chart exports, `legend` includes visible traces. `markerLegend` independently
+selects marker fields/IDs from visible traces. Empty selections mean empty;
+unknown IDs/fields throw. `scales` adds independently mounted radial scales centered
+below the chart; `scaleReadout` requires `scales` and overrides only the exported
+reading. On `SmithScales`, the same reading override is named `readout`.
+`null` reflection coefficient exports empty scale readings. No cursor/marker is
+chosen automatically by the library. Downloads and filenames belong to consumers.
+
+The public contract is the image format, options, readings, and composition rules.
+SVG string equality, element order/classes/IDs, exact label positions, raster
+antialiasing, and identical fonts across browsers are not guaranteed.
+
+## Evidence from integrations
+
+| Integration                                    | API boundary exercised                                      | Automated evidence                                                              |
+| ---------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Static chart](../examples/static/main.ts)     | Defaults, explicit data, no implicit markers or interaction | `chart-options.spec.ts`, `examples.spec.ts`                                     |
+| [Marker controls](../examples/markers/main.ts) | Explicit IDs, events, keyboard focus, sample selection      | `marker-accessibility.spec.ts`, `marker-update.spec.ts`, `measurements.spec.ts` |
+| [Appearance](../examples/appearance/main.ts)   | Theme replacement, layer precedence, cursor opt-in          | `appearance.spec.ts`, `chart-options.spec.ts`                                   |
+| [Reports](../examples/export/main.ts)          | SVG/PNG snapshots, marker legends, download owned by caller | `svg-export.spec.ts`, `png-export.spec.ts`, `marker-legend.spec.ts`             |
+| [Lifecycle](../examples/basic/main.ts)         | Mount, update, subscriptions, resize, destroy               | `lifecycle.spec.ts`, isolated consumer check                                    |
+
+The [browser suites](../tests/browser/) also verify invalid input, no mutation on
+rejection, event cancellation, hidden layers, and export behavior in Chromium and
+WebKit. [Package verification](../scripts/check-package.mjs) installs an archive,
+checks ESM imports without a DOM, compiles positive/negative NodeNext and Bundler
+types, and type-checks README examples. [Example verification](../scripts/check-example.mjs)
+builds and runs an independently installed gallery without source aliases.
+
+RF and complex-number tests cover physical units, singularities, active loads,
+reference conversion, wrapped phase differences, extreme magnitudes, and Python
+`cmath` reference cases. This is targeted regression evidence, not a proof of all
+numerical inputs or browser rendering behavior.
+
+## Compatibility scope for 1.x
+
+Once 1.0 is released, the following become the stable consumer contract:
+
+- Documented exports from the package root, callable signatures, configuration
+  groups, option names/types/defaults, patch semantics, and documented return/error behavior.
+- Trace/marker identity and lifetime rules, physical units, data ownership,
+  replacement/renormalization semantics, and numerical singularity conventions.
+- Event discriminants/payload fields, synchronous versus queued delivery,
+  per-marker coalescing, cancellation, and unsubscribe/destruction behavior.
+- Supported grid detail levels, appearance overrides, visibility semantics,
+  export formats/options, and component independence.
+
+A **major** release is required for removals/renames, stronger required inputs,
+changed defaults or units, changed missing-ID/error behavior for supported inputs,
+new required members of exported data/control interfaces, or incompatible event/return semantics. Adding a variant to a documented closed
+union or event enum also requires a major release because consumers may switch
+exhaustively. A **minor** release may add class methods, optional configuration, or
+optional result fields while preserving existing behavior. A **patch** release
+may fix bugs against this contract, improve diagnostics, and adjust visual layout
+or numerical accuracy within the documented conventions.
+
+The compatibility promise does **not** cover deep imports, private/protected
+members, subclass overrides of chart/component implementation methods, renderer/SVG internals, D3 objects, generated DOM selectors/CSS variables,
+exact SVG bytes/pixels, demo controls/URLs, dependency versions, event timer
+intervals, or error-message text. The root package exports are the supported
+boundary; use appearance/layer APIs instead of editing generated DOM.
+
+The supported browser/runtime and TypeScript floors should be recorded with 1.0.
+Raising those floors in 1.x is a major change. The checked baseline today is a
+browser with SVG and ES2022, an ESM build, NodeNext/Bundler declarations, and the
+Chromium/WebKit engines used in CI; the tests do not establish support for every
+older browser or TypeScript version.
+
+## Gates before declaring 1.0
+
+1. Release the grouped 0.4 API with the migration guide and exercise it in real
+   consumer projects; resolve reported contract ambiguities before freezing it.
+2. Keep package, isolated examples, and both browser suites required for releases.
+   Confirm published-archive behavior, not just the demo's source alias.
+3. Record minimum runtime/compiler support and the agreed compatibility policy in
+   the 1.0 release notes. No further architectural rewrite is required by this review.
+
+Complex reference impedances, multiport Touchstone, additional renderers, and
+application session storage are outside the present scope. Their absence does not
+block 1.0; future additions must respect the public boundary above.

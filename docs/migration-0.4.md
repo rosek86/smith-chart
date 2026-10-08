@@ -14,9 +14,9 @@ const chart = new Smith(75, { theme: 'dark' });
 const chart = new Smith({
   referenceImpedanceOhms: 75,
   appearance: { theme: 'dark' },
+  interaction: { zoom: false },
+  peripheralScales: { visible: false },
   grid: { detail: 'basic', labelsVisible: true },
-  zoomEnabled: false,
-  peripheralScalesVisible: false,
 });
 ```
 
@@ -26,21 +26,46 @@ interactive defaults explicitly:
 
 ```ts
 const chart = new Smith({
+  interaction: { zoom: true, cursor: true },
+  peripheralScales: { visible: true },
   grid: { detail: 'detailed' },
-  peripheralScalesVisible: true,
-  zoomEnabled: true,
-  cursorEnabled: true,
 });
 ```
 
 `setCursorEnabled()` changes tracking at runtime; disabling clears the readout
 and cancels queued cursor events, without affecting markers or zoom.
-Initial configuration can
-replace sequences of layer setter calls. Shared `grid` settings are applied first,
-then per-layer options under `layers`. Styles merge by property. Runtime setters
+Initial configuration can replace sequences of layer setter calls. Shared `grid` settings are applied first,
+then per-layer options under `grid.layers`. Styles merge by property. Runtime setters
 remain available, including `chart.setGridDetail(detail)` for all four grids and
 `chart.layers.q.setValues(values)` / `chart.layers.vswr.setValues(values)` for
 replacing circle values. `setGridDetail()` preserves visibility, styling, and view.
+
+## Configuration groups
+
+The development API is grouped by responsibility. If adopting an earlier version
+of this branch, move `zoomEnabled`/`cursorEnabled` to `interaction.zoom`/`interaction.cursor`,
+`peripheralScalesVisible` to `peripheralScales.visible`, grid entries from `layers`
+to `grid.layers`, and Q/VSWR entries to `circles`. The flat spellings are not aliases.
+Unknown structural keys are rejected rather than silently ignored.
+
+`grid` contains shared grid defaults and per-layer overrides; `circles` contains
+Q/VSWR configuration. `appearance` supplies the theme and global styling defaults.
+Data and markers are added explicitly after construction. All runtime setters
+retain their names, including `chart.layers.q` and `chart.layers.resistance`.
+
+Visibility and grid-label setters now reject non-boolean values with `TypeError`,
+matching constructor validation instead of coercing values such as the string `"false"`.
+
+`scaleReadout` in chart exports now requires `scales`. SVG throws `TypeError` and
+PNG rejects with `TypeError` instead of silently ignoring an unattached readout.
+
+## Runtime configuration
+
+`chart.setOptions(options)` accepts the same `SmithOptions` object as construction.
+It patches supplied fields, validates the complete update before mutation, and
+renormalizes loaded data if the reference impedance changes. Omitted fields remain
+unchanged. `appearance` replaces the preset/overrides, style fields merge, and
+circle lists replace. Existing focused setters remain available.
 
 ## Explicit markers
 

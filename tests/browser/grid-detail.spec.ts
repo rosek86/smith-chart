@@ -9,12 +9,11 @@ for (const theme of ['light', 'dark'] as const) {
     await loadLibrary(page);
     const results = await page.evaluate((theme) => {
       const chart = new window.SmithTest.Smith({
-        zoomEnabled: true,
-        cursorEnabled: true,
-        peripheralScalesVisible: true,
-        grid: { detail: 'detailed' },
         referenceImpedanceOhms: 50,
         appearance: { theme },
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
+        grid: { detail: 'detailed' },
       });
       chart.draw('#chart');
       chart.peripheralScales.setVisible(false);
@@ -84,9 +83,8 @@ test('invalid detail is rejected without changing the chart; destroyed controls 
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const chart = new window.SmithTest.Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');

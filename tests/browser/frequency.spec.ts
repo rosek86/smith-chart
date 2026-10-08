@@ -9,9 +9,8 @@ test('frequency selection handles unsorted sweeps, duplicates, ties, bounds, and
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
     const chart = new Smith({
-      zoomEnabled: true,
-      cursorEnabled: true,
-      peripheralScalesVisible: true,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
       grid: { detail: 'detailed' },
     });
     chart.draw('#chart');

@@ -22,6 +22,10 @@ Upgrading from 0.1.x? Version 0.2.0 groups calculation, parsing, formatting, and
 comparison functions into classes. See the [migration guide](https://github.com/rosek86/smithkit/blob/v0.2.0/docs/migration-0.2.md)
 for the changed imports.
 
+The [API review and compatibility policy](https://github.com/rosek86/smithkit/blob/main/docs/api-review.md)
+define the public contract and the compatibility scope intended for 1.0. During
+0.x development, breaking changes are documented in minor releases.
+
 ## Features
 
 - Labeled resistance, reactance, conductance, and susceptance grids.
@@ -97,7 +101,7 @@ Enable interactions through constructor options or the corresponding setters:
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith({ zoomEnabled: true, cursorEnabled: true });
+const chart = new Smith({ interaction: { zoom: true, cursor: true } });
 chart.draw('#smith');
 
 chart.setZoomEnabled(false); // Freeze the current view; page scrolling is unaffected.
@@ -129,17 +133,19 @@ import { Smith } from 'smithkit';
 const chart = new Smith({
   referenceImpedanceOhms: 75,
   appearance: { theme: 'dark' },
-  zoomEnabled: false,
-  peripheralScalesVisible: false,
+  interaction: { zoom: false },
+  peripheralScales: { visible: false },
   grid: {
     detail: 'basic',
     labelsVisible: true,
     style: { majorWidth: 1.5 },
+    layers: {
+      resistance: { style: { stroke: '#60a5fa' } },
+      reactance: { labelsVisible: false },
+      conductance: { visible: true, detail: 'standard' },
+    },
   },
-  layers: {
-    resistance: { style: { stroke: '#60a5fa' } },
-    reactance: { labelsVisible: false },
-    conductance: { visible: true, detail: 'standard' },
+  circles: {
     q: { visible: true, values: [1, 2, 5] },
     vswr: { visible: true, values: [2, 3], style: { stroke: '#fbbf24' } },
   },
@@ -152,20 +158,64 @@ chart.setGridDetail('standard');
 chart.layers.reactance.setDetail('basic');
 ```
 
+Configuration is grouped by responsibility:
+
+| Group                    | Purpose                                                                                            | Runtime API                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `referenceImpedanceOhms` | Physical reference impedance                                                                       | `renormalize()`                                                    |
+| `appearance`             | Theme, fonts, colors, marker/cursor styling                                                        | `setAppearance()`                                                  |
+| `interaction`            | `zoom` and `cursor` tracking switches                                                              | `setZoomEnabled()`, `setCursorEnabled()`                           |
+| `grid`                   | Shared detail, labels, styles; `layers` overrides for resistance/reactance/conductance/susceptance | `setGridDetail()`, `layers.resistance` and the other grid controls |
+| `circles`                | Independent Q and VSWR values, visibility, styles                                                  | `layers.q`, `layers.vswr`                                          |
+| `peripheralScales`       | Visibility of all peripheral rulers together                                                       | `peripheralScales.setVisible()`                                    |
+
 Defaults are 50 Ω, the light theme, zoom and cursor disabled, peripheral scales hidden,
 and standard grids with labels. Resistance/reactance are visible;
 conductance/susceptance and Q/VSWR circles are hidden. Q defaults to
 `[0.5, 1, 2, 5, 10]`; VSWR defaults to `[1.2, 1.5, 2, 3, 5, 10]`.
 
-Shared `grid` settings apply to all four grids; `layers` overrides individual
+Shared `grid` settings apply to all four grids; `grid.layers` overrides individual
 fields afterward. Styles merge by property. Explicit layer styles override theme
 colors and remain in effect when `setAppearance()` changes the theme.
 Options and circle arrays are copied; changing the original object does not update
-the chart. Use the existing chart/layer methods for later changes.
+the chart. Use the existing chart/layer methods for later changes. Unknown constructor groups
+or structural option names throw `TypeError`; omitted fields use defaults.
+
+Export configuration belongs to `toSvg()`/`toPng()` calls, independently of chart
+construction. `scaleReadout` requires `scales`; otherwise export throws/rejects with `TypeError`.
 
 The constructor configures presentation and interaction. Add measurement data with
 `addTrace()` and optional markers with `addMarker()`; no markers are created implicitly.
 Radial parameter scales remain independently mounted `SmithScales` instances.
+
+### Updating configuration
+
+`chart.setOptions(options)` accepts the same `SmithOptions` type as the constructor:
+
+```ts
+chart.setOptions({
+  interaction: { zoom: true },
+  grid: {
+    detail: 'basic',
+    layers: { reactance: { labelsVisible: false } },
+  },
+  circles: { vswr: { visible: true, values: [2, 3] } },
+});
+```
+
+This is a patch: omitted and `undefined` fields retain their current values;
+`{}` groups do nothing. Shared grid settings apply to all four grids first, then
+per-layer overrides in the same call. A later shared setting also replaces that
+field on previously customized layers. Style fields merge; circle value lists
+replace. `appearance`, when provided, replaces the preset/overrides exactly like
+`setAppearance()` (it is not recursively merged with the previous appearance).
+
+The complete patch is validated before application. Invalid settings or impossible
+reference conversions leave the chart unchanged. `referenceImpedanceOhms` invokes
+renormalization of existing traces and retains physical impedance and marker IDs.
+Other configuration updates preserve measurements, markers, selection, and view.
+Options are not retained; subsequent edits to the input object have no effect.
+Individual setters remain available for focused changes.
 
 ### Keyboard and touch markers
 
@@ -589,7 +639,7 @@ wave traverses it twice. It does not measure insertion loss of an arbitrary load
 from S11 alone. At \|Γ\| = 0.1 it reads 10 dB, while return loss reads 20 dB.
 
 Peripheral rulers are hidden by default. Enable them with
-`{ peripheralScalesVisible: true }` or `chart.peripheralScales.setVisible(true)`.
+`{ peripheralScales: { visible: true } }` or `chart.peripheralScales.setVisible(true)`.
 `chart.peripheralScales` supports `setVisible(boolean)` and `update(Complex | null)`.
 Its four rulers zoom with the chart: reflection phase, voltage transmission phase,
 wavelengths toward generator, and wavelengths toward load. Wavelength rulers start
