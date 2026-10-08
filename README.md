@@ -8,11 +8,9 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 static charts, marker controls, themes, report exports, and lifecycle cleanup.
 Each example includes its TypeScript source.
 
-The constructor configuration and explicit marker creation below target the next minor
-release (0.4.0, not yet published). For npm 0.3.0, see the
-[released README](https://github.com/rosek86/smithkit/blob/v0.3.0/README.md).
-See the [0.4 migration guide](https://github.com/rosek86/smithkit/blob/main/docs/migration-0.4.md)
-when upgrading.
+Upgrading from 0.3.x? Version 0.4.0 introduces grouped constructor options and
+`setOptions()`, static chart defaults, and explicit marker creation. See the
+[0.4 migration guide](https://github.com/rosek86/smithkit/blob/v0.4.0/docs/migration-0.4.md).
 
 Upgrading from 0.2.x? Version 0.3.0 replaces `GridLayer.setMinorVisible()` with
 `setDetail('basic' | 'standard' | 'detailed')`. Replace `false` with `'standard'`

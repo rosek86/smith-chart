@@ -1,7 +1,7 @@
 # Public API review and compatibility policy
 
-Reviewed against the development API targeting **0.4.0**, including the installed
-integration examples. Published 0.3.0 uses positional constructor arguments,
+Reviewed against **0.4.0**, including the installed
+integration examples. Version 0.3.0 used positional constructor arguments,
 interactive defaults, and an automatic marker. See [migration to 0.4](migration-0.4.md).
 This review defines the compatibility scope intended for **1.x**; it does not
 publish 1.0 or retroactively promise compatibility for 0.x releases.
@@ -265,8 +265,7 @@ older browser or TypeScript version.
 
 ## Gates before declaring 1.0
 
-1. Release the grouped 0.4 API with the migration guide and exercise it in real
-   consumer projects; resolve reported contract ambiguities before freezing it.
+1. Exercise the grouped 0.4 API in real consumer projects; resolve reported contract ambiguities before freezing it.
 2. Keep package, isolated examples, and both browser suites required for releases.
    Confirm published-archive behavior, not just the demo's source alias.
 3. Record minimum runtime/compiler support and the agreed compatibility policy in

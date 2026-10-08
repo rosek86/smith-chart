@@ -4,20 +4,17 @@ A standalone application importing only the installed `smithkit` package. It has
 no source aliases, relative imports into the library, or dependency on demo code.
 Use Node.js 24 and npm.
 
-This example targets the upcoming 0.4.0 API. Before publication, build an archive
-from the repository root and install it in the example directory:
+Install the declared `smithkit@^0.4.0` dependency and start the example:
 
 ```sh
-npm ci
-npm pack
-cd examples/basic
-npm install --no-save --package-lock=false ../../smithkit-0.3.0.tgz
+npm install
 npm run dev
 ```
 
-After 0.4.0 is published, run `npm install` and `npm run dev` from this directory.
-The example can also be copied into a separate project. When testing a copied
-example against the local checkout, use the archive's absolute path instead.
+To test local library changes, run `npm pack` from the repository root, then
+`npm install --no-save --package-lock=false ../../smithkit-0.4.0.tgz` here.
+The example can be copied into a separate project; use the archive's absolute path
+when testing a copied example against the local checkout.
 
 - **Mount chart** demonstrates creating an instance, configuring layers, adding a
   trace and marker, and subscribing to events. Repeated mounting cleans up first.
