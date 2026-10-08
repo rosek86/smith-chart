@@ -62,6 +62,7 @@ header p {
 }
 fieldset {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px 24px;
   border: 0;
@@ -450,10 +451,15 @@ footer {
   align-items: center;
   gap: 6px;
 }
-.theme-control select {
+.theme-control select,
+#grid-detail {
   padding: 6px;
   border: 1px solid var(--input-border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
+}
+
+#grid-detail {
+  padding: 1px 6px;
 }

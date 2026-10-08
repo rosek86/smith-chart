@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add basic, standard, and detailed impedance/admittance grids, with principal circles and matching labels in basic mode and a shared demo selector.
+- **Breaking (next minor release):** replace `GridLayer.setMinorVisible(boolean)` with `setDetail('basic' | 'standard' | 'detailed')`. Migrate `false` to `'standard'` and `true` to `'detailed'`; the default remains detailed.
+
 - Add shared light/dark appearance presets and typed overrides for charts, scales, cursors, markers, and automatic trace palettes, with live updates and a demo theme selector.
 - Preserve configured backgrounds and resolved theme styling in standalone SVG exports.
 

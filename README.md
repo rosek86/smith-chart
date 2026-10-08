@@ -417,19 +417,30 @@ chart.layers.resistance.setVisible(false);
 chart.layers.reactance.setVisible(false);
 chart.layers.conductance.setVisible(true);
 chart.layers.susceptance.setVisible(true);
-chart.layers.conductance.setMinorVisible(false);
+chart.layers.conductance.setDetail('standard');
 chart.layers.susceptance.setStyle({ stroke: '#64748b', textColor: '#2a7f62' });
 chart.layers.vswr.addValue(4);
 chart.layers.vswr.setVisible(true);
 ```
 
-The four grid layers support `setVisible`, `setMinorVisible`, and
+The four grid layers support `setVisible`, `setDetail`, and
 `setStyle(Partial<GridStyle>)`. Style fields: `stroke`, `majorWidth`, `minorWidth`,
 `textColor`, `textFontFamily`, `textFontSize`. Widths are positive finite numbers
 in CSS pixels. Font size is a positive finite base size in chart units; adaptive
 layout raises it when needed to keep the font size at least 9 CSS pixels in the
 default view. Partial updates retain other settings. Invalid numeric styles throw
 before any property is changed.
+
+Choose `setDetail('basic' | 'standard' | 'detailed')` independently for each grid layer:
+
+- **Basic:** complete circles and arcs for normalized values 0.2, 0.5, 1, 2, and 5,
+  with matching axis/rim labels and the zero label. Intended for small or static charts.
+- **Standard:** the full major grid and its labels, without minor lines.
+- **Detailed** (default): the full major and minor grid.
+
+Changing detail preserves layer visibility, styles, and the current view. Label
+collision handling still applies at every level. Peripheral scales and Q/VSWR
+circles are independent. The demo's **Grid detail** selector updates all four grid layers.
 
 `layers.q` and `layers.vswr` support `setVisible`,
 `setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.

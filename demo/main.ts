@@ -6,6 +6,7 @@ import type {
   MarkerSnapshot,
   TraceSamples,
   SmithAppearance,
+  GridDetail,
 } from '../src';
 import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
@@ -47,19 +48,19 @@ for (const [id, groups] of layers) {
   checkbox.addEventListener('change', update);
   update();
 }
-const detailedGrid = element<HTMLInputElement>('detailed-grid');
-const updateDetailedGrid = () => {
+const gridDetail = element<HTMLSelectElement>('grid-detail');
+const updateGridDetail = () => {
   for (const layer of [
     smith.layers.resistance,
     smith.layers.reactance,
     smith.layers.conductance,
     smith.layers.susceptance,
   ]) {
-    layer.setMinorVisible(detailedGrid.checked);
+    layer.setDetail(gridDetail.value as GridDetail);
   }
 };
-detailedGrid.addEventListener('change', updateDetailedGrid);
-updateDetailedGrid();
+gridDetail.addEventListener('change', updateGridDetail);
+updateGridDetail();
 
 element('reset-view').addEventListener('click', () => smith.resetView());
 element('export-chart').addEventListener('click', () => {

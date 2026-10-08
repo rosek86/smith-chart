@@ -1,11 +1,11 @@
-import type { ConstCircles } from './ConstCircles.js';
-import type { GridLayer, GridStyle } from '../layers.js';
+import type { SmithGridLayer } from './SmithGridLayer.js';
+import type { GridDetail, GridLayer, GridStyle } from '../layers.js';
 import { LayerControl } from './LayerControl.js';
 
 /** Exposes grid controls without exposing the SVG renderer. */
 export class GridLayerControl extends LayerControl implements GridLayer {
   public constructor(
-    private readonly layer: ConstCircles,
+    private readonly layer: SmithGridLayer,
     assertAlive: () => void,
     private readonly changed: () => void,
   ) {
@@ -18,9 +18,13 @@ export class GridLayerControl extends LayerControl implements GridLayer {
     this.changed();
   }
 
-  public setMinorVisible(visible: boolean): void {
+  public setDetail(detail: GridDetail): void {
     this.assertAlive();
-    this.layer.displayMinor(visible);
+    if (!['basic', 'standard', 'detailed'].includes(detail)) {
+      throw new RangeError('Grid detail must be basic, standard, or detailed.');
+    }
+    this.layer.setDetail(detail);
+    this.changed();
   }
 
   public setStyle(style: Partial<GridStyle>): void {

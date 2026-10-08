@@ -17,10 +17,13 @@ export interface CircleStyle {
   strokeWidth: number;
 }
 
+export type GridDetail = 'basic' | 'standard' | 'detailed';
+
 /** Grid styling uses SVG user units, except non-scaling stroke widths in screen pixels. */
 export interface GridLayer {
   setVisible(visible: boolean): void;
-  setMinorVisible(visible: boolean): void;
+  /** Default: detailed. Basic shows only the principal normalized values. */
+  setDetail(detail: GridDetail): void;
   setStyle(style: Partial<GridStyle>): void;
 }
 

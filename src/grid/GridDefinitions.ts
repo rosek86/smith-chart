@@ -1,4 +1,4 @@
-import type { SmithArcDef, SmithTicksData } from './types.js';
+import type { SmithArcDef, SmithTicksData, SmithTicksShapes } from './types.js';
 
 // Each band lists grid values and the clipping circles shared by those values.
 type ResistanceBand = [values: number[], from: number, to: number, largeArc: boolean];
@@ -6,6 +6,37 @@ type ReactanceBand = [values: number[], outer: number, inner: number];
 
 export class GridDefinitions {
   private constructor() {}
+  public static readonly basicValues: readonly number[] = Object.freeze([0.2, 0.5, 1, 2, 5]);
+
+  /** Complete principal circles and boundary-to-axis arcs for a sparse grid. */
+  public static basic(): { resistance: SmithTicksShapes; reactance: SmithTicksShapes } {
+    return {
+      resistance: { lines: [], circles: [...GridDefinitions.basicValues], arcs: [] },
+      reactance: {
+        lines: [{ p1: [-1, 0], p2: [1, 0] }],
+        circles: [],
+        arcs: GridDefinitions.basicValues.flatMap((value): SmithArcDef[] => [
+          [
+            value,
+            [
+              [0, 0],
+              [0, 1],
+            ],
+            [false, false],
+          ],
+          [
+            -value,
+            [
+              [0, 1],
+              [0, 0],
+            ],
+            [false, true],
+          ],
+        ]),
+      },
+    };
+  }
+
   private static readonly resistanceMajor: ResistanceBand[] = [
     [[0.05, 0.15], 0.2, -0.2, false],
     [[0.1, 0.3, 0.5, 0.7, 0.9], 2, -2, true],

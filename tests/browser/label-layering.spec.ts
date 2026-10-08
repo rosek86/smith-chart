@@ -21,11 +21,11 @@ test('grid and scale labels stay above geometry after updates, with markers on t
       layer.setVisible(false);
       const hidden = labels.getAttribute('opacity');
       layer.setStyle({ textColor: '#123456', textFontSize: 8 });
-      layer.setMinorVisible(false);
+      layer.setDetail('standard');
       layer.setVisible(true);
       const shown = labels.getAttribute('opacity');
       const color = getComputedStyle(labels.querySelector('text')!).fill;
-      layer.setMinorVisible(true);
+      layer.setDetail('detailed');
       states.push({ hidden, shown, color });
     }
     chart.peripheralScales.setVisible(false);

@@ -40,7 +40,7 @@ test('live themes preserve chart state, focus, explicit styles, and other chart 
       majorWidth: 2,
     });
     chart.layers.conductance.setVisible(true);
-    chart.layers.reactance.setMinorVisible(false);
+    chart.layers.reactance.setDetail('standard');
     chart.peripheralScales.update(Complex.from(0.4, 0.2));
     scales.update(Complex.from(0.4, 0.2));
     const svg = document.querySelector('#chart svg')!;
