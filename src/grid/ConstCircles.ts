@@ -161,12 +161,12 @@ export abstract class ConstCircles {
   protected defaultDrawingOptions(): ConstCirclesDrawOptions {
     return {
       // Keep curved grid strokes visible at normal browser zoom and low pixel density.
-      stroke: '#64748b',
-      majorWidth: '1',
-      minorWidth: '0.6',
-      textColor: 'black',
-      textFontFamily: 'Verdana',
-      textFontSize: '1',
+      stroke: 'var(--smithkit-grid-stroke)',
+      majorWidth: 'var(--smithkit-grid-majorWidth)',
+      minorWidth: 'var(--smithkit-grid-minorWidth)',
+      textColor: 'var(--smithkit-grid-textColor)',
+      textFontFamily: 'var(--smithkit-fontFamily)',
+      textFontSize: 'var(--smithkit-grid-fontSize)',
     };
   }
 

@@ -1,4 +1,6 @@
-import { color as parseColor, schemeCategory10 } from 'd3';
+import { Theme } from './appearance/Theme.js';
+import type { SmithAppearance, SmithTheme } from './appearance/types.js';
+import { color as parseColor } from 'd3';
 import { SvgChartRenderer } from './rendering/SvgChartRenderer.js';
 import type { SmithData } from './traces/SmithData.js';
 import type { SmithMarker } from './traces/SmithMarker.js';
@@ -36,13 +38,17 @@ export type SmithEvent =
     };
 
 export class Smith {
+  private theme: SmithTheme;
   private readonly renderer: SvgChartRenderer;
   private data: SmithData[] = [];
   private destroyed = false;
   private nextDatasetColor = 0;
   private nextTraceId = 1;
   private nextMarkerId = 1;
-  private traceMetadata = new WeakMap<SmithData, { id: string; name: string }>();
+  private traceMetadata = new WeakMap<
+    SmithData,
+    { id: string; name: string; colorIndex?: number }
+  >();
   private markerIds = new WeakMap<SmithMarker, string>();
   private draggedMarkers = new Set<SmithMarker>();
   private listeners = new Set<(event: SmithEvent) => void>();
@@ -50,18 +56,37 @@ export class Smith {
   public readonly layers: ChartLayers;
   public readonly peripheralScales: PeripheralScales;
 
-  constructor(private referenceOhms: number = 50) {
+  constructor(
+    private referenceOhms: number = 50,
+    appearance: SmithAppearance = {},
+  ) {
     if (!Number.isFinite(referenceOhms) || referenceOhms <= 0) {
       throw new RangeError('Reference impedance must be positive and finite.');
     }
+    this.theme = Theme.resolve(appearance);
     this.renderer = new SvgChartRenderer((position) => {
       this.emit({
         type: SmithEventType.Cursor,
         data: position ? RfCalculations.readReflection(position, this.referenceOhms) : undefined,
       });
     });
+    this.renderer.setTheme(this.theme);
     this.layers = this.renderer.layers;
     this.peripheralScales = this.renderer.peripheralScales;
+  }
+
+  /** Replace the appearance while retaining explicit layer styles and trace colors. */
+  public setAppearance(appearance: SmithAppearance): void {
+    this.assertAlive();
+    const theme = Theme.resolve(appearance);
+    this.theme = theme;
+    this.renderer.setTheme(theme);
+    for (const data of this.data) {
+      const index = this.traceMetadata.get(data)!.colorIndex;
+      if (index !== undefined) {
+        data.setColor(theme.traceColors[index % theme.traceColors.length]);
+      }
+    }
   }
 
   public draw(target: string | HTMLElement): void {
@@ -69,7 +94,7 @@ export class Smith {
     this.renderer.draw(target);
   }
 
-  /** Export the current mounted view as standalone SVG with a transparent background. */
+  /** Export the current mounted view as standalone SVG with its configured background. */
   public toSvg(): string {
     this.assertAlive();
     return this.renderer.toSvg();
@@ -143,7 +168,8 @@ export class Smith {
   /** Detached metadata snapshots; IDs and marker display numbers survive removals. */
   public getTraces(): TraceInfo[] {
     return this.data.map((data) => ({
-      ...this.traceMetadata.get(data)!,
+      id: this.traceMetadata.get(data)!.id,
+      name: this.traceMetadata.get(data)!.name,
       ...data.Style,
       color: data.Color,
       visible: data.Visible,
@@ -217,6 +243,7 @@ export class Smith {
     }
     if (options.color !== undefined) {
       data.setColor(options.color);
+      delete this.traceMetadata.get(data)!.colorIndex;
     }
     if (options.visible !== undefined) {
       data.setVisible(options.visible);
@@ -350,7 +377,7 @@ export class Smith {
   }
 
   private createSmithData(values: TraceSamples, dataset: number, options: TraceOptions): SmithData {
-    const color = schemeCategory10[(1 + dataset) % schemeCategory10.length];
+    const color = this.theme.traceColors[dataset % this.theme.traceColors.length];
     const data = this.renderer.createTrace(values, color, options, (marker, dragging) => {
       this.markerDragChanged(marker, dragging);
       const snapshot = this.getMarker(this.markerId(marker));
@@ -362,7 +389,11 @@ export class Smith {
       }
     });
     const number = this.nextTraceId++;
-    this.traceMetadata.set(data, { id: `trace-${number}`, name: `Trace ${number}` });
+    this.traceMetadata.set(data, {
+      id: `trace-${number}`,
+      name: `Trace ${number}`,
+      colorIndex: dataset,
+    });
     data.setName(`Trace ${number}`);
     data.setMarkerSelectHandler((marker) => {
       const snapshot = this.getMarker(this.markerId(marker));

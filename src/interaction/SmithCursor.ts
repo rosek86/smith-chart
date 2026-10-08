@@ -7,21 +7,9 @@ import { SmithScaler } from '../svg/SmithScaler.js';
 import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
 import { Complex } from '../math/Complex.js';
 
-interface DrawOptions {
-  point: { radius: number; color: string };
-  impedance: { width: number; color: string };
-  admittance: { width: number; color: string };
-}
-
 export class SmithCursor {
   private epsilon = 1.5e-4;
   private pendingMove: ReturnType<typeof setTimeout> | undefined;
-
-  private drawingOpts: DrawOptions = {
-    point: { radius: 5, color: 'red' },
-    impedance: { width: 1, color: 'red' },
-    admittance: { width: 1, color: 'green' },
-  };
 
   private calcs = new SmithConstantCircle();
   private zClipCircle = this.calcs.resistanceCircle(0);
@@ -51,8 +39,8 @@ export class SmithCursor {
 
     this.impedance = {
       group: new SmithGroup({
-        stroke: this.drawingOpts.impedance.color,
-        strokeWidth: this.drawingOpts.impedance.width.toString(),
+        stroke: 'var(--smithkit-cursor-impedanceColor)',
+        strokeWidth: 'var(--smithkit-cursor-lineWidth)',
         fill: 'none',
       }),
       resistance: { circle: new SmithCircle({ p: [0, 0], r: 1 }) },
@@ -67,8 +55,8 @@ export class SmithCursor {
 
     this.admittance = {
       group: new SmithGroup({
-        stroke: this.drawingOpts.admittance.color,
-        strokeWidth: this.drawingOpts.admittance.width.toString(),
+        stroke: 'var(--smithkit-cursor-admittanceColor)',
+        strokeWidth: 'var(--smithkit-cursor-lineWidth)',
         fill: 'none',
       }),
       conductance: { circle: new SmithCircle({ p: [0, 0], r: 1 }) },
@@ -82,8 +70,8 @@ export class SmithCursor {
     this.admittance.susceptance.line.nonScalingStroke();
 
     this.point = new SmithLine([0, 0], [0, 0], {
-      stroke: this.drawingOpts.point.color,
-      strokeWidth: this.drawingOpts.point.radius.toString(),
+      stroke: 'var(--smithkit-cursor-pointColor)',
+      strokeWidth: 'var(--smithkit-cursor-pointSize)',
       fill: 'none',
     });
     this.point.nonScalingStroke();
@@ -234,9 +222,5 @@ export class SmithCursor {
     if (handler === null) {
       this.cancelPendingMove();
     }
-  }
-
-  public setDrawOptions(opts: DrawOptions): void {
-    this.drawingOpts = opts;
   }
 }

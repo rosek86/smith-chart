@@ -1,3 +1,5 @@
+import { SvgTheme } from '../appearance/SvgTheme.js';
+import type { SmithTheme } from '../appearance/types.js';
 import * as d3 from 'd3';
 import { ZoomTransform } from 'd3';
 
@@ -125,8 +127,8 @@ export class SvgChartRenderer {
     const cursorContainer = this.cursorContainer();
 
     this.reactanceAxis = this.drawReactanceAxis({
-      stroke: '#334155',
-      strokeWidth: '1',
+      stroke: 'var(--smithkit-boundary-stroke)',
+      strokeWidth: 'var(--smithkit-boundary-width)',
       fill: 'none',
     });
 
@@ -201,6 +203,12 @@ export class SvgChartRenderer {
     this.resizeObserver.observe(this.svg.Node!);
   }
 
+  public setTheme(theme: SmithTheme): void {
+    this.assertAlive();
+    SvgTheme.apply(this.svg.Node!, theme);
+    this.labelLayout.update(true);
+  }
+
   public draw(target: string | HTMLElement): void {
     this.assertAlive();
     const host = typeof target === 'string' ? document.querySelector(target) : target;
@@ -211,7 +219,7 @@ export class SvgChartRenderer {
     this.updateViewportScale();
   }
 
-  /** Export the current mounted view as standalone SVG with a transparent background. */
+  /** Export the current mounted view as standalone SVG with its configured background. */
   public toSvg(): string {
     this.assertAlive();
     return SvgExporter.chart(this.svg.Node!);

@@ -38,7 +38,7 @@ export class ConstSwrCircles {
   }
 
   private getDefaultDrawOptions(): ConstSwrDrawOptions {
-    return { stroke: 'orange', strokeWidth: '1' };
+    return { stroke: 'var(--smithkit-circles-vswr)', strokeWidth: 'var(--smithkit-circles-width)' };
   }
 
   public setDrawOptions(opts: ConstSwrDrawOptions): void {

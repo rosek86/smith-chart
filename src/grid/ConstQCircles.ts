@@ -41,7 +41,7 @@ export class ConstQCircles {
   }
 
   private getDefaultDrawOptions(): ConstQDrawOptions {
-    return { stroke: 'blue', strokeWidth: '1' };
+    return { stroke: 'var(--smithkit-circles-q)', strokeWidth: 'var(--smithkit-circles-width)' };
   }
 
   public setDrawOptions(opts: ConstQDrawOptions): void {

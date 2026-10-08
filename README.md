@@ -344,6 +344,69 @@ Zero frequency, zero reactance, and unrepresentable results return `undefined`.
 Non-finite reactance or negative/non-finite frequency throws `RangeError`.
 This is a single-frequency equivalence, not a fitted circuit model.
 
+## Appearance and themes
+
+`Smith` and `SmithScales` accept the same appearance configuration. The default
+is the light preset with a transparent background. The dark preset includes a
+solid dark background so its labels remain readable when embedded or exported.
+
+```ts
+import { Smith, SmithScales } from 'smithkit';
+import type { SmithAppearance } from 'smithkit';
+
+const appearance: SmithAppearance = {
+  theme: 'dark',
+  overrides: {
+    fontFamily: 'Arial, sans-serif',
+    grid: { majorWidth: 1.2 },
+    cursor: { impedanceColor: '#fbbf24' },
+    marker: { focusColor: '#38bdf8' },
+    traceColors: ['#38bdf8', '#fb923c', '#a78bfa'],
+  },
+};
+const chart = new Smith(50, appearance);
+const scales = new SmithScales(appearance);
+chart.draw('#smith');
+scales.draw('#scales');
+
+// Update both independent components using the same configuration.
+chart.setAppearance({ theme: 'light' });
+scales.setAppearance({ theme: 'light' });
+```
+
+Each `setAppearance` call replaces the previous preset and overrides; omitted
+settings return to the selected preset, or light when `theme` is omitted.
+Nested overrides are partial. Appearance is scoped to each component and does not
+change the surrounding application's CSS or other chart instances.
+
+| Override                   | Settings                                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `background`, `fontFamily` | Component background and shared font family.                                                                                                                                         |
+| `grid`                     | `stroke`, `textColor`, `majorWidth`, `minorWidth`, `fontSize`.                                                                                                                       |
+| `boundary`                 | `stroke`, `width` for the Smith chart boundary.                                                                                                                                      |
+| `circles`                  | `q`, `vswr` colors and shared `width`.                                                                                                                                               |
+| `scales`                   | `stroke`, `boundaryColor`, `textColor`, `valueColor`, `indicatorColor`, `indicatorOutline`; `fontSize` for radial ticks, `titleFontSize`, `valueFontSize`, and `peripheralFontSize`. |
+| `cursor`                   | `pointColor`, `impedanceColor`, `admittanceColor`, `pointSize` (dot diameter), `lineWidth`.                                                                                          |
+| `marker`                   | `outlineColor`, `textColor`, `focusColor`, `focusHaloColor`. Marker fill follows its trace color.                                                                                    |
+| `traceColors`              | Non-empty palette for automatically colored traces.                                                                                                                                  |
+
+Colors must be solid CSS colors accepted by the library's color parser, including
+hex, RGB, HSL, named colors, and `transparent`; CSS variable references are not
+accepted in the configuration. Numeric values must be positive and finite.
+Line widths and cursor point size are CSS pixels. Font sizes are SVG chart/scale
+units and follow the existing layout; grid labels retain their adaptive minimum
+size. Marker geometry and the 44 px touch target stay unchanged.
+
+Appearance updates retain zoom, samples, marker selection/focus, layer visibility,
+and scale readings. They recolor existing and future automatically colored traces.
+Explicit colors passed through trace options and explicit layer styles take
+precedence and survive theme changes. Applying a new appearance does not reset
+those individual overrides. Invalid appearance settings throw before making changes.
+
+SVG exports resolve the appearance without requiring theme CSS. A configured
+background is included in the exported image; `transparent` preserves transparency.
+The demo's **Theme** selector updates both library components and the demo UI.
+
 ## Grid layers
 
 Resistance and reactance are initially visible. Conductance, susceptance, Q,
@@ -517,7 +580,8 @@ The scale export combines all twelve axes into one SVG using their current layou
 and displayed readings. To export a marker reading, call `scales.update()` with
 that marker's reflection coefficient before `scales.toSvg()`.
 
-Files have explicit pixel dimensions and a transparent background. Presentation
+Files have explicit pixel dimensions and preserve the configured component background
+(transparent by default). Presentation
 styles are inlined so the application's stylesheet is not required. Text remains
 editable, and curved captions retain their internal path references. Font files
 and surrounding HTML controls/backgrounds are not embedded. Downloading is the

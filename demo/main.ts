@@ -1,6 +1,12 @@
 import './style.css';
 import { Smith, SmithScales, SmithEventType, SmithFormatter, RfCalculations } from '../src';
-import type { SmithEvent, SmithReading, MarkerSnapshot, TraceSamples } from '../src';
+import type {
+  SmithEvent,
+  SmithReading,
+  MarkerSnapshot,
+  TraceSamples,
+  SmithAppearance,
+} from '../src';
 import { Touchstone } from '../src';
 import { Measurements, markerLabel } from './measurements';
 import { SvgDownload } from './download';
@@ -17,6 +23,16 @@ const smith = new Smith(50);
 smith.draw('#smith');
 const scales = new SmithScales();
 scales.draw('#smith-scales');
+
+element<HTMLSelectElement>('theme').addEventListener('change', (event) => {
+  const theme = (event.target as HTMLSelectElement).value as SmithAppearance['theme'];
+  const appearance: SmithAppearance = { theme };
+  smith.setAppearance(appearance);
+  scales.setAppearance(appearance);
+  document.documentElement.dataset.theme = theme;
+  measurements.render();
+  renderReadout();
+});
 
 const layers = [
   ['impedance', [smith.layers.resistance, smith.layers.reactance]],
