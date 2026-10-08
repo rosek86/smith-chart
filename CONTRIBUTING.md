@@ -52,7 +52,7 @@ archive path after `--`, so release checks can reuse exactly the archive being s
 
 From a clean committed checkout, run `npm run prepare:release` for all source checks,
 both demo browser suites, package-consumer checks, and the standalone example. It
-writes `artifacts/smithkit-0.3.0.tgz` and `artifacts/release-manifest.json`, containing
+writes `artifacts/smithkit-0.4.0.tgz` and `artifacts/release-manifest.json`, containing
 the commit, SHA-256, npm integrity, and archive sizes. Nothing is published.
 Install Chromium and WebKit first with `npx playwright install chromium webkit`.
 `PLAYWRIGHT_CHANNEL=chrome` can select installed Chrome for local checks; the script
@@ -199,7 +199,7 @@ rather than hidden by a blanket absolute tolerance. Other transcendental operati
 
 ## Packaging and releases
 
-See [the 0.3.0 API review](docs/api-review.md) for API decisions, units,
+See [the API review and compatibility policy](docs/api-review.md) for API decisions, units,
 identity and lifecycle contracts, and remaining release considerations.
 
 `npm pack` runs the library build through `prepack`. Only `dist/lib/`, the README,

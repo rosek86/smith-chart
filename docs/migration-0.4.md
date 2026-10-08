@@ -1,6 +1,6 @@
 # Migration to 0.4.0
 
-These changes are unreleased and scheduled for the next minor version.
+Version 0.4.0 introduces grouped configuration, runtime updates, and static defaults.
 
 ## Constructor options
 
@@ -82,9 +82,8 @@ create that marker first. Prefer retaining the ID returned by `addMarker()`.
 Static charts need no marker-removal loop. Updating a trace retains its existing
 markers and does not add new ones. Marker numbering still starts at 1 per trace.
 
-## Running examples before publication
+## Integration examples
 
-The examples target 0.4.0. Until it is published, use `npm pack` from this checkout
-and install the resulting archive in the example directory, as described in the
-[examples guide](../examples/README.md). The packed checkout is currently versioned
-0.3.0; the manifest version is advanced during release preparation.
+The examples use `smithkit@^0.4.0`. Install their npm dependencies and follow the
+[examples guide](../examples/README.md) to explore configuration, markers, themes,
+exports, and component lifecycle.

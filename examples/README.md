@@ -14,15 +14,16 @@ the TypeScript it executes, rather than a separately maintained snippet.
 
 Use Node.js 24 and npm. This directory can be copied into a separate project.
 
-These examples target the upcoming 0.4.0 API. Before publication, run `npm pack`
-from the repository root, then install that archive here:
+Install the declared `smithkit@^0.4.0` dependency and start the gallery:
 
 ```sh
-npm install --no-save --package-lock=false ../smithkit-0.3.0.tgz
+npm install
 npm run dev
 ```
 
-After 0.4.0 is published, ordinary `npm install` uses the declared npm dependency.
+To test local library changes, run `npm pack` from the repository root, then
+`npm install --no-save --package-lock=false ../smithkit-0.4.0.tgz` here.
+Use the archive's absolute path when running a copied example.
 
 `npm run build` creates the complete standalone gallery in `dist/`. It imports the
 installed `smithkit` package and has no aliases to repository source. The basic

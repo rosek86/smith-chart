@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-10-08
 
 - Add `Smith.setOptions(SmithOptions)` for validated configuration patches, preserving omitted settings and renormalizing existing data when reference impedance changes. Share validation with the constructor and layer controls.
 
@@ -12,7 +12,7 @@
 - **Breaking:** default to static presentation: standard impedance grid with labels, no peripheral scales, zoom disabled, and cursor tracking disabled. The demo enables its interactive features explicitly.
 - Add `interaction.cursor` constructor configuration and `setCursorEnabled()` with pending-reading cancellation and independent marker controls.
 
-- **Breaking (next minor, 0.4.0):** replace the positional `Smith(referenceImpedanceOhms, appearance)` constructor with optional `SmithOptions`, covering reference impedance, appearance, zoom, peripheral scales, shared grid settings, per-layer overrides, and Q/VSWR values. See [the migration guide](docs/migration-0.4.md).
+- **Breaking:** replace the positional `Smith(referenceImpedanceOhms, appearance)` constructor with optional `SmithOptions`, covering reference impedance, appearance, zoom, peripheral scales, shared grid settings, per-layer overrides, and Q/VSWR values. See [the migration guide](docs/migration-0.4.md).
 - **Breaking:** traces no longer create a marker automatically. Use `addMarker(traceId, sampleIndex?)` explicitly; update demo and interactive examples accordingly.
 - Add `Smith.setGridDetail()` to update all four grid layers together and `CircleLayer.setValues()` to replace Q/VSWR values with validation and copied input.
 
