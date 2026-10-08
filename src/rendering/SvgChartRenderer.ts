@@ -50,7 +50,8 @@ export class SvgChartRenderer {
 
   private readonly defaultTransform = d3.zoomIdentity.translate(62.5, 62.5).scale(0.75);
   private transform = d3.zoomIdentity;
-  private zoomEnabled = true;
+  private zoomEnabled = false;
+  private cursorEnabled = false;
   private applyingView = false;
   private zoomBehavior = d3.zoom<SVGElement, unknown>();
 
@@ -92,28 +93,28 @@ export class SvgChartRenderer {
     this.constResistance = new ConstResistance({
       data: gridData,
       scaler: this.scalers.default,
-      detail: 'detailed',
+      detail: 'standard',
     });
     this.constResistance.show();
 
     this.constReactance = new ConstReactance({
       data: gridData,
       scaler: this.scalers.default,
-      detail: 'detailed',
+      detail: 'standard',
     });
     this.constReactance.show();
 
     this.constConductance = new ConstConductance({
       data: gridData,
       scaler: this.scalers.default,
-      detail: 'detailed',
+      detail: 'standard',
     });
     this.constConductance.hide();
 
     this.constSusceptance = new ConstSusceptance({
       data: gridData,
       scaler: this.scalers.default,
-      detail: 'detailed',
+      detail: 'standard',
     });
     this.constSusceptance.hide();
 
@@ -186,6 +187,9 @@ export class SvgChartRenderer {
     this.peripheralScales = {
       setVisible: (visible) => {
         assertAlive();
+        if (typeof visible !== 'boolean') {
+          throw new TypeError('Peripheral scale visibility must be a boolean.');
+        }
         if (visible) {
           this.peripheralScaleRenderer.show();
         } else {
@@ -198,6 +202,7 @@ export class SvgChartRenderer {
         this.peripheralScaleRenderer.update(gamma);
       },
     };
+    this.peripheralScaleRenderer.hide();
     this.initializeZoom();
     this.resizeObserver = new ResizeObserver(() => this.updateViewportScale());
     this.resizeObserver.observe(this.svg.Node!);
@@ -282,7 +287,7 @@ export class SvgChartRenderer {
   }
 
   private cursorMove(p: Point): void {
-    if (this.markerDragging) {
+    if (!this.cursorEnabled || this.markerDragging) {
       return;
     }
     this.cursor.Position = Complex.from(this.scalers.default.pointInvert(p));
@@ -293,7 +298,7 @@ export class SvgChartRenderer {
     if (dragging) {
       this.cursorBeforeMarkerDrag = this.svg.Node!.style.getPropertyValue('cursor') || null;
       this.svg.Element.style('cursor', 'grabbing').style('--smithkit-marker-cursor', 'grabbing');
-      this.cursor.hide();
+      this.hideCursor();
     } else {
       this.svg.Element.style('cursor', () => this.cursorBeforeMarkerDrag).style(
         '--smithkit-marker-cursor',
@@ -305,6 +310,25 @@ export class SvgChartRenderer {
 
   public hideCursor(): void {
     this.cursor.hide();
+    if (this.cursorEnabled) {
+      this.onCursorChange?.(undefined);
+    }
+  }
+
+  /** Disable tracking and cancel queued readings; enabling waits for the next pointer move. */
+  public setCursorEnabled(enabled: boolean): void {
+    this.assertAlive();
+    if (typeof enabled !== 'boolean') {
+      throw new TypeError('Cursor enabled must be a boolean.');
+    }
+    if (this.cursorEnabled === enabled) {
+      return;
+    }
+    this.cursorEnabled = enabled;
+    if (!enabled) {
+      this.cursor.hide();
+      this.onCursorChange?.(undefined);
+    }
   }
 
   private initCursor(): SmithCursor {
@@ -396,8 +420,7 @@ export class SvgChartRenderer {
         this.cursorMove(d3.pointer(event));
       })
       .on('pointerleave.smithkit', () => {
-        this.cursor.hide();
-        this.onCursorChange?.(undefined);
+        this.hideCursor();
       });
 
     return shape;

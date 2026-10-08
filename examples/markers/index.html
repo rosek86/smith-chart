@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>External marker controls · Smithkit examples</title>
+  </head>
+  <body>
+    <main>
+      <nav aria-label="Examples navigation">
+        <a href="../index.html">← All examples</a
+        ><a href="https://rosek86.github.io/smithkit/">Full demo</a>
+      </nav>
+      <header>
+        <p class="eyebrow">SMITHKIT EXAMPLES</p>
+        <h1>External marker controls</h1>
+        <p>Select a sample from an ordinary HTML control and read marker events.</p>
+      </header>
+      <section class="preview" aria-label="Example preview">
+        <div id="chart" aria-label="Smith chart"></div>
+        <label for="sample"
+          >Selected sample
+          <input id="sample" type="range" min="0" max="4" value="0" step="1" /></label
+        ><output id="reading" aria-live="polite"></output
+        ><button id="focus-marker" type="button">Focus marker</button>
+      </section>
+      <section aria-labelledby="code-title">
+        <h2 id="code-title">TypeScript</h2>
+        <p class="hint">
+          Install <code>smithkit</code> and provide the elements shown below. The chart container
+          needs a non-zero size.
+        </p>
+        <pre><code id="source"></code></pre>
+        <details>
+          <summary>HTML and container size</summary>
+          <pre><code id="markup"></code></pre>
+        </details>
+      </section>
+    </main>
+    <script type="module" src="./page.ts"></script>
+  </body>
+</html>

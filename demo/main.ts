@@ -26,7 +26,12 @@ const settingsButton = element<HTMLButtonElement>('open-settings');
 settingsButton.addEventListener('click', () => settingsDialog.showModal());
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
-const smith = new Smith(50, { theme: 'dark' });
+const smith = new Smith({
+  appearance: { theme: 'dark' },
+  interaction: { zoom: true, cursor: true },
+  peripheralScales: { visible: true },
+  grid: { detail: 'detailed' },
+});
 smith.draw('#smith');
 const scales = new SmithScales({ theme: 'dark' });
 scales.draw('#smith-scales');
@@ -34,7 +39,7 @@ scales.draw('#smith-scales');
 element<HTMLSelectElement>('theme').addEventListener('change', (event) => {
   const theme = (event.target as HTMLSelectElement).value as SmithAppearance['theme'];
   const appearance: SmithAppearance = { theme };
-  smith.setAppearance(appearance);
+  smith.setOptions({ appearance });
   scales.setAppearance(appearance);
   document.documentElement.dataset.theme = theme;
   measurements.render();
@@ -71,9 +76,7 @@ updateGridLabels();
 
 const gridDetail = element<HTMLSelectElement>('grid-detail');
 const updateGridDetail = () => {
-  for (const layer of gridLayers) {
-    layer.setDetail(gridDetail.value as GridDetail);
-  }
+  smith.setGridDetail(gridDetail.value as GridDetail);
 };
 gridDetail.addEventListener('change', updateGridDetail);
 updateGridDetail();
@@ -181,7 +184,7 @@ exportForm.addEventListener('submit', async (event) => {
   const scaleOptions = { ...options, readout };
   const chartOptions = {
     ...options,
-    scaleReadout: readout,
+    scaleReadout: target === 'combined' ? readout : undefined,
     legend: exportLegend.checked,
     markerLegend: exportMarkerLegend.checked
       ? {
@@ -432,7 +435,7 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
     const samples = mismatch
       ? RfCalculations.renormalizeSamples(parsed.samples, parsed.referenceImpedanceOhms, reference)
       : parsed.samples;
-    smith.addTrace(samples, { name: file.name });
+    smith.addMarker(smith.addTrace(samples, { name: file.name }));
     refreshMarkerOptions();
     status(
       `${file.name}: ${samples.length} samples loaded.${mismatch ? ` The file uses ${parsed.referenceImpedanceOhms} Ω; converted to ${reference} Ω.` : ''}`,
@@ -452,7 +455,7 @@ element('sample').addEventListener('click', () => {
       reflectionCoefficient: [reactance ** 2 / denominator, (2 * reactance) / denominator],
     };
   });
-  smith.addTrace(values);
+  smith.addMarker(smith.addTrace(values));
   refreshMarkerOptions();
   status('Sample: 101 samples, 1–2 GHz, normalized resistance r = 1.');
 });

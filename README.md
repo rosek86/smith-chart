@@ -3,7 +3,16 @@
 **`smithkit`** is a framework-independent JavaScript and TypeScript library for
 interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
-[Try the interactive demo](https://rosek86.github.io/smithkit/).
+[Try the interactive demo](https://rosek86.github.io/smithkit/) or browse the
+[integration examples](https://rosek86.github.io/smithkit/examples/index.html):
+static charts, marker controls, themes, report exports, and lifecycle cleanup.
+Each example includes its TypeScript source.
+
+The constructor configuration and explicit marker creation below target the next minor
+release (0.4.0, not yet published). For npm 0.3.0, see the
+[released README](https://github.com/rosek86/smithkit/blob/v0.3.0/README.md).
+See the [0.4 migration guide](https://github.com/rosek86/smithkit/blob/main/docs/migration-0.4.md)
+when upgrading.
 
 Upgrading from 0.2.x? Version 0.3.0 replaces `GridLayer.setMinorVisible()` with
 `setDetail('basic' | 'standard' | 'detailed')`. Replace `false` with `'standard'`
@@ -12,6 +21,10 @@ and `true` with `'detailed'`; `'basic'` shows only the principal circles.
 Upgrading from 0.1.x? Version 0.2.0 groups calculation, parsing, formatting, and
 comparison functions into classes. See the [migration guide](https://github.com/rosek86/smithkit/blob/v0.2.0/docs/migration-0.2.md)
 for the changed imports.
+
+The [API review and compatibility policy](https://github.com/rosek86/smithkit/blob/main/docs/api-review.md)
+define the public contract and the compatibility scope intended for 1.0. During
+0.x development, breaking changes are documented in minor releases.
 
 ## Features
 
@@ -54,7 +67,7 @@ Give the container an explicit size and run the code after it is mounted:
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith(50); // Reference impedance in ohms; defaults to 50.
+const chart = new Smith({ referenceImpedanceOhms: 50 }); // Reference impedance in ohms; defaults to 50.
 chart.draw('#smith');
 const traceId = chart.addTrace(
   [
@@ -71,32 +84,138 @@ coefficient Γ as `[real, imaginary]`. Samples are copied and validated; readonl
 must be finite and non-negative; both coordinates must be finite. A trace must
 contain at least one sample.
 
-Each new trace receives one marker on its first sample. Drag markers to select
-samples with a mouse or touch, scroll to zoom, and drag the chart to pan. Markers
+Traces start without markers. Call `chart.addMarker(traceId)` to add one at the
+first sample, or pass a sample index to choose its initial position. Drag markers to select
+samples with a mouse or touch. Enable zoom to scroll to zoom and drag the chart to pan. Markers
 and their focus indicators stay above grid labels and sample points. `chart.resetView()` restores the initial view, including peripheral rulers.
 
 Construct `Smith` only in a browser, such as your framework's mount hook. Importing
 the package and using its calculation or parsing methods does not require a DOM.
 
-Zoom is enabled by default. For a fixed view, call `chart.setZoomEnabled(false)` before or after mounting.
-It disables wheel/double-click zoom and mouse/touch panning and pinch zoom while
-preserving the current view. Set it back to `true` to restore gestures. This is a
-view control: cursor readings and marker dragging stay available. `resetView()`
-also remains available when zoom is disabled. New wheel gestures do not consume
-page scrolling. Disabling during an active gesture freezes the view while that
-gesture finishes normally.
+The default chart is a static presentation: standard impedance grid with labels,
+no peripheral scales, and zoom and cursor tracking disabled. Markers are optional
+and remain interactive when explicitly added.
+
+Enable interactions through constructor options or the corresponding setters:
 
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith(50);
-chart.setZoomEnabled(false);
+const chart = new Smith({ interaction: { zoom: true, cursor: true } });
 chart.draw('#smith');
+
+chart.setZoomEnabled(false); // Freeze the current view; page scrolling is unaffected.
+chart.setCursorEnabled(false); // Hide cursor geometry and cancel pending readings.
 ```
+
+Zoom controls wheel/double-click zoom and mouse/touch panning and pinch gestures;
+it is independent of cursor tracking and marker interaction. `resetView()` remains
+available with zoom disabled. Disabling during an active gesture freezes the view
+while that gesture finishes normally.
+
+Cursor tracking controls the cursor overlay and `Cursor` events. Disabling it
+clears the current readout with one `Cursor` event carrying `undefined`, cancels
+queued readings, and suppresses further cursor events. Enabling waits for a new
+pointer movement. The last `cursorReading` remains available; marker controls and
+events work independently.
 
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
 event handlers, and cancels queued notifications. Repeated destruction is safe.
+
+## Constructor configuration
+
+`new Smith(options?)` accepts a typed `SmithOptions` object. Every field is optional:
+
+```ts
+import { Smith } from 'smithkit';
+
+const chart = new Smith({
+  referenceImpedanceOhms: 75,
+  appearance: { theme: 'dark' },
+  interaction: { zoom: false },
+  peripheralScales: { visible: false },
+  grid: {
+    detail: 'basic',
+    labelsVisible: true,
+    style: { majorWidth: 1.5 },
+    layers: {
+      resistance: { style: { stroke: '#60a5fa' } },
+      reactance: { labelsVisible: false },
+      conductance: { visible: true, detail: 'standard' },
+    },
+  },
+  circles: {
+    q: { visible: true, values: [1, 2, 5] },
+    vswr: { visible: true, values: [2, 3], style: { stroke: '#fbbf24' } },
+  },
+});
+chart.draw('#smith');
+
+// Update all four grids together, including hidden admittance layers.
+chart.setGridDetail('standard');
+// Individual overrides remain available.
+chart.layers.reactance.setDetail('basic');
+```
+
+Configuration is grouped by responsibility:
+
+| Group                    | Purpose                                                                                            | Runtime API                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `referenceImpedanceOhms` | Physical reference impedance                                                                       | `renormalize()`                                                    |
+| `appearance`             | Theme, fonts, colors, marker/cursor styling                                                        | `setAppearance()`                                                  |
+| `interaction`            | `zoom` and `cursor` tracking switches                                                              | `setZoomEnabled()`, `setCursorEnabled()`                           |
+| `grid`                   | Shared detail, labels, styles; `layers` overrides for resistance/reactance/conductance/susceptance | `setGridDetail()`, `layers.resistance` and the other grid controls |
+| `circles`                | Independent Q and VSWR values, visibility, styles                                                  | `layers.q`, `layers.vswr`                                          |
+| `peripheralScales`       | Visibility of all peripheral rulers together                                                       | `peripheralScales.setVisible()`                                    |
+
+Defaults are 50 Ω, the light theme, zoom and cursor disabled, peripheral scales hidden,
+and standard grids with labels. Resistance/reactance are visible;
+conductance/susceptance and Q/VSWR circles are hidden. Q defaults to
+`[0.5, 1, 2, 5, 10]`; VSWR defaults to `[1.2, 1.5, 2, 3, 5, 10]`.
+
+Shared `grid` settings apply to all four grids; `grid.layers` overrides individual
+fields afterward. Styles merge by property. Explicit layer styles override theme
+colors and remain in effect when `setAppearance()` changes the theme.
+Options and circle arrays are copied; changing the original object does not update
+the chart. Use the existing chart/layer methods for later changes. Unknown constructor groups
+or structural option names throw `TypeError`; omitted fields use defaults.
+
+Export configuration belongs to `toSvg()`/`toPng()` calls, independently of chart
+construction. `scaleReadout` requires `scales`; otherwise export throws/rejects with `TypeError`.
+
+The constructor configures presentation and interaction. Add measurement data with
+`addTrace()` and optional markers with `addMarker()`; no markers are created implicitly.
+Radial parameter scales remain independently mounted `SmithScales` instances.
+
+### Updating configuration
+
+`chart.setOptions(options)` accepts the same `SmithOptions` type as the constructor:
+
+```ts
+chart.setOptions({
+  interaction: { zoom: true },
+  grid: {
+    detail: 'basic',
+    layers: { reactance: { labelsVisible: false } },
+  },
+  circles: { vswr: { visible: true, values: [2, 3] } },
+});
+```
+
+This is a patch: omitted and `undefined` fields retain their current values;
+`{}` groups do nothing. Shared grid settings apply to all four grids first, then
+per-layer overrides in the same call. A later shared setting also replaces that
+field on previously customized layers. Style fields merge; circle value lists
+replace. `appearance`, when provided, replaces the preset/overrides exactly like
+`setAppearance()` (it is not recursively merged with the previous appearance).
+
+The complete patch is validated before application. Invalid settings or impossible
+reference conversions leave the chart unchanged. `referenceImpedanceOhms` invokes
+renormalization of existing traces and retains physical impedance and marker IDs.
+Other configuration updates preserve measurements, markers, selection, and view.
+Options are not retained; subsequent edits to the input object have no effect.
+Individual setters remain available for focused changes.
 
 ### Keyboard and touch markers
 
@@ -124,7 +243,7 @@ there. They survive renaming, hiding, updating samples, and removing other items
 They are not persistent across chart instances or page reloads.
 
 ```ts
-const markerA = chart.getTraces().find((trace) => trace.id === traceId)!.markers[0].id;
+const markerA = chart.addMarker(traceId)!; // First sample.
 const markerB = chart.addMarker(traceId, 2)!; // Zero-based sample index.
 
 chart.setTraceOptions(traceId, { name: 'Tuned antenna', visible: true });
@@ -141,7 +260,7 @@ chart.removeMarker(markerB);
 
 | Method                                | Result / behavior                                                                                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `addTrace(samples, options?)`         | Returns a trace ID. Options: nonblank `name`, solid CSS `color`, and `visible`.                                          |
+| `addTrace(samples, options?)`         | Returns a trace ID, without creating markers. Options: nonblank `name`, solid CSS `color`, and `visible`.                |
 | `getTraces()`                         | Detached `TraceInfo` snapshots: ID, name, color, visibility, sample count, and marker metadata.                          |
 | `setTraceOptions(id, options)`        | Updates the supplied options only. Invalid options throw before any change.                                              |
 | `updateTrace(id, samples, options?)`  | Replaces samples and preserves identity, appearance, and markers. Empty/invalid input throws without changing the trace. |
@@ -240,8 +359,8 @@ queued `Marker` event and do not emit drag lifecycle events.
 Cursor movement is suspended during marker dragging. Drag start/end events fire
 synchronously; marker position notifications are queued and report the latest
 snapshot at delivery. Before delivery, repeated updates to the same marker coalesce
-into one notification; different markers have independent notifications. Creation
-queues an initial marker notification too. Removed markers cannot deliver queued
+into one notification; different markers have independent notifications. `addMarker()`
+queues an initial marker notification too; `addTrace()` does not. Removed markers cannot deliver queued
 position events.
 Trace metadata changes do not emit marker events; refresh metadata after mutations.
 Destruction suppresses application callbacks.
@@ -368,7 +487,7 @@ const appearance: SmithAppearance = {
     traceColors: ['#38bdf8', '#fb923c', '#a78bfa'],
   },
 };
-const chart = new Smith(50, appearance);
+const chart = new Smith({ referenceImpedanceOhms: 50, appearance });
 const scales = new SmithScales(appearance);
 chart.draw('#smith');
 scales.draw('#scales');
@@ -437,12 +556,13 @@ layout raises it when needed to keep the font size at least 9 CSS pixels in the
 default view. Partial updates retain other settings. Invalid numeric styles throw
 before any property is changed.
 
-Choose `setDetail('basic' | 'standard' | 'detailed')` independently for each grid layer:
+Use `chart.setGridDetail('basic' | 'standard' | 'detailed')` for all four grid layers,
+or `layer.setDetail(...)` to override one layer:
 
 - **Basic:** complete circles and arcs for normalized values 0.2, 0.5, 1, 2, and 5,
   with matching axis/rim labels and the zero label. Intended for small or static charts.
-- **Standard:** the full major grid and its labels, without minor lines.
-- **Detailed** (default): the full major and minor grid.
+- **Standard** (default): the full major grid and its labels, without minor lines.
+- **Detailed:** the full major and minor grid.
 
 Changing detail preserves layer visibility, styles, and the current view. Label
 collision handling still applies at every level. Peripheral scales and Q/VSWR
@@ -455,7 +575,10 @@ whole-layer visibility changes and is included in SVG exports. Calling
 layout; it does not show a hidden layer. The **Grid labels** checkbox in the demo’s **Chart settings** dialog controls all four grid layers together. Peripheral scale labels are unaffected.
 
 `layers.q` and `layers.vswr` support `setVisible`,
-`setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.
+`setStyle({ stroke?, strokeWidth? })`, `setValues`, `addValue`, and `removeValue`.
+`setValues([1, 2, 5])` replaces the entire list; `setValues([])` clears it.
+Input arrays are copied, duplicate values are ignored, and invalid input leaves
+the previous values unchanged.
 Circle stroke widths are positive finite numbers in CSS pixels.
 Q values must be positive and finite; VSWR values must be finite and at least 1.
 Duplicate additions and removal of absent values have no effect.
@@ -515,6 +638,8 @@ assumes a matched line or attenuator terminated in an open or short: the reflect
 wave traverses it twice. It does not measure insertion loss of an arbitrary load
 from S11 alone. At \|Γ\| = 0.1 it reads 10 dB, while return loss reads 20 dB.
 
+Peripheral rulers are hidden by default. Enable them with
+`{ peripheralScales: { visible: true } }` or `chart.peripheralScales.setVisible(true)`.
 `chart.peripheralScales` supports `setVisible(boolean)` and `update(Complex | null)`.
 Its four rulers zoom with the chart: reflection phase, voltage transmission phase,
 wavelengths toward generator, and wavelengths toward load. Wavelength rulers start
@@ -565,7 +690,7 @@ import { Smith, Touchstone } from 'smithkit';
 
 async function showMeasurement(file: File): Promise<Smith> {
   const { samples, referenceImpedanceOhms } = Touchstone.parse(await file.text());
-  const chart = new Smith(referenceImpedanceOhms);
+  const chart = new Smith({ referenceImpedanceOhms });
   chart.draw('#smith');
   chart.addTrace(samples, { name: file.name });
   return chart;

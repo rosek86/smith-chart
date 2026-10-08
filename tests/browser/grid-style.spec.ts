@@ -9,7 +9,11 @@ test('grid setters and drawing options update the rendered geometry of all four 
   const layers = await page.evaluate(() => {
     const { Smith } = (window as typeof window & { SmithTest: typeof import('../../src/index') })
       .SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     return (['resistance', 'reactance', 'conductance', 'susceptance'] as const).map((name) => {
       const layer = chart.layers[name];
@@ -102,7 +106,11 @@ for (const width of [340, 900]) {
     await page.setContent(`<div id="chart" style="width:${width}px;aspect-ratio:500/650"></div>`);
     await loadLibrary(page);
     const layers = await page.evaluate(() => {
-      const chart = new window.SmithTest.Smith();
+      const chart = new window.SmithTest.Smith({
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
+        grid: { detail: 'detailed' },
+      });
       chart.draw('#chart');
       const box = document.querySelector('svg')!.getBoundingClientRect();
       const bounds = [];
@@ -152,7 +160,11 @@ test('numeric layer styles reject invalid lengths before changing any style', as
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     chart.layers.resistance.setStyle({ stroke: 'blue', majorWidth: 2 });
     chart.layers.q.setStyle({ stroke: 'blue', strokeWidth: 2 });

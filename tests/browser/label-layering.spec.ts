@@ -10,7 +10,11 @@ test('grid and scale labels stay above geometry after updates, with markers on t
   await loadLibrary(page);
   const visibility = await page.evaluate(() => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const scales = new SmithScales();
     scales.draw('#scales');
@@ -39,6 +43,7 @@ test('grid and scale labels stay above geometry after updates, with markers on t
       layer.removeValue(2);
     }
     const trace = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.2, 0.3] }]);
+    chart.addMarker(trace);
     chart.updateTrace(trace, [{ frequencyHz: 1e9, reflectionCoefficient: [0.4, 0.3] }]);
     scales.update(Complex.from(0.4, 0.3));
     scales.update(null);

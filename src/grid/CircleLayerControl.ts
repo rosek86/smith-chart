@@ -1,3 +1,4 @@
+import { OptionsValidation } from '../OptionsValidation.js';
 import type { ConstQCircles } from './ConstQCircles.js';
 import type { ConstSwrCircles } from './ConstSwrCircles.js';
 import type { CircleLayer, CircleStyle } from '../layers.js';
@@ -15,12 +16,13 @@ export class CircleLayerControl extends LayerControl implements CircleLayer {
 
   public setVisible(visible: boolean): void {
     this.assertAlive();
+    OptionsValidation.boolean(visible, 'Circle visibility');
     this.layer.visibility(visible);
   }
 
   public setStyle(style: Partial<CircleStyle>): void {
     this.assertAlive();
-    this.validateLengths(style, ['strokeWidth']);
+    OptionsValidation.circleStyle(style);
     if (style.stroke !== undefined) {
       this.layer.Stroke = style.stroke;
     }
@@ -29,21 +31,21 @@ export class CircleLayerControl extends LayerControl implements CircleLayer {
     }
   }
 
+  public setValues(values: readonly number[]): void {
+    this.assertAlive();
+    OptionsValidation.circleValues(values, this.minimum);
+    this.layer.setValues(values);
+  }
+
   public addValue(value: number): void {
     this.assertAlive();
-    this.validateValue(value);
+    OptionsValidation.circleValue(value, this.minimum);
     this.layer.append(value);
   }
 
   public removeValue(value: number): void {
     this.assertAlive();
-    this.validateValue(value);
+    OptionsValidation.circleValue(value, this.minimum);
     this.layer.remove(value);
-  }
-
-  private validateValue(value: number): void {
-    if (!Number.isFinite(value) || value < this.minimum || value <= 0) {
-      throw new RangeError(`Circle value must be finite, positive, and at least ${this.minimum}.`);
-    }
   }
 }

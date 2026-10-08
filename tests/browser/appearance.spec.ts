@@ -20,18 +20,26 @@ test('live themes preserve chart state, focus, explicit styles, and other chart 
 }) => {
   const result = await page.evaluate(() => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = (window.appearanceChart = new Smith());
+    const chart = (window.appearanceChart = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    }));
     const scales = (window.appearanceScales = new SmithScales());
     chart.draw('#chart');
     scales.draw('#scales');
-    const other = new Smith();
+    const other = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     other.draw('#other');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 1e9, reflectionCoefficient: [0, 0] },
       { frequencyHz: 2e9, reflectionCoefficient: [0.4, 0.2] },
     ];
-    chart.addTrace(samples);
-    chart.addTrace(samples, { color: '#123456', visible: false });
+    chart.addMarker(chart.addTrace(samples));
+    chart.addMarker(chart.addTrace(samples, { color: '#123456', visible: false }));
     const marker = chart.getTraces()[0].markers[0].id;
     chart.setMarkerSample(marker, 1);
     chart.layers.resistance.setStyle({
@@ -88,7 +96,7 @@ test('live themes preserve chart state, focus, explicit styles, and other chart 
       scaleReading: document.querySelector('#scales .scale-value')!.textContent === scaleReading,
       noPrivateMetadata: !('colorIndex' in chart.getTraces()[0]),
     };
-    chart.addTrace(samples);
+    chart.addMarker(chart.addTrace(samples));
     const addedColor = chart.getTraces()[2].color;
     chart.setAppearance({});
     const resetColors = chart.getTraces().map((t) => t.color);
@@ -127,7 +135,13 @@ test('appearance validation is atomic and retained components reject changes aft
   page,
 }) => {
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith(50, { theme: 'dark' });
+    const chart = new window.SmithTest.Smith({
+      referenceImpedanceOhms: 50,
+      appearance: { theme: 'dark' },
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     const scales = new window.SmithTest.SmithScales({ theme: 'dark' });
     chart.draw('#chart');
     scales.draw('#scales');
@@ -167,11 +181,17 @@ test('dark SVG exports resolve theme tokens and include independent backgrounds'
       theme: 'dark',
       overrides: { fontFamily: 'Arial', scales: { indicatorColor: '#00ffff' } },
     };
-    const chart = new Smith(50, appearance);
+    const chart = new Smith({
+      referenceImpedanceOhms: 50,
+      appearance: appearance,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     const scales = new SmithScales(appearance);
     chart.draw('#chart');
     scales.draw('#scales');
-    chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.4, 0.2] }]);
+    chart.addMarker(chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.4, 0.2] }]));
     scales.update(Complex.from(0.4, 0.2));
     return { chart: chart.toSvg(), scales: scales.toSvg() };
   });

@@ -11,7 +11,11 @@ async function setup(page: import('@playwright/test').Page, enabled = true): Pro
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   await page.evaluate((enabled) => {
-    window.zoomChart = new window.SmithTest.Smith();
+    window.zoomChart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     window.zoomChart.setZoomEnabled(enabled);
     window.zoomChart.draw('#chart');
   }, enabled);
@@ -37,6 +41,7 @@ test('a fixed view ignores wheel, double click, and pan without blocking marker 
       { frequencyHz: 1, reflectionCoefficient: [0, 0] },
       { frequencyHz: 2, reflectionCoefficient: [0.5, 0] },
     ]);
+    window.zoomChart.addMarker(id);
     const marker = window.zoomChart.getTraces().find((trace) => trace.id === id)!.markers[0].id;
     window.zoomChart.setMarkerSample(marker, 1);
     return {

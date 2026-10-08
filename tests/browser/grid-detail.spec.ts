@@ -8,7 +8,13 @@ for (const theme of ['light', 'dark'] as const) {
     await page.setContent('<div id="chart" style="width:600px;height:600px"></div>');
     await loadLibrary(page);
     const results = await page.evaluate((theme) => {
-      const chart = new window.SmithTest.Smith(50, { theme });
+      const chart = new window.SmithTest.Smith({
+        referenceImpedanceOhms: 50,
+        appearance: { theme },
+        interaction: { zoom: true, cursor: true },
+        peripheralScales: { visible: true },
+        grid: { detail: 'detailed' },
+      });
       chart.draw('#chart');
       chart.peripheralScales.setVisible(false);
       for (const layer of [chart.layers.resistance, chart.layers.reactance]) {
@@ -76,7 +82,11 @@ test('invalid detail is rejected without changing the chart; destroyed controls 
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const before = document.querySelector('svg')!.outerHTML;
     let invalidRejected = false;

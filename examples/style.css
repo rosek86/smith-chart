@@ -1,0 +1,159 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #e2e8f0;
+  background: #0b1220;
+  color-scheme: dark;
+  line-height: 1.6;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1024px;
+  margin: auto;
+  padding: 32px;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 40px;
+}
+a {
+  color: #5eead4;
+  text-underline-offset: 4px;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #5eead4;
+  outline-offset: 4px;
+}
+h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.2;
+  margin: 8px 0 16px;
+}
+h2 {
+  font-size: 20px;
+}
+header {
+  margin-bottom: 32px;
+  max-width: 720px;
+}
+.eyebrow {
+  color: #5eead4;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.hint,
+header > p:last-child,
+footer {
+  color: #aab8ca;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.card {
+  display: block;
+  border: 1px solid #34435a;
+  border-radius: 12px;
+  padding: 24px;
+  color: inherit;
+  text-decoration: none;
+  background: #111c2e;
+}
+.card h2 {
+  margin-top: 0;
+}
+.card p {
+  color: #aab8ca;
+}
+.card span {
+  color: #5eead4;
+}
+.card:hover {
+  border-color: #5eead4;
+}
+.preview {
+  padding: 20px;
+  background: #111c2e;
+  border: 1px solid #34435a;
+  border-radius: 12px;
+  margin-bottom: 32px;
+}
+#chart {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1;
+  margin: 0 auto 24px;
+  background: white;
+}
+button,
+select {
+  font: inherit;
+  color: inherit;
+  background: #17253b;
+  border: 1px solid #52627a;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+input[type='range'] {
+  width: min(240px, 100%);
+  accent-color: #5eead4;
+}
+label,
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+output {
+  display: block;
+  margin: 16px 0;
+  font-variant-numeric: tabular-nums;
+}
+pre {
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #34435a;
+  border-radius: 8px;
+  background: #080e19;
+  font-size: 13px;
+  line-height: 1.65;
+}
+summary {
+  cursor: pointer;
+}
+footer {
+  margin-top: 32px;
+}
+@media (max-width: 600px) {
+  main {
+    padding: 20px 16px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .preview {
+    padding: 12px;
+  }
+  nav {
+    margin-bottom: 28px;
+  }
+}

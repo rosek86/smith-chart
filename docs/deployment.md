@@ -42,7 +42,9 @@ controls work. A successful build alone does not confirm publication.
 
 Vite generates relative asset URLs (`base: './'`). Browser tests serve the built
 demo under `/smithkit/`, matching the public site path. The Pages artifact contains
-`index.html` at its root and the built assets alongside it.
+`index.html` at its root, the integration gallery under `examples/`, and shared
+built assets. Example links and generated asset URLs work under the project path
+and on direct navigation to nested pages.
 
 To stop automatic publication temporarily while retaining checks, disable the
 `deploy` job in `.github/workflows/ci.yml` through a pull request. To unpublish the

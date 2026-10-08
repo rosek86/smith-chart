@@ -44,12 +44,8 @@ function unmount(): void {
 
 function mount(): void {
   unmount();
-  chart = new Smith(50);
+  chart = new Smith();
   chart.draw(host);
-  for (const layer of [chart.layers.resistance, chart.layers.reactance]) {
-    layer.setDetail('standard');
-  }
-  chart.peripheralScales.setVisible(false);
   unsubscribe = chart.onEvent((event) => {
     if (event.type === SmithEventType.Marker) {
       const reading = event.data;
@@ -61,7 +57,7 @@ function mount(): void {
   });
   alternate = false;
   traceId = chart.addTrace(sweeps[0], { name: 'Measured sweep', color: '#2563eb', mode: 'both' });
-  const marker = chart.getTraces()[0].markers[0].id;
+  const marker = chart.addMarker(traceId)!;
   chart.setMarkerFrequency(marker, 1.5e9);
   updateButton.disabled = false;
   unmountButton.disabled = false;

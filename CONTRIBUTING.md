@@ -26,9 +26,9 @@ requirement, not a browser requirement for applications using the library.
 | `npm run lint:fix`      | Apply automatic ESLint fixes.                                                              |
 | `npm run format`        | Format source, configuration, demo assets, and documentation with Prettier.                |
 | `npm run format:check`  | Check formatting without changing files.                                                   |
-| `npm run typecheck`     | Check library, demo, tests, and configuration types.                                       |
+| `npm run typecheck`     | Check library, demo, examples, tests, and configuration types.                             |
 | `npm run build`         | Build ESM modules and TypeScript declarations in `dist/lib/`.                              |
-| `npm run build:demo`    | Build the demo site in `dist/demo/`.                                                       |
+| `npm run build:demo`    | Build the demo and integration gallery in `dist/demo/`.                                    |
 | `npm run preview`       | Preview the built demo.                                                                    |
 | `npm test`              | Run calculation, parser, scale, and release verification tests.                            |
 | `npm run check`         | Check formatting, lint, check types, run unit tests, and build both library and demo.      |
@@ -46,7 +46,7 @@ SVG text bounds use DOM geometry so text anchors are included.
 ### Release and consumer verification
 
 `npm run check:example` packs the library, installs it into a temporary copy of
-`examples/basic`, checks its types, builds it, and exercises the installed consumer
+`examples/`, checks its types, builds the gallery, and exercises the installed consumers
 in Chromium and WebKit. Both `check:package` and `check:example` accept an existing
 archive path after `--`, so release checks can reuse exactly the archive being shipped.
 
@@ -199,7 +199,7 @@ rather than hidden by a blanket absolute tolerance. Other transcendental operati
 
 ## Packaging and releases
 
-See [the 0.1.0 API review](docs/api-review.md) for API decisions, units,
+See [the 0.3.0 API review](docs/api-review.md) for API decisions, units,
 identity and lifecycle contracts, and remaining release considerations.
 
 `npm pack` runs the library build through `prepack`. Only `dist/lib/`, the README,
@@ -230,3 +230,16 @@ publishing; publisher configuration and the release procedure are described in
 The demo is published from this repository to https://rosek86.github.io/smithkit/
 using GitHub Pages. See [docs/deployment.md](docs/deployment.md) for workflow setup
 and verification.
+
+## Hosted integration examples
+
+`examples/` is both a standalone Vite consumer and part of the demo's multi-page
+build. The root build aliases `smithkit` to `src/index.ts` so PR previews exercise
+the current library. The standalone examples have no source alias and import the
+installed package; `check:example` copies them outside this repository and verifies
+the packed library in Chromium and WebKit.
+
+Add new pages to the input lists in both Vite configurations and to gallery checks.
+Each page should focus on one task. `page.ts` displays `main.ts?raw`, so the shown
+TypeScript is the exact integration code being executed. Keep sample data and
+controls local to each example; avoid building application workflows into the demo.

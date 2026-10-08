@@ -7,9 +7,15 @@ test('trace and marker IDs survive removals, updates, and queued notifications',
   await page.setContent('<div id="chart" style="width:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith(75);
+    const chart = new window.SmithTest.Smith({
+      referenceImpedanceOhms: 75,
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const a = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
+    chart.addMarker(a);
     const b = chart.addTrace(
       [
         { frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] },
@@ -17,6 +23,7 @@ test('trace and marker IDs survive removals, updates, and queued notifications',
       ],
       { name: 'DUT', color: '#123456' },
     );
+    chart.addMarker(b);
     const initial = chart.getTraces();
     const first = initial[1].markers[0].id;
     const retained = chart.addMarker(b, 1)!;
@@ -180,9 +187,14 @@ test('hiding an actively dragged trace ends the gesture and permits future dragg
   await page.setContent('<div id="chart" style="width:500px"></div>');
   await loadLibrary(page);
   await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const id = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
+    chart.addMarker(id);
     const events: string[] = [];
     chart.onEvent((event) => {
       if (event.type === window.SmithTest.SmithEventType.MarkerDragStart) {

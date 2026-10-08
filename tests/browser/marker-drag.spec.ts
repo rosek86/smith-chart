@@ -119,12 +119,20 @@ test('removing a dragged dataset restores the cursor without affecting another c
   await loadLibrary(page);
   await page.evaluate(() => {
     const { Smith, SmithEventType } = window.SmithTest;
-    const first = new Smith();
-    const second = new Smith();
+    const first = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
+    const second = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     first.draw('#first');
     second.draw('#second');
-    first.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
-    second.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
+    first.addMarker(first.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]));
+    second.addMarker(second.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]));
     const dragEvents: [string, number | undefined][] = [];
     first.onEvent((event) => {
       if (

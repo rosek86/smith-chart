@@ -1,3 +1,5 @@
+import { OptionsValidation } from './OptionsValidation.js';
+import type { SmithOptions } from './options.js';
 import { MarkerLegend } from './svg/MarkerLegend.js';
 import { ImageExporter } from './svg/ImageExporter.js';
 import type { SmithImageExportOptions } from './svg/export.js';
@@ -9,7 +11,7 @@ import type { SmithData } from './traces/SmithData.js';
 import type { SmithMarker } from './traces/SmithMarker.js';
 import type { TraceSamples } from './samples.js';
 import { Complex } from './math/Complex.js';
-import type { ChartLayers, PeripheralScales } from './layers.js';
+import type { ChartLayers, GridDetail, PeripheralScales } from './layers.js';
 import { RfCalculations } from './rf/RfCalculations.js';
 import type { SmithReading } from './rf/RfCalculations.js';
 import { MarkerMeasurements } from './MarkerMeasurements.js';
@@ -42,6 +44,7 @@ export type SmithEvent =
 
 export class Smith {
   private theme: SmithTheme;
+  private referenceOhms: number;
   private readonly renderer: SvgChartRenderer;
   private data: SmithData[] = [];
   private destroyed = false;
@@ -59,14 +62,14 @@ export class Smith {
   public readonly layers: ChartLayers;
   public readonly peripheralScales: PeripheralScales;
 
-  constructor(
-    private referenceOhms: number = 50,
-    appearance: SmithAppearance = {},
-  ) {
-    if (!Number.isFinite(referenceOhms) || referenceOhms <= 0) {
+  constructor(options: SmithOptions = {}) {
+    OptionsValidation.chart(options);
+    this.referenceOhms =
+      options.referenceImpedanceOhms === undefined ? 50 : options.referenceImpedanceOhms;
+    if (!Number.isFinite(this.referenceOhms) || this.referenceOhms <= 0) {
       throw new RangeError('Reference impedance must be positive and finite.');
     }
-    this.theme = Theme.resolve(appearance);
+    this.theme = Theme.resolve(options.appearance);
     this.renderer = new SvgChartRenderer((position) => {
       this.emit({
         type: SmithEventType.Cursor,
@@ -76,6 +79,77 @@ export class Smith {
     this.renderer.setTheme(this.theme);
     this.layers = this.renderer.layers;
     this.peripheralScales = this.renderer.peripheralScales;
+    try {
+      this.applyOptions(options);
+    } catch (error) {
+      // Invalid constructor options must not retain observers or event handlers.
+      this.renderer.destroy();
+      throw error;
+    }
+  }
+
+  /** Apply a validated patch. Omitted fields retain their current settings. */
+  public setOptions(options: SmithOptions): void {
+    this.assertAlive();
+    OptionsValidation.chart(options);
+    // Renormalization can reject otherwise valid options for the loaded samples.
+    // Do it before presentation changes so rejection preserves the entire chart.
+    if (options.referenceImpedanceOhms !== undefined) {
+      this.renormalize(options.referenceImpedanceOhms);
+    }
+    if (options.appearance !== undefined) {
+      this.setAppearance(options.appearance);
+    }
+    this.applyOptions(options);
+  }
+
+  private applyOptions(options: SmithOptions): void {
+    if (options.interaction?.zoom !== undefined) {
+      this.setZoomEnabled(options.interaction.zoom);
+    }
+    if (options.interaction?.cursor !== undefined) {
+      this.setCursorEnabled(options.interaction.cursor);
+    }
+    if (options.peripheralScales?.visible !== undefined) {
+      this.peripheralScales.setVisible(options.peripheralScales.visible);
+    }
+    for (const name of ['resistance', 'reactance', 'conductance', 'susceptance'] as const) {
+      const layer = this.layers[name];
+      for (const settings of [options.grid, options.grid?.layers?.[name]]) {
+        if (settings === undefined) {
+          continue;
+        }
+        if (settings.detail !== undefined) {
+          layer.setDetail(settings.detail);
+        }
+        if (settings.labelsVisible !== undefined) {
+          layer.setLabelsVisible(settings.labelsVisible);
+        }
+        if (settings.style !== undefined) {
+          layer.setStyle(settings.style);
+        }
+      }
+      const visible = options.grid?.layers?.[name]?.visible;
+      if (visible !== undefined) {
+        layer.setVisible(visible);
+      }
+    }
+    for (const name of ['q', 'vswr'] as const) {
+      const settings = options.circles?.[name];
+      if (settings === undefined) {
+        continue;
+      }
+      const layer = this.layers[name];
+      if (settings.values !== undefined) {
+        layer.setValues(settings.values);
+      }
+      if (settings.style !== undefined) {
+        layer.setStyle(settings.style);
+      }
+      if (settings.visible !== undefined) {
+        layer.setVisible(settings.visible);
+      }
+    }
   }
 
   /** Replace the appearance while retaining explicit layer styles and trace colors. */
@@ -97,9 +171,18 @@ export class Smith {
     this.renderer.draw(target);
   }
 
+  /** Set the same detail level on all impedance and admittance grid layers. */
+  public setGridDetail(detail: GridDetail): void {
+    this.assertAlive();
+    for (const name of ['resistance', 'reactance', 'conductance', 'susceptance'] as const) {
+      this.layers[name].setDetail(detail);
+    }
+  }
+
   /** Export the current mounted view as standalone SVG with its configured background. */
   public toSvg(options?: SmithImageExportOptions): string {
     this.assertAlive();
+    this.validateExportOptions(options);
     const source = this.renderer.toSvg();
     if (options === undefined) {
       return source;
@@ -109,6 +192,12 @@ export class Smith {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
     return ImageExporter.svg(sources, options, this.exportLegend(options));
+  }
+
+  private validateExportOptions(options: SmithImageExportOptions | undefined): void {
+    if (options?.scaleReadout !== undefined && !options.scales) {
+      throw new TypeError('Scale readout requires included radial scales.');
+    }
   }
 
   private exportLegend(options: SmithImageExportOptions) {
@@ -127,6 +216,8 @@ export class Smith {
 
   /** Export the mounted view as PNG, optionally with radial scales and a trace legend. */
   public async toPng(options: SmithImageExportOptions = {}): Promise<Blob> {
+    this.assertAlive();
+    this.validateExportOptions(options);
     const sources = [this.toSvg()];
     if (options.scales) {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
@@ -163,9 +254,6 @@ export class Smith {
       return;
     }
     this.renderer.setMarkerDragging(isDragging);
-    if (isDragging) {
-      this.emit({ type: SmithEventType.Cursor, data: undefined });
-    }
   }
 
   /** Last cursor position. Use cursor events to detect pointer leave. */
@@ -179,12 +267,18 @@ export class Smith {
     this.renderer.setZoomEnabled(enabled);
   }
 
+  /** Enable or disable the cursor overlay and readings independently of zoom and markers. */
+  public setCursorEnabled(enabled: boolean): void {
+    this.assertAlive();
+    this.renderer.setCursorEnabled(enabled);
+  }
+
   public resetView(): void {
     this.assertAlive();
     this.renderer.resetView();
   }
 
-  /** Add a named trace with one initial marker. Returns a chart-local, stable ID. */
+  /** Add a named trace without markers. Use addMarker to create markers explicitly. Returns a chart-local, stable ID. */
   public addTrace(values: TraceSamples, options: TraceOptions = {}): string {
     this.assertAlive();
     this.validateTraceOptions(options);
@@ -401,7 +495,6 @@ export class Smith {
     this.referenceOhms = referenceImpedanceOhms;
     this.data.forEach((data, index) => data.update(samples[index], 'sample-index'));
     this.renderer.hideCursor();
-    this.emit({ type: SmithEventType.Cursor, data: undefined });
   }
 
   public clearTraces(): void {
@@ -442,7 +535,6 @@ export class Smith {
         this.emit({ type: SmithEventType.Marker, data: snapshot });
       }
     });
-    data.addMarker();
     return data;
   }
 

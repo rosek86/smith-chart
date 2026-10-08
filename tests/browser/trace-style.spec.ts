@@ -7,7 +7,11 @@ test('trace styles preserve samples, markers, visibility, and ordering across ch
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 3, reflectionCoefficient: [0.5, 0] },
@@ -15,6 +19,7 @@ test('trace styles preserve samples, markers, visibility, and ordering across ch
       { frequencyHz: 2, reflectionCoefficient: [0, 0] },
     ];
     const id = chart.addTrace(samples, { mode: 'line', lineWidth: 3, pointRadius: 4 });
+    chart.addMarker(id);
     const marker = chart.getTraces()[0].markers[0].id;
     const count = () => ({
       paths: document.querySelectorAll('.trace-line').length,
@@ -124,7 +129,11 @@ test('20,000-sample sweeps retain full data in every rendering mode', async ({
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = Array.from({ length: 20000 }, (_, i) => ({
       frequencyHz: 1e9 + i * 1e4,
@@ -134,6 +143,7 @@ test('20,000-sample sweeps retain full data in every rendering mode', async ({
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     let start = performance.now();
     const id = chart.addTrace(samples, { mode: 'line' });
+    chart.addMarker(id);
     await frame();
     await frame();
     timings.lineMountMs = performance.now() - start;
@@ -186,14 +196,19 @@ test('updating an earlier trace preserves its stacking order and marker layer', 
   await page.setContent('<div id="chart" style="width:500px;height:500px"></div>');
   await loadLibrary(page);
   const result = await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 10, reflectionCoefficient: [0, 0] },
       { frequencyHz: 20, reflectionCoefficient: [0.5, 0] },
     ];
     const first = chart.addTrace(samples, { color: 'red', mode: 'both' });
-    chart.addTrace(samples, { color: 'blue', mode: 'line' });
+    chart.addMarker(first);
+    chart.addMarker(chart.addTrace(samples, { color: 'blue', mode: 'line' }));
     const marker = chart.getTraces()[0].markers[0].id;
     const order = () =>
       Array.from(document.querySelectorAll('[data-role=samples]'), (group) =>

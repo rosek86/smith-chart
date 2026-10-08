@@ -19,7 +19,7 @@ try {
         JSON.parse(run('npm', ['pack', '--json', '--pack-destination', temp], repo))[0].filename,
       );
   const app = join(temp, 'app');
-  cpSync(join(repo, 'examples/basic'), app, {
+  cpSync(join(repo, 'examples'), app, {
     recursive: true,
     filter: (path) => !['node_modules', 'dist', 'package-lock.json'].includes(basename(path)),
   });
@@ -69,7 +69,7 @@ try {
       const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      await page.goto(url);
+      await page.goto(`${url}basic/index.html`);
       await expect(page.locator('#chart svg')).toHaveCount(1);
       await expect(page.locator('#reading')).toContainText('1.5 GHz');
       const first = await page.locator('#reading').textContent();
@@ -97,9 +97,29 @@ try {
       await expect(page.locator('#chart svg')).toHaveCount(1);
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(await page.locator('html').evaluate((node) => node.scrollWidth), 390);
+      await page.setViewportSize({ width: 900, height: 900 });
+      await page.goto(url);
+      await expect(page.getByRole('heading', { name: 'One example, one task.' })).toBeVisible();
+      for (const example of ['static', 'markers', 'appearance', 'export']) {
+        await page.goto(`${url}${example}/index.html`);
+        await expect(page.locator('#chart svg')).toHaveCount(1);
+        await expect(page.locator('#source')).toContainText("from 'smithkit'");
+        if (example === 'markers') {
+          await page.locator('#sample').fill('2');
+          await expect(page.locator('#reading')).toContainText('1.5 GHz');
+        }
+        if (example === 'appearance') {
+          await page.locator('#theme').selectOption('dark');
+        }
+        if (example === 'export') {
+          const download = page.waitForEvent('download');
+          await page.getByRole('button', { name: 'Download SVG' }).click();
+          assert.equal((await download).suggestedFilename(), 'smithkit-report.svg');
+        }
+      }
       assert.deepEqual(errors, []);
       console.log(
-        `Verified installed consumer in ${engine.name()}: mount, update, events, resize, destroy, remount, mobile.`,
+        `Verified installed consumer in ${engine.name()}: mount, update, events, resize, destroy, remount, mobile, and integration gallery.`,
       );
     } finally {
       await browser.close();

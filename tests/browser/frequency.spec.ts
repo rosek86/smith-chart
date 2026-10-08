@@ -8,7 +8,11 @@ test('frequency selection handles unsorted sweeps, duplicates, ties, bounds, and
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithEventType } = window.SmithTest;
-    const chart = new Smith();
+    const chart = new Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     const trace = chart.addTrace(
       [30, 10, 20, 20].map((frequencyHz, i) => ({
@@ -16,6 +20,7 @@ test('frequency selection handles unsorted sweeps, duplicates, ties, bounds, and
         reflectionCoefficient: [i / 10, 0],
       })),
     );
+    chart.addMarker(trace);
     const marker = chart.getTraces()[0].markers[0].id;
     const indices = [20, 25, 0, 100, 19].map((frequency) => {
       chart.setMarkerFrequency(marker, frequency);

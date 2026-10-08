@@ -9,6 +9,11 @@ export class Theme {
     if (!appearance || typeof appearance !== 'object' || Array.isArray(appearance)) {
       throw new TypeError('Appearance must be an object.');
     }
+    for (const key of Object.keys(appearance)) {
+      if (key !== 'theme' && key !== 'overrides') {
+        throw new TypeError(`Unknown appearance option: ${key}.`);
+      }
+    }
     const name = appearance.theme === undefined ? 'light' : appearance.theme;
     if (name !== 'light' && name !== 'dark') {
       throw new TypeError('Theme must be light or dark.');

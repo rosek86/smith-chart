@@ -17,7 +17,11 @@ async function setup(page: Page): Promise<void> {
   );
   await loadLibrary(page);
   await page.evaluate(() => {
-    const chart = new window.SmithTest.Smith();
+    const chart = new window.SmithTest.Smith({
+      interaction: { zoom: true, cursor: true },
+      peripheralScales: { visible: true },
+      grid: { detail: 'detailed' },
+    });
     chart.draw('#chart');
     chart.setZoomEnabled(false);
     const trace = chart.addTrace(
@@ -27,6 +31,7 @@ async function setup(page: Page): Promise<void> {
       })),
       { name: 'Antenna', mode: 'line' },
     );
+    chart.addMarker(trace);
     const marker = chart.getTraces()[0].markers[0].id;
     window.accessibleChart = chart;
     window.accessibleTrace = trace;

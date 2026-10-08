@@ -1,3 +1,4 @@
+import { OptionsValidation } from '../OptionsValidation.js';
 import type { SmithGridLayer } from './SmithGridLayer.js';
 import type { GridDetail, GridLayer, GridStyle } from '../layers.js';
 import { LayerControl } from './LayerControl.js';
@@ -14,28 +15,28 @@ export class GridLayerControl extends LayerControl implements GridLayer {
 
   public setVisible(visible: boolean): void {
     this.assertAlive();
+    OptionsValidation.boolean(visible, 'Grid visibility');
     this.layer.visibility(visible);
     this.changed();
   }
 
   public setLabelsVisible(visible: boolean): void {
     this.assertAlive();
+    OptionsValidation.boolean(visible, 'Grid visibility');
     this.layer.setLabelsVisible(visible);
     this.changed();
   }
 
   public setDetail(detail: GridDetail): void {
     this.assertAlive();
-    if (!['basic', 'standard', 'detailed'].includes(detail)) {
-      throw new RangeError('Grid detail must be basic, standard, or detailed.');
-    }
+    OptionsValidation.detail(detail);
     this.layer.setDetail(detail);
     this.changed();
   }
 
   public setStyle(style: Partial<GridStyle>): void {
     this.assertAlive();
-    this.validateLengths(style, ['majorWidth', 'minorWidth', 'textFontSize']);
+    OptionsValidation.gridStyle(style);
     const properties = {
       stroke: 'Stroke',
       majorWidth: 'MajorWidth',
