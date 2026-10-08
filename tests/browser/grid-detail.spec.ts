@@ -8,7 +8,10 @@ for (const theme of ['light', 'dark'] as const) {
     await page.setContent('<div id="chart" style="width:600px;height:600px"></div>');
     await loadLibrary(page);
     const results = await page.evaluate((theme) => {
-      const chart = new window.SmithTest.Smith(50, { theme });
+      const chart = new window.SmithTest.Smith({
+        referenceImpedanceOhms: 50,
+        appearance: { theme },
+      });
       chart.draw('#chart');
       chart.peripheralScales.setVisible(false);
       for (const layer of [chart.layers.resistance, chart.layers.reactance]) {

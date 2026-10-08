@@ -28,6 +28,7 @@ test('replacement supports frequency, index, and reflection selection without ch
         visible: false,
         mode: 'line',
       });
+      chart.addMarker(trace);
       const marker = chart.getTraces().at(-1)!.markers[0].id;
       chart.setMarkerSample(marker, 2);
       chart.updateTrace(trace, next, { markerSelection });
@@ -35,6 +36,7 @@ test('replacement supports frequency, index, and reflection selection without ch
       stable.push(chart.getTraces().at(-1)!);
     }
     const trace = chart.addTrace(original);
+    chart.addMarker(trace);
     const marker = chart.getTraces().at(-1)!.markers[0].id;
     chart.setMarkerSample(marker, 2);
     chart.updateTrace(trace, next.slice(0, 2), { markerSelection: 'sample-index' });
@@ -75,6 +77,7 @@ test('frequency ties, duplicates, out-of-range values and invalid updates have d
       [100, [30, 10]],
     ] as const) {
       const trace = chart.addTrace([{ frequencyHz, reflectionCoefficient: [0, 0] }]);
+      chart.addMarker(trace);
       const marker = chart.getTraces().at(-1)!.markers[0].id;
       const samples: import('../../src').TraceSamples = frequencies.map((frequencyHz) => ({
         frequencyHz,
@@ -139,6 +142,7 @@ test('queued marker events coalesce independently, expose latest snapshots, and 
     const trace = chart.addTrace(
       [10, 20, 30].map((frequencyHz, i) => ({ frequencyHz, reflectionCoefficient: [i / 10, 0] })),
     );
+    chart.addMarker(trace);
     const first = chart.getTraces()[0].markers[0].id;
     const second = chart.addMarker(trace)!;
     const removed = chart.addMarker(trace)!;

@@ -1,6 +1,7 @@
-# Public API review for 0.3.0
+# Public API review
 
-This review describes the supported entry point, `smithkit`, after the 0.3.0 release.
+This review describes `smithkit` on the development branch targeting 0.4.0.
+The constructor options and explicit marker creation differ from published 0.3.0.
 The [integration gallery](../examples/README.md) exercises static rendering, marker
 controls, appearance, exports, and lifecycle using only public imports. These
 integrations require no renderer access or additional public API.
@@ -28,6 +29,11 @@ are shared; chart-only options add trace/marker legends and optional radial scal
 Downloads and user interface controls remain consumer responsibilities.
 
 ## Migration
+
+The next minor release replaces positional constructor arguments with `SmithOptions`
+and makes marker creation explicit. See the [0.4 migration guide](migration-0.4.md).
+Shared `grid` defaults precede per-layer overrides; `setGridDetail()` changes all
+four grids together, preserving visibility and styles.
 
 0.3.0 replaces `setMinorVisible(false/true)` with `setDetail('standard'/'detailed')`.
 `'basic'` adds a sparse grid. The default remains `'detailed'`. Class-based changes
@@ -120,5 +126,5 @@ the root demo's source alias is not used in that check.
 - Keep application features such as session storage outside the chart library
   and demonstration pages. No serialization API is required by these examples.
 
-The 0.3.0 API is sufficient for these examples; this review does not declare a
+The API supports these examples without renderer access; this review does not declare a
 1.0 compatibility guarantee or propose another broad refactor.

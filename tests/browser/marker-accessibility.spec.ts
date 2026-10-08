@@ -27,6 +27,7 @@ async function setup(page: Page): Promise<void> {
       })),
       { name: 'Antenna', mode: 'line' },
     );
+    chart.addMarker(trace);
     const marker = chart.getTraces()[0].markers[0].id;
     window.accessibleChart = chart;
     window.accessibleTrace = trace;

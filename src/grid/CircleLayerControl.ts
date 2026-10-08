@@ -29,6 +29,17 @@ export class CircleLayerControl extends LayerControl implements CircleLayer {
     }
   }
 
+  public setValues(values: readonly number[]): void {
+    this.assertAlive();
+    if (!Array.isArray(values)) {
+      throw new TypeError('Circle values must be an array.');
+    }
+    for (const value of values) {
+      this.validateValue(value);
+    }
+    this.layer.setValues(values);
+  }
+
   public addValue(value: number): void {
     this.assertAlive();
     this.validateValue(value);

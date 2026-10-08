@@ -98,6 +98,12 @@ export class ConstQCircles {
     this.drawConstQCircle(Q);
   }
 
+  public setValues(values: readonly number[]): void {
+    this.circles = [...new Set(values)];
+    this.container.Element.selectAll('*').remove();
+    this.drawConstQCircles(this.circles);
+  }
+
   public remove(Q: number): void {
     const index = this.circles.indexOf(Q);
     if (index === -1) {

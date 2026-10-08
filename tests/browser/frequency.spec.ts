@@ -16,6 +16,7 @@ test('frequency selection handles unsorted sweeps, duplicates, ties, bounds, and
         reflectionCoefficient: [i / 10, 0],
       })),
     );
+    chart.addMarker(trace);
     const marker = chart.getTraces()[0].markers[0].id;
     const indices = [20, 25, 0, 100, 19].map((frequency) => {
       chart.setMarkerFrequency(marker, frequency);

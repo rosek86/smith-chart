@@ -1,9 +1,8 @@
 import { Smith, SmithEventType, SmithFormatter } from 'smithkit';
 
-const chart = new Smith(50);
+const chart = new Smith({ referenceImpedanceOhms: 50, peripheralScalesVisible: false });
 chart.draw('#chart');
-chart.peripheralScales.setVisible(false);
-chart.addTrace(
+const traceId = chart.addTrace(
   [
     { frequencyHz: 1e9, reflectionCoefficient: [0.4, -0.4] },
     { frequencyHz: 1.25e9, reflectionCoefficient: [0.1, -0.2] },
@@ -13,7 +12,7 @@ chart.addTrace(
   ],
   { name: 'Antenna', mode: 'both' },
 );
-const markerId = chart.getTraces()[0].markers[0].id;
+const markerId = chart.addMarker(traceId)!;
 const slider = document.querySelector<HTMLInputElement>('#sample')!;
 const output = document.querySelector<HTMLOutputElement>('#reading')!;
 

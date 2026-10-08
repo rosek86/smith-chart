@@ -123,8 +123,8 @@ test('removing a dragged dataset restores the cursor without affecting another c
     const second = new Smith();
     first.draw('#first');
     second.draw('#second');
-    first.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
-    second.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]);
+    first.addMarker(first.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]));
+    second.addMarker(second.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }]));
     const dragEvents: [string, number | undefined][] = [];
     first.onEvent((event) => {
       if (

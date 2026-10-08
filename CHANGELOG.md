@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Breaking (next minor, 0.4.0):** replace the positional `Smith(referenceImpedanceOhms, appearance)` constructor with optional `SmithOptions`, covering reference impedance, appearance, zoom, peripheral scales, shared grid settings, per-layer overrides, and Q/VSWR values. See [the migration guide](docs/migration-0.4.md).
+- **Breaking:** traces no longer create a marker automatically. Use `addMarker(traceId, sampleIndex?)` explicitly; update demo and interactive examples accordingly.
+- Add `Smith.setGridDetail()` to update all four grid layers together and `CircleLayer.setValues()` to replace Q/VSWR values with validation and copied input.
+
 - Add a navigable integration gallery linked from the demo, with runnable static chart, marker, theme, export, and lifecycle examples using the public API; refresh the API review for 0.3.0.
 
 ## 0.3.0 — 2026-10-08

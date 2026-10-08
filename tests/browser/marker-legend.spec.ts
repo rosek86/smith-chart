@@ -11,7 +11,7 @@ test('marker legends identify visible markers, select fields, wrap names, and pr
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const { Smith, SmithScales } = window.SmithTest;
-    const chart = new Smith(50, { theme: 'dark' });
+    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
     chart.draw('#chart');
     const trace = chart.addTrace(
       [
@@ -20,12 +20,15 @@ test('marker legends identify visible markers, select fields, wrap names, and pr
       ],
       { name: 'Antenna <A> & Γ', color: '#ff0000' },
     );
+    chart.addMarker(trace);
     const first = chart.getTraces()[0].markers[0].id;
     const second = chart.addMarker(trace, 1)!;
-    chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }], {
-      name: 'Hidden trace',
-      visible: false,
-    });
+    chart.addMarker(
+      chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }], {
+        name: 'Hidden trace',
+        visible: false,
+      }),
+    );
     const scales = new SmithScales({ theme: 'dark' });
     scales.draw('#scales');
     const before = document.body.innerHTML;
@@ -122,12 +125,14 @@ test('PNG captures marker legend readings at invocation and uses the same text a
   const result = await page.evaluate(async () => {
     const chart = new window.SmithTest.Smith();
     chart.draw('#chart');
-    chart.addTrace(
-      [
-        { frequencyHz: 1e9, reflectionCoefficient: [0, 0] },
-        { frequencyHz: 2e9, reflectionCoefficient: [0.5, 0] },
-      ],
-      { name: 'Antenna' },
+    chart.addMarker(
+      chart.addTrace(
+        [
+          { frequencyHz: 1e9, reflectionCoefficient: [0, 0] },
+          { frequencyHz: 2e9, reflectionCoefficient: [0.5, 0] },
+        ],
+        { name: 'Antenna' },
+      ),
     );
     const root = new DOMParser().parseFromString(
       chart.toSvg({ markerLegend: true }),

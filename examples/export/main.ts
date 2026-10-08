@@ -1,11 +1,12 @@
 import { Smith } from 'smithkit';
 
-const chart = new Smith(50);
+const chart = new Smith({
+  referenceImpedanceOhms: 50,
+  grid: { detail: 'basic' },
+  peripheralScalesVisible: false,
+});
 chart.draw('#chart');
-chart.peripheralScales.setVisible(false);
-chart.layers.resistance.setDetail('basic');
-chart.layers.reactance.setDetail('basic');
-chart.addTrace(
+const traceId = chart.addTrace(
   [
     { frequencyHz: 1e9, reflectionCoefficient: [0.4, -0.4] },
     { frequencyHz: 1.5e9, reflectionCoefficient: [0, 0] },
@@ -13,6 +14,8 @@ chart.addTrace(
   ],
   { name: 'Measured antenna', mode: 'both' },
 );
+
+chart.addMarker(traceId, 1);
 
 const status = document.querySelector<HTMLParagraphElement>('#status')!;
 for (const format of ['svg', 'png'] as const) {

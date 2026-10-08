@@ -8,6 +8,12 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 static charts, marker controls, themes, report exports, and lifecycle cleanup.
 Each example includes its TypeScript source.
 
+The constructor configuration and explicit marker creation below target the next minor
+release (0.4.0, not yet published). For npm 0.3.0, see the
+[released README](https://github.com/rosek86/smithkit/blob/v0.3.0/README.md).
+See the [0.4 migration guide](https://github.com/rosek86/smithkit/blob/main/docs/migration-0.4.md)
+when upgrading.
+
 Upgrading from 0.2.x? Version 0.3.0 replaces `GridLayer.setMinorVisible()` with
 `setDetail('basic' | 'standard' | 'detailed')`. Replace `false` with `'standard'`
 and `true` with `'detailed'`; `'basic'` shows only the principal circles.
@@ -57,7 +63,7 @@ Give the container an explicit size and run the code after it is mounted:
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith(50); // Reference impedance in ohms; defaults to 50.
+const chart = new Smith({ referenceImpedanceOhms: 50 }); // Reference impedance in ohms; defaults to 50.
 chart.draw('#smith');
 const traceId = chart.addTrace(
   [
@@ -74,7 +80,8 @@ coefficient Γ as `[real, imaginary]`. Samples are copied and validated; readonl
 must be finite and non-negative; both coordinates must be finite. A trace must
 contain at least one sample.
 
-Each new trace receives one marker on its first sample. Drag markers to select
+Traces start without markers. Call `chart.addMarker(traceId)` to add one at the
+first sample, or pass a sample index to choose its initial position. Drag markers to select
 samples with a mouse or touch, scroll to zoom, and drag the chart to pan. Markers
 and their focus indicators stay above grid labels and sample points. `chart.resetView()` restores the initial view, including peripheral rulers.
 
@@ -92,7 +99,7 @@ gesture finishes normally.
 ```ts
 import { Smith } from 'smithkit';
 
-const chart = new Smith(50);
+const chart = new Smith({ referenceImpedanceOhms: 50 });
 chart.setZoomEnabled(false);
 chart.draw('#smith');
 ```
@@ -100,6 +107,54 @@ chart.draw('#smith');
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
 event handlers, and cancels queued notifications. Repeated destruction is safe.
+
+## Constructor configuration
+
+`new Smith(options?)` accepts a typed `SmithOptions` object. Every field is optional:
+
+```ts
+import { Smith } from 'smithkit';
+
+const chart = new Smith({
+  referenceImpedanceOhms: 75,
+  appearance: { theme: 'dark' },
+  zoomEnabled: false,
+  peripheralScalesVisible: false,
+  grid: {
+    detail: 'basic',
+    labelsVisible: true,
+    style: { majorWidth: 1.5 },
+  },
+  layers: {
+    resistance: { style: { stroke: '#60a5fa' } },
+    reactance: { labelsVisible: false },
+    conductance: { visible: true, detail: 'standard' },
+    q: { visible: true, values: [1, 2, 5] },
+    vswr: { visible: true, values: [2, 3], style: { stroke: '#fbbf24' } },
+  },
+});
+chart.draw('#smith');
+
+// Update all four grids together, including hidden admittance layers.
+chart.setGridDetail('standard');
+// Individual overrides remain available.
+chart.layers.reactance.setDetail('basic');
+```
+
+Defaults are 50 Ω, the light theme, zoom enabled, peripheral scales visible,
+and detailed grids with labels. Resistance/reactance are visible;
+conductance/susceptance and Q/VSWR circles are hidden. Q defaults to
+`[0.5, 1, 2, 5, 10]`; VSWR defaults to `[1.2, 1.5, 2, 3, 5, 10]`.
+
+Shared `grid` settings apply to all four grids; `layers` overrides individual
+fields afterward. Styles merge by property. Explicit layer styles override theme
+colors and remain in effect when `setAppearance()` changes the theme.
+Options and circle arrays are copied; changing the original object does not update
+the chart. Use the existing chart/layer methods for later changes.
+
+The constructor configures presentation and interaction. Add measurement data with
+`addTrace()` and optional markers with `addMarker()`; no markers are created implicitly.
+Radial parameter scales remain independently mounted `SmithScales` instances.
 
 ### Keyboard and touch markers
 
@@ -127,7 +182,7 @@ there. They survive renaming, hiding, updating samples, and removing other items
 They are not persistent across chart instances or page reloads.
 
 ```ts
-const markerA = chart.getTraces().find((trace) => trace.id === traceId)!.markers[0].id;
+const markerA = chart.addMarker(traceId)!; // First sample.
 const markerB = chart.addMarker(traceId, 2)!; // Zero-based sample index.
 
 chart.setTraceOptions(traceId, { name: 'Tuned antenna', visible: true });
@@ -144,7 +199,7 @@ chart.removeMarker(markerB);
 
 | Method                                | Result / behavior                                                                                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `addTrace(samples, options?)`         | Returns a trace ID. Options: nonblank `name`, solid CSS `color`, and `visible`.                                          |
+| `addTrace(samples, options?)`         | Returns a trace ID, without creating markers. Options: nonblank `name`, solid CSS `color`, and `visible`.                |
 | `getTraces()`                         | Detached `TraceInfo` snapshots: ID, name, color, visibility, sample count, and marker metadata.                          |
 | `setTraceOptions(id, options)`        | Updates the supplied options only. Invalid options throw before any change.                                              |
 | `updateTrace(id, samples, options?)`  | Replaces samples and preserves identity, appearance, and markers. Empty/invalid input throws without changing the trace. |
@@ -243,8 +298,8 @@ queued `Marker` event and do not emit drag lifecycle events.
 Cursor movement is suspended during marker dragging. Drag start/end events fire
 synchronously; marker position notifications are queued and report the latest
 snapshot at delivery. Before delivery, repeated updates to the same marker coalesce
-into one notification; different markers have independent notifications. Creation
-queues an initial marker notification too. Removed markers cannot deliver queued
+into one notification; different markers have independent notifications. `addMarker()`
+queues an initial marker notification too; `addTrace()` does not. Removed markers cannot deliver queued
 position events.
 Trace metadata changes do not emit marker events; refresh metadata after mutations.
 Destruction suppresses application callbacks.
@@ -371,7 +426,7 @@ const appearance: SmithAppearance = {
     traceColors: ['#38bdf8', '#fb923c', '#a78bfa'],
   },
 };
-const chart = new Smith(50, appearance);
+const chart = new Smith({ referenceImpedanceOhms: 50, appearance });
 const scales = new SmithScales(appearance);
 chart.draw('#smith');
 scales.draw('#scales');
@@ -440,7 +495,8 @@ layout raises it when needed to keep the font size at least 9 CSS pixels in the
 default view. Partial updates retain other settings. Invalid numeric styles throw
 before any property is changed.
 
-Choose `setDetail('basic' | 'standard' | 'detailed')` independently for each grid layer:
+Use `chart.setGridDetail('basic' | 'standard' | 'detailed')` for all four grid layers,
+or `layer.setDetail(...)` to override one layer:
 
 - **Basic:** complete circles and arcs for normalized values 0.2, 0.5, 1, 2, and 5,
   with matching axis/rim labels and the zero label. Intended for small or static charts.
@@ -458,7 +514,10 @@ whole-layer visibility changes and is included in SVG exports. Calling
 layout; it does not show a hidden layer. The **Grid labels** checkbox in the demo’s **Chart settings** dialog controls all four grid layers together. Peripheral scale labels are unaffected.
 
 `layers.q` and `layers.vswr` support `setVisible`,
-`setStyle({ stroke?, strokeWidth? })`, `addValue`, and `removeValue`.
+`setStyle({ stroke?, strokeWidth? })`, `setValues`, `addValue`, and `removeValue`.
+`setValues([1, 2, 5])` replaces the entire list; `setValues([])` clears it.
+Input arrays are copied, duplicate values are ignored, and invalid input leaves
+the previous values unchanged.
 Circle stroke widths are positive finite numbers in CSS pixels.
 Q values must be positive and finite; VSWR values must be finite and at least 1.
 Duplicate additions and removal of absent values have no effect.
@@ -568,7 +627,7 @@ import { Smith, Touchstone } from 'smithkit';
 
 async function showMeasurement(file: File): Promise<Smith> {
   const { samples, referenceImpedanceOhms } = Touchstone.parse(await file.text());
-  const chart = new Smith(referenceImpedanceOhms);
+  const chart = new Smith({ referenceImpedanceOhms });
   chart.draw('#smith');
   chart.addTrace(samples, { name: file.name });
   return chart;

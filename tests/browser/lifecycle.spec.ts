@@ -21,8 +21,10 @@ test('mounts by element, moves without duplicating SVG, and validates containers
         return true;
       }
     };
-    const invalid = [0, -1, NaN, Infinity].every((z) => fails(() => new Smith(z)));
-    const chart = new Smith(75);
+    const invalid = [0, -1, NaN, Infinity].every((z) =>
+      fails(() => new Smith({ referenceImpedanceOhms: z })),
+    );
+    const chart = new Smith({ referenceImpedanceOhms: 75 });
     chart.draw(document.getElementById('first')!);
     chart.draw('#first');
     const once = document.querySelectorAll('svg').length;
@@ -50,7 +52,9 @@ test('updates samples and markers, keeps colors, and retains stable IDs after re
     });
     const sample = [{ frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] as [number, number] }];
     const first = chart.addTrace(sample);
+    chart.addMarker(first);
     const second = chart.addTrace([{ frequencyHz: 2e9, reflectionCoefficient: [0, 0] }]);
+    chart.addMarker(second);
     chart.addMarker(second);
     const markers = chart.getTraces()[1].markers.map((m) => m.id);
     const color = document.querySelectorAll('[data-role=samples]')[1].getAttribute('fill');
@@ -147,7 +151,7 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
       const chart = new Smith();
       chart.draw('#first');
       chart.onEvent(() => invalidCalls++);
-      chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
+      chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]));
 
       const nodes = [...document.querySelectorAll('#first svg, #first svg *')];
       chart.destroy();
@@ -168,7 +172,7 @@ test('destroy cancels queued events, releases retained nodes, and leaves other c
         }
       }
     }
-    other.addTrace([{ frequencyHz: 2, reflectionCoefficient: [0, 0] }]);
+    other.addMarker(other.addTrace([{ frequencyHz: 2, reflectionCoefficient: [0, 0] }]));
     other.resetView();
     await new Promise((resolve) => setTimeout(resolve, 20));
     const remaining = document.querySelectorAll('svg').length;
@@ -184,7 +188,7 @@ for (const gesture of ['zoom', 'drag'] as const) {
     await page.evaluate(() => {
       const chart = new window.SmithTest.Smith();
       chart.draw('#first');
-      chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
+      chart.addMarker(chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]));
       (window as typeof window & { destroyChart: () => void }).destroyChart = () => chart.destroy();
     });
     const target =
@@ -232,14 +236,16 @@ test('all markers stay above all sample points after adding and updating dataset
       );
     };
     const first = chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }]);
+    chart.addMarker(first);
     const second = chart.addTrace([{ frequencyHz: 2, reflectionCoefficient: [0, 0.05] }]);
+    chart.addMarker(second);
     recordOrder();
     chart.updateTrace(first, [{ frequencyHz: 3, reflectionCoefficient: [0, 0] }]);
     recordOrder();
     chart.updateTrace(second, [{ frequencyHz: 4, reflectionCoefficient: [0, 0.05] }]);
     recordOrder();
     chart.addMarker(first);
-    chart.addTrace([{ frequencyHz: 5, reflectionCoefficient: [0, 0.05] }]);
+    chart.addMarker(chart.addTrace([{ frequencyHz: 5, reflectionCoefficient: [0, 0.05] }]));
     chart.resetView();
     recordOrder();
     chart.removeTrace(second);
@@ -270,6 +276,7 @@ test('event subscriptions are independent, removable, and cleared on destruction
     const stopA = chart.onEvent(listener);
     const stopB = chart.onEvent(listener);
     const trace = chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0.5, 0] }]);
+    chart.addMarker(trace);
     await new Promise((resolve) => setTimeout(resolve, 20));
     const both = count;
     stopA();
@@ -305,7 +312,7 @@ test('traces share the current view when created before mounting or after zoom a
     const samples: import('../../src').TraceSamples = [
       { frequencyHz: 1e9, reflectionCoefficient: [0.25, 0.1] },
     ];
-    chart.addTrace(samples, { pointRadius: 3 });
+    chart.addMarker(chart.addTrace(samples, { pointRadius: 3 }));
     document.getElementById('first')!.style.width = '320px';
     chart.draw('#first');
     const svg = document.querySelector('#first svg')!;
@@ -321,7 +328,7 @@ test('traces share the current view when created before mounting or after zoom a
       }),
     );
     const zoomed = view.getAttribute('transform') !== initial;
-    chart.addTrace(samples, { pointRadius: 3 });
+    chart.addMarker(chart.addTrace(samples, { pointRadius: 3 }));
     const sizes = () =>
       [...svg.querySelectorAll('[data-role=samples] circle, .marker-hit-area')].map(
         (node) => node.getBoundingClientRect().width,
@@ -336,7 +343,7 @@ test('traces share the current view when created before mounting or after zoom a
     const sameView = view.getAttribute('transform');
     chart.clearTraces();
     const emptied = svg.querySelectorAll('[data-role=samples], [data-role=marker]').length;
-    chart.addTrace(samples, { pointRadius: 3 });
+    chart.addMarker(chart.addTrace(samples, { pointRadius: 3 }));
     const afterClear = sizes();
     const viewPreserved = view.getAttribute('transform') === sameView;
     chart.resetView();

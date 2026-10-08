@@ -37,6 +37,7 @@ test('a fixed view ignores wheel, double click, and pan without blocking marker 
       { frequencyHz: 1, reflectionCoefficient: [0, 0] },
       { frequencyHz: 2, reflectionCoefficient: [0.5, 0] },
     ]);
+    window.zoomChart.addMarker(id);
     const marker = window.zoomChart.getTraces().find((trace) => trace.id === id)!.markers[0].id;
     window.zoomChart.setMarkerSample(marker, 1);
     return {

@@ -39,6 +39,7 @@ test('grid and scale labels stay above geometry after updates, with markers on t
       layer.removeValue(2);
     }
     const trace = chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.2, 0.3] }]);
+    chart.addMarker(trace);
     chart.updateTrace(trace, [{ frequencyHz: 1e9, reflectionCoefficient: [0.4, 0.3] }]);
     scales.update(Complex.from(0.4, 0.3));
     scales.update(null);

@@ -95,6 +95,12 @@ export class ConstSwrCircles {
     this.drawConstSwrCircle(swr);
   }
 
+  public setValues(values: readonly number[]): void {
+    this.circles = [...new Set(values)];
+    this.container.Element.selectAll('*').remove();
+    this.drawConstSwrCircles(this.circles);
+  }
+
   public remove(swr: number): void {
     const index = this.circles.indexOf(swr);
     if (index === -1) {

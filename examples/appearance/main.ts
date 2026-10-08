@@ -1,12 +1,13 @@
 import { Smith } from 'smithkit';
 import type { SmithAppearance } from 'smithkit';
 
-const chart = new Smith(50);
+const chart = new Smith({
+  referenceImpedanceOhms: 50,
+  grid: { detail: 'standard' },
+  peripheralScalesVisible: false,
+});
 chart.draw('#chart');
-chart.peripheralScales.setVisible(false);
-chart.layers.resistance.setDetail('standard');
-chart.layers.reactance.setDetail('standard');
-chart.addTrace(
+const traceId = chart.addTrace(
   [
     { frequencyHz: 1e9, reflectionCoefficient: [0.4, -0.4] },
     { frequencyHz: 1.5e9, reflectionCoefficient: [0, 0] },
@@ -14,6 +15,8 @@ chart.addTrace(
   ],
   { name: 'Antenna', color: '#f97316' },
 );
+
+chart.addMarker(traceId);
 
 const select = document.querySelector<HTMLSelectElement>('#theme')!;
 function applyTheme(): void {

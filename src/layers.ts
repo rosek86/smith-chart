@@ -32,6 +32,8 @@ export interface GridLayer {
 export interface CircleLayer {
   setVisible(visible: boolean): void;
   setStyle(style: Partial<CircleStyle>): void;
+  /** Replace the complete set after validation; duplicates are ignored and empty clears it. */
+  setValues(values: readonly number[]): void;
   addValue(value: number): void;
   removeValue(value: number): void;
 }

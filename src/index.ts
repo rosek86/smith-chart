@@ -43,3 +43,5 @@ export type {
   ScaleImageExportOptions,
   ScaleExportReadout,
 } from './svg/export.js';
+
+export type { SmithOptions, GridOptions, GridLayerOptions, CircleLayerOptions } from './options.js';

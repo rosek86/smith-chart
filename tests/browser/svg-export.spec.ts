@@ -27,9 +27,11 @@ test('SVG export preserves the mounted chart, computed styles, zoom, and text re
       ],
       { mode: 'both' },
     );
+    chart.addMarker(trace);
     const hidden = chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [-0.5, 0] }], {
       visible: false,
     });
+    chart.addMarker(hidden);
     chart.setMarkerSample(chart.getTraces()[0].markers[0].id, 1);
     const svg = document.querySelector<SVGSVGElement>('#chart svg')!;
     svg.dispatchEvent(
@@ -267,12 +269,14 @@ test('standalone SVG paints the same chart as the live view', async ({ page }, t
     const chart = new window.SmithTest.Smith();
     chart.draw('#chart');
     chart.layers.resistance.setStyle({ textColor: '#ab1234', textFontSize: 8 });
-    chart.addTrace(
-      [
-        { frequencyHz: 1, reflectionCoefficient: [0.3, 0.4] },
-        { frequencyHz: 2, reflectionCoefficient: [-0.3, -0.4] },
-      ],
-      { mode: 'both' },
+    chart.addMarker(
+      chart.addTrace(
+        [
+          { frequencyHz: 1, reflectionCoefficient: [0.3, 0.4] },
+          { frequencyHz: 2, reflectionCoefficient: [-0.3, -0.4] },
+        ],
+        { mode: 'both' },
+      ),
     );
     return chart.toSvg();
   });
@@ -339,18 +343,22 @@ test('SVG reports share vertical composition, sizing, backgrounds, and trace leg
   await loadLibrary(page);
   const result = await page.evaluate(() => {
     const { Smith, SmithScales } = window.SmithTest;
-    const chart = new Smith(50, { theme: 'dark' });
+    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
     const scales = new SmithScales({ theme: 'dark' });
     chart.draw('#chart');
     scales.draw('#scales');
-    chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.2, 0.3] }], {
-      name: 'Antenna <test> & Γ',
-      color: 'red',
-    });
-    chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }], {
-      name: 'Hidden',
-      visible: false,
-    });
+    chart.addMarker(
+      chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.2, 0.3] }], {
+        name: 'Antenna <test> & Γ',
+        color: 'red',
+      }),
+    );
+    chart.addMarker(
+      chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }], {
+        name: 'Hidden',
+        visible: false,
+      }),
+    );
     chart.toSvg();
     const before = document.querySelector('#chart')!.innerHTML;
     const source = chart.toSvg({ width: 1000, background: 'white', legend: true, scales });
@@ -403,7 +411,7 @@ test('scale exports override readings and label them without changing the live s
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = new Smith(50, { theme: 'dark' });
+    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
     chart.draw('#chart');
     const scales = new SmithScales({ theme: 'dark' });
     scales.draw('#scales');

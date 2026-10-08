@@ -11,7 +11,7 @@ test('PNG preserves the view, replaces backgrounds, fits dimensions, and adds on
   await loadLibrary(page);
   const result = await page.evaluate(async () => {
     const { Smith, SmithScales, Complex } = window.SmithTest;
-    const chart = new Smith(50, { theme: 'dark' });
+    const chart = new Smith({ referenceImpedanceOhms: 50, appearance: { theme: 'dark' } });
     chart.draw('#chart');
     chart.layers.resistance.setDetail('basic');
     chart.layers.reactance.setDetail('basic');
@@ -20,10 +20,13 @@ test('PNG preserves the view, replaces backgrounds, fits dimensions, and adds on
       name: 'Antenna Γ <test> — a long trace name '.repeat(3),
       color: '#ff0000',
     });
-    chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] }], {
-      name: 'Hidden trace',
-      visible: false,
-    });
+    chart.addMarker(trace);
+    chart.addMarker(
+      chart.addTrace([{ frequencyHz: 1e9, reflectionCoefficient: [0.5, 0] }], {
+        name: 'Hidden trace',
+        visible: false,
+      }),
+    );
     const scales = new SmithScales({ theme: 'dark' });
     scales.draw('#scales');
     scales.update(Complex.from(0.2, 0.3));

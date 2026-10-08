@@ -62,7 +62,30 @@ const readonlySamples: TraceSamples = immutableSamples;
 Complex.from(immutableSamples[0].reflectionCoefficient);
 void readonlySamples;
 const parsed: TouchstoneData = Touchstone.parse('# GHz S RI R 50\\n1 0 0');
-const chart = new Smith(parsed.referenceImpedanceOhms);
+import type { SmithOptions, GridOptions, GridLayerOptions, CircleLayerOptions } from 'smithkit';
+const grid: GridOptions = { detail: 'basic', labelsVisible: true };
+const gridLayer: GridLayerOptions = { visible: true, style: { majorWidth: 2 } };
+const circles: CircleLayerOptions = { values: [1, 2] as const, visible: true };
+const configuration: SmithOptions = {
+  referenceImpedanceOhms: parsed.referenceImpedanceOhms,
+  appearance: { theme: 'dark' }, zoomEnabled: false, peripheralScalesVisible: false,
+  grid, layers: { resistance: gridLayer, q: circles, vswr: { values: [] } },
+};
+const chart = new Smith(configuration);
+new Smith();
+new Smith({});
+chart.setGridDetail('basic');
+chart.layers.q.setValues([1, 2] as const);
+// @ts-expect-error Positional constructor arguments are no longer supported.
+new Smith(50);
+// @ts-expect-error Unknown detail levels must not compile.
+new Smith({ grid: { detail: 'sparse' } });
+// @ts-expect-error Grid and circle layer options are distinct.
+new Smith({ layers: { q: { detail: 'basic' } } });
+// @ts-expect-error Shared detail accepts only documented levels.
+chart.setGridDetail('sparse');
+// @ts-expect-error Circle values are numeric.
+chart.layers.vswr.setValues(['2']);
 const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true, mode: 'both', lineWidth: 2, pointRadius: 3 };
 const traceId: string = chart.addTrace(samples, options);
 const traces: TraceInfo[] = chart.getTraces();
