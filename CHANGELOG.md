@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 — 2026-10-08
+
 - Add optional SVG/PNG marker legends with trace colors/names, marker numbers, selectable readings and markers, wrapped descriptions, and independent controls in the demo export dialog.
 
 - Select a specific marker or no readings for demo scale exports, with trace, marker, and frequency printed in the image; add independent scale readout overrides for SVG/PNG exports.
@@ -14,7 +16,7 @@
 - Add `GridLayer.setLabelsVisible(boolean)` and a shared demo checkbox to toggle grid labels independently of grid lines, preserving the setting across updates and SVG export.
 
 - Add basic, standard, and detailed impedance/admittance grids, with principal circles and matching labels in basic mode and a shared demo selector.
-- **Breaking (next minor release):** replace `GridLayer.setMinorVisible(boolean)` with `setDetail('basic' | 'standard' | 'detailed')`. Migrate `false` to `'standard'` and `true` to `'detailed'`; the default remains detailed.
+- **Breaking:** replace `GridLayer.setMinorVisible(boolean)` with `setDetail('basic' | 'standard' | 'detailed')`. Migrate `false` to `'standard'` and `true` to `'detailed'`; the default remains detailed.
 
 - Add shared light/dark appearance presets and typed overrides for charts, scales, cursors, markers, and automatic trace palettes, with live updates and a demo theme selector.
 - Preserve configured backgrounds and resolved theme styling in standalone SVG exports.

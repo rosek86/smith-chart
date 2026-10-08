@@ -52,7 +52,7 @@ archive path after `--`, so release checks can reuse exactly the archive being s
 
 From a clean committed checkout, run `npm run prepare:release` for all source checks,
 both demo browser suites, package-consumer checks, and the standalone example. It
-writes `artifacts/smithkit-0.2.0.tgz` and `artifacts/release-manifest.json`, containing
+writes `artifacts/smithkit-0.3.0.tgz` and `artifacts/release-manifest.json`, containing
 the commit, SHA-256, npm integrity, and archive sizes. Nothing is published.
 Install Chromium and WebKit first with `npx playwright install chromium webkit`.
 `PLAYWRIGHT_CHANNEL=chrome` can select installed Chrome for local checks; the script
@@ -224,11 +224,9 @@ publishing; publisher configuration and the release procedure are described in
 - Reference impedances are positive real ohm values. Complex reference impedances,
   multiport data, and Touchstone 2.x are not supported. The demo can renormalize
   imported data and existing traces using the public library helpers.
-- The separate legacy `smith-app-ng` application needs its own Angular, D3, and
-  TypeScript migration before consuming this library version.
 
 ## Demo hosting
 
 The demo is published from this repository to https://rosek86.github.io/smithkit/
-using GitHub Pages. See [docs/deployment.md](docs/deployment.md) for workflow setup,
-verification, and migration from the previous hosting repository.
+using GitHub Pages. See [docs/deployment.md](docs/deployment.md) for workflow setup
+and verification.
