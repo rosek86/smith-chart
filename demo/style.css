@@ -536,7 +536,8 @@ footer {
   }
 }
 
-#image-export-form > label:not([hidden]) {
+#image-export-form > label:not([hidden]),
+#image-readout-settings > label {
   display: block;
   margin: 16px 0 8px;
 }
