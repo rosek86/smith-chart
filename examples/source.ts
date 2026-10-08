@@ -6,7 +6,7 @@ export function showSource(source: string): void {
   const markup = document.querySelector('.preview')!.cloneNode(true) as HTMLElement;
   const chart = markup.querySelector('#chart')!;
   chart.replaceChildren();
-  chart.setAttribute('style', 'width: 100%; max-width: 520px; aspect-ratio: 1');
+  chart.setAttribute('style', 'width: 100%; max-width: 520px; aspect-ratio: 1; background: white');
   const output = markup.querySelector('output');
   if (output) {
     output.replaceChildren();

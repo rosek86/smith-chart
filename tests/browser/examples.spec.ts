@@ -81,3 +81,59 @@ test('report example downloads SVG and PNG without demo helpers', async ({ page 
     }
   }
 });
+
+test('example grid labels contrast with their actual background in light and dark themes', async ({
+  page,
+}) => {
+  const contrast = () =>
+    page.locator('#chart').evaluate((host) => {
+      const svg = host.querySelector('svg')!;
+      const label = [
+        ...host.querySelectorAll<SVGTextElement>('[data-label-layer=resistance] text'),
+      ].find(
+        (node) =>
+          node.getBoundingClientRect().width > 0 && getComputedStyle(node).visibility === 'visible',
+      );
+      if (!label) {
+        throw new Error('No visible resistance labels');
+      }
+      const svgBackground = getComputedStyle(svg).backgroundColor;
+      const background =
+        svgBackground === 'rgba(0, 0, 0, 0)' || svgBackground === 'transparent'
+          ? getComputedStyle(host).backgroundColor
+          : svgBackground;
+      if (background === 'rgba(0, 0, 0, 0)' || background === 'transparent') {
+        throw new Error('A light chart needs an explicit host background');
+      }
+      const luminance = (color: string) => {
+        const channels = color
+          .match(/[\d.]+/g)!
+          .slice(0, 3)
+          .map(Number)
+          .map((value) => {
+            const normalized = value / 255;
+            return normalized <= 0.04045
+              ? normalized / 12.92
+              : ((normalized + 0.055) / 1.055) ** 2.4;
+          });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const text = luminance(getComputedStyle(label).fill);
+      const surface = luminance(background);
+      return (Math.max(text, surface) + 0.05) / (Math.min(text, surface) + 0.05);
+    });
+  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic']) {
+    await page.goto(`examples/${slug}/index.html`);
+    await expect(page.locator('#chart svg')).toHaveCount(1);
+    expect(await contrast()).toBeGreaterThanOrEqual(4.5);
+    if (slug === 'static') {
+      await page.screenshot({ path: 'test-results/examples-static-labels.png' });
+    }
+    if (slug === 'appearance') {
+      await page.locator('#theme').selectOption('dark');
+      expect(await contrast()).toBeGreaterThanOrEqual(4.5);
+      await page.locator('#theme').selectOption('light');
+      expect(await contrast()).toBeGreaterThanOrEqual(4.5);
+    }
+  }
+});

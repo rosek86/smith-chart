@@ -94,6 +94,7 @@ footer {
   max-width: 520px;
   aspect-ratio: 1;
   margin: 0 auto 24px;
+  background: white;
 }
 button,
 select {

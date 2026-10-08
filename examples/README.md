@@ -23,7 +23,10 @@ npm run dev
 installed `smithkit` package and has no aliases to repository source. The basic
 example also remains runnable independently from its own directory.
 
-The pages use ordinary HTML elements and containers with an explicit size. For
+The pages use ordinary HTML elements and containers with an explicit size. A white
+host background keeps the light theme's dark labels readable: the light preset's
+SVG background is transparent. The dark preset supplies its own opaque background.
+For
 framework integration, create the chart after mounting the host element, retain
 returned IDs/subscriptions, and call the unsubscribe functions and `destroy()`
 when unmounting. The lifecycle example shows this explicitly. The other examples
