@@ -25,9 +25,9 @@ const settingsButton = element<HTMLButtonElement>('open-settings');
 settingsButton.addEventListener('click', () => settingsDialog.showModal());
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
-const smith = new Smith(50);
+const smith = new Smith(50, { theme: 'dark' });
 smith.draw('#smith');
-const scales = new SmithScales();
+const scales = new SmithScales({ theme: 'dark' });
 scales.draw('#smith-scales');
 
 element<HTMLSelectElement>('theme').addEventListener('change', (event) => {
@@ -78,69 +78,62 @@ gridDetail.addEventListener('change', updateGridDetail);
 updateGridDetail();
 
 element('reset-view').addEventListener('click', () => smith.resetView());
-element('export-chart').addEventListener('click', () => {
-  FileDownload.save(
-    new Blob([smith.toSvg()], { type: 'image/svg+xml;charset=utf-8' }),
-    'smith-chart.svg',
-  );
+const exportDialog = element<HTMLDialogElement>('image-export');
+const exportButton = element<HTMLButtonElement>('open-image-export');
+const exportForm = element<HTMLFormElement>('image-export-form');
+const exportTarget = element<HTMLSelectElement>('image-target');
+const exportBackground = element<HTMLSelectElement>('image-background');
+const exportLegend = element<HTMLInputElement>('image-legend');
+exportButton.addEventListener('click', () => exportDialog.showModal());
+exportDialog.addEventListener('close', () => exportButton.focus({ preventScroll: true }));
+exportTarget.addEventListener('change', () => {
+  exportLegend.disabled = exportTarget.value === 'scales';
 });
-element('export-scales').addEventListener('click', () => {
-  FileDownload.save(
-    new Blob([scales.toSvg()], { type: 'image/svg+xml;charset=utf-8' }),
-    'smith-scales.svg',
-  );
+exportBackground.addEventListener('change', () => {
+  element('image-custom-background').hidden = exportBackground.value !== 'custom';
 });
-
-const pngDialog = element<HTMLDialogElement>('png-export');
-const pngButton = element<HTMLButtonElement>('open-png-export');
-const pngForm = element<HTMLFormElement>('png-export-form');
-const pngTarget = element<HTMLSelectElement>('png-target');
-const pngBackground = element<HTMLSelectElement>('png-background');
-const pngLegend = element<HTMLInputElement>('png-legend');
-pngButton.addEventListener('click', () => pngDialog.showModal());
-pngDialog.addEventListener('close', () => pngButton.focus({ preventScroll: true }));
-pngTarget.addEventListener('change', () => {
-  pngLegend.disabled = pngTarget.value === 'scales';
-});
-pngBackground.addEventListener('change', () => {
-  element('png-custom-background').hidden = pngBackground.value !== 'custom';
-});
-pngForm.addEventListener('submit', async (event) => {
+exportForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const download = element<HTMLButtonElement>('download-png');
-  const output = element('png-status');
+  const download = element<HTMLButtonElement>('download-image');
+  const output = element('image-status');
   const dimension = (id: string) => {
     const input = element<HTMLInputElement>(id);
     return input.value === '' ? undefined : input.valueAsNumber;
   };
   const options = {
-    width: dimension('png-width'),
-    height: dimension('png-height'),
+    width: dimension('image-width'),
+    height: dimension('image-height'),
     background:
-      pngBackground.value === 'current'
+      exportBackground.value === 'current'
         ? undefined
-        : pngBackground.value === 'custom'
-          ? element<HTMLInputElement>('png-color').value
-          : pngBackground.value,
+        : exportBackground.value === 'custom'
+          ? element<HTMLInputElement>('image-color').value
+          : exportBackground.value,
   };
-  const target = pngTarget.value;
+  const target = exportTarget.value;
+  const format = element<HTMLSelectElement>('image-format').value;
+  const chartOptions = {
+    ...options,
+    legend: exportLegend.checked,
+    scales: target === 'combined' ? scales : undefined,
+  };
   download.disabled = true;
-  output.textContent = 'Preparing PNG…';
+  output.textContent = `Preparing ${format.toUpperCase()}…`;
   output.dataset.error = 'false';
   try {
     const blob =
-      target === 'scales'
-        ? await scales.toPng(options)
-        : await smith.toPng({
-            ...options,
-            legend: pngLegend.checked,
-            scales: target === 'combined' ? scales : undefined,
-          });
-    const filename = target === 'combined' ? 'smith-report.png' : `smith-${target}.png`;
+      format === 'svg'
+        ? new Blob([target === 'scales' ? scales.toSvg(options) : smith.toSvg(chartOptions)], {
+            type: 'image/svg+xml;charset=utf-8',
+          })
+        : target === 'scales'
+          ? await scales.toPng(options)
+          : await smith.toPng(chartOptions);
+    const filename = `${target === 'combined' ? 'smith-report' : `smith-${target}`}.${format}`;
     FileDownload.save(blob, filename);
     output.textContent = `Saved ${filename}.`;
   } catch (error) {
-    output.textContent = error instanceof Error ? error.message : 'Could not export PNG.';
+    output.textContent = error instanceof Error ? error.message : 'Could not export image.';
     output.dataset.error = 'true';
   } finally {
     download.disabled = false;

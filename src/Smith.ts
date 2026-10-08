@@ -1,5 +1,5 @@
-import { PngExporter } from './svg/PngExporter.js';
-import type { SmithPngExportOptions } from './svg/png.js';
+import { ImageExporter } from './svg/ImageExporter.js';
+import type { SmithImageExportOptions } from './svg/export.js';
 import { Theme } from './appearance/Theme.js';
 import type { SmithAppearance, SmithTheme } from './appearance/types.js';
 import { color as parseColor } from 'd3';
@@ -97,28 +97,34 @@ export class Smith {
   }
 
   /** Export the current mounted view as standalone SVG with its configured background. */
-  public toSvg(): string {
+  public toSvg(options?: SmithImageExportOptions): string {
     this.assertAlive();
-    return this.renderer.toSvg();
+    const source = this.renderer.toSvg();
+    if (options === undefined) {
+      return source;
+    }
+    const sources = [source];
+    if (options.scales) {
+      sources.push(options.scales.toSvg());
+    }
+    return ImageExporter.svg(sources, options, options.legend ? this.exportLegend() : undefined);
+  }
+
+  private exportLegend() {
+    return {
+      entries: this.getTraces().filter((trace) => trace.visible),
+      textColor: this.theme.grid.textColor,
+      fontFamily: this.theme.fontFamily,
+    };
   }
 
   /** Export the mounted view as PNG, optionally with radial scales and a trace legend. */
-  public async toPng(options: SmithPngExportOptions = {}): Promise<Blob> {
+  public async toPng(options: SmithImageExportOptions = {}): Promise<Blob> {
     const sources = [this.toSvg()];
     if (options.scales) {
       sources.push(options.scales.toSvg());
     }
-    return PngExporter.create(
-      sources,
-      options,
-      options.legend
-        ? {
-            entries: this.getTraces().filter((trace) => trace.visible),
-            textColor: this.theme.grid.textColor,
-            fontFamily: this.theme.fontFamily,
-          }
-        : undefined,
-    );
+    return ImageExporter.png(sources, options, options.legend ? this.exportLegend() : undefined);
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */

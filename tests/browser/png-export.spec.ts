@@ -203,19 +203,20 @@ test('demo downloads a combined report with the requested size, background, and 
 }) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'Load sample trace' }).click();
-  await page.getByRole('button', { name: 'Export PNG', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Export PNG', exact: true });
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Export', exact: true });
   await dialog.getByLabel('Include', { exact: true }).selectOption('scales');
   await expect(dialog.getByLabel('Include visible trace legend')).toBeDisabled();
   await dialog.getByLabel('Include', { exact: true }).selectOption('combined');
   await expect(dialog.getByLabel('Include visible trace legend')).toBeEnabled();
+  await expect(dialog.getByLabel('Width (px)')).toHaveValue('3200');
   await dialog.getByLabel('Width (px)').fill('1200');
-  await dialog.getByLabel('Height (px)').fill('700');
+  await dialog.getByLabel('Height (px)').fill('1600');
   await dialog.getByLabel('Background', { exact: true }).selectOption('custom');
-  await dialog.getByLabel('Background color').fill('#ffffff');
+  await dialog.getByLabel('Background color').fill('#0f172a');
   await page.screenshot({ path: 'test-results/png-export-dialog.png' });
   const downloading = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: 'Download PNG' }).click();
+  await dialog.getByRole('button', { name: 'Download' }).click();
   const download = await downloading;
   expect(download.suggestedFilename()).toBe('smith-report.png');
   const path = 'test-results/smith-report.png';
@@ -226,11 +227,59 @@ test('demo downloads a combined report with the requested size, background, and 
     chunks.push(Buffer.from(chunk));
   }
   const image = PNG.sync.read(Buffer.concat(chunks));
-  expect([image.width, image.height]).toEqual([1200, 700]);
-  expect([...image.data.slice(0, 4)]).toEqual([255, 255, 255, 255]);
+  expect([image.width, image.height]).toEqual([1200, 1600]);
+  expect([...image.data.slice(0, 4)]).toEqual([15, 23, 42, 255]);
   await expect(dialog.getByRole('status')).toContainText('Saved smith-report.png');
+  await dialog.getByLabel('Format', { exact: true }).selectOption('svg');
+  await expect(dialog.getByLabel('Width (px)')).toHaveValue('1200');
+  await expect(dialog.getByLabel('Include', { exact: true })).toHaveValue('combined');
+  const svgDownloading = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: 'Download', exact: true }).click();
+  const svgDownload = await svgDownloading;
+  expect(svgDownload.suggestedFilename()).toBe('smith-report.svg');
+  await expect(dialog.getByRole('status')).toContainText('Saved smith-report.svg');
   await page.setViewportSize({ width: 360, height: 640 });
   expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: 'Export PNG', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Export', exact: true })).toBeFocused();
+});
+
+test('combined PNG centers differently sized chart and scales in a vertical layout', async ({
+  page,
+}) => {
+  await page.setContent(
+    '<div id="chart" style="width:300px;height:300px"></div><div id="scales" style="width:500px"></div>',
+  );
+  await loadLibrary(page);
+  const result = await page.evaluate(async () => {
+    const chart = new window.SmithTest.Smith();
+    const scales = new window.SmithTest.SmithScales();
+    chart.draw('#chart');
+    scales.draw('#scales');
+    const draw = CanvasRenderingContext2D.prototype.drawImage;
+    const positions: { x: number; y: number; width: number; height: number }[] = [];
+    CanvasRenderingContext2D.prototype.drawImage = function (
+      image: CanvasImageSource,
+      ...coordinates: number[]
+    ) {
+      const [x, y, width, height] = coordinates;
+      positions.push({ x, y, width, height });
+      Reflect.apply(draw, this, [image, ...coordinates]);
+    };
+    try {
+      const blob = await chart.toPng({ scales, width: 1000 });
+      const image = await createImageBitmap(blob);
+      const dimensions = { width: image.width, height: image.height };
+      image.close();
+      return { positions, dimensions };
+    } finally {
+      CanvasRenderingContext2D.prototype.drawImage = draw;
+    }
+  });
+  expect(result.positions).toHaveLength(2);
+  const [chart, scales] = result.positions;
+  expect(chart).toEqual({ x: 100, y: 0, width: 300, height: 300 });
+  expect(scales).toMatchObject({ x: 0, y: 324, width: 500 });
+  expect(chart.x + chart.width / 2).toBe(scales.x + scales.width / 2);
+  expect(result.dimensions).toEqual({ width: 1000, height: Math.round((324 + scales.height) * 2) });
 });

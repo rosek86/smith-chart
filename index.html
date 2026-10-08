@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,15 +30,13 @@
         </button>
         <button id="reset-view" type="button">Reset view</button>
         <button
-          id="open-png-export"
+          id="open-image-export"
           type="button"
           aria-haspopup="dialog"
-          aria-controls="png-export"
+          aria-controls="image-export"
         >
-          Export PNG
+          Export
         </button>
-        <button id="export-chart" type="button">Export chart SVG</button>
-        <button id="export-scales" type="button">Export scales SVG</button>
       </div>
       <div class="workspace">
         <div class="chart-column">
@@ -177,7 +175,7 @@
           <label for="theme">Theme</label>
           <select id="theme">
             <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="dark" selected>Dark</option>
           </select>
         </div>
       </fieldset>
@@ -218,36 +216,45 @@
         <p id="reference-status" class="hint" role="status" aria-live="polite"></p>
       </fieldset>
     </dialog>
-    <dialog id="png-export" aria-labelledby="png-export-title" aria-describedby="png-export-help">
+    <dialog
+      id="image-export"
+      aria-labelledby="image-export-title"
+      aria-describedby="image-export-help"
+    >
       <div class="settings-heading">
-        <h2 id="png-export-title">Export PNG</h2>
+        <h2 id="image-export-title">Export</h2>
         <form method="dialog"><button type="submit" autofocus>Close</button></form>
       </div>
-      <p id="png-export-help" class="hint">
+      <p id="image-export-help" class="hint">
         Save the current view for a report. Colors and label detail follow the chart's current
-        settings.
+        settings. Use the Light theme for a white report background.
       </p>
-      <form id="png-export-form">
-        <label for="png-target">Include</label>
-        <select id="png-target">
+      <form id="image-export-form">
+        <label for="image-format">Format</label>
+        <select id="image-format">
+          <option value="png">PNG</option>
+          <option value="svg">SVG</option>
+        </select>
+        <label for="image-target">Include</label>
+        <select id="image-target">
           <option value="chart">Chart</option>
           <option value="scales">Parameter scales</option>
           <option value="combined">Chart and scales</option>
         </select>
-        <div class="png-dimensions">
-          <label for="png-width"
+        <div class="image-dimensions">
+          <label for="image-width"
             >Width (px)<input
-              id="png-width"
+              id="image-width"
               type="number"
               min="1"
               max="8192"
               step="1"
-              value="1600"
+              value="3200"
               placeholder="Auto"
           /></label>
-          <label for="png-height"
+          <label for="image-height"
             >Height (px)<input
-              id="png-height"
+              id="image-height"
               type="number"
               min="1"
               max="8192"
@@ -257,23 +264,23 @@
         </div>
         <p class="hint">
           Leave one dimension empty to preserve proportions. With both dimensions set, the image
-          fits without cropping. Maximum: 8192 px per side and 16 megapixels.
+          fits without cropping. Maximum: 8192 px per side and 32 megapixels.
         </p>
-        <label for="png-background">Background</label>
-        <select id="png-background">
+        <label for="image-background">Background</label>
+        <select id="image-background">
           <option value="current">Current theme</option>
           <option value="white">White</option>
           <option value="transparent">Transparent</option>
           <option value="custom">Custom color</option>
         </select>
-        <label id="png-custom-background" for="png-color" hidden
-          >Background color <input id="png-color" type="color" value="#ffffff"
+        <label id="image-custom-background" for="image-color" hidden
+          >Background color <input id="image-color" type="color" value="#ffffff"
         /></label>
-        <label class="png-legend"
-          ><input id="png-legend" type="checkbox" checked /> Include visible trace legend</label
+        <label class="image-legend"
+          ><input id="image-legend" type="checkbox" checked /> Include visible trace legend</label
         >
-        <button id="download-png" type="submit">Download PNG</button>
-        <p id="png-status" class="hint" role="status" aria-live="polite"></p>
+        <button id="download-image" type="submit">Download</button>
+        <p id="image-status" class="hint" role="status" aria-live="polite"></p>
       </form>
     </dialog>
     <script type="module" src="/demo/main.ts"></script>

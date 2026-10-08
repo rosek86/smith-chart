@@ -133,7 +133,9 @@ test('demo selector applies all three levels to both grids and exports the basic
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.screenshot({ path: 'test-results/basic-admittance-dark.png', fullPage: true });
   const download = page.waitForEvent('download');
-  await page.locator('#export-chart').click();
+  await page.getByRole('button', { name: 'Export', exact: true }).click();
+  await page.getByLabel('Format', { exact: true }).selectOption('svg');
+  await page.getByRole('button', { name: 'Download', exact: true }).click();
   const file = await download;
   const stream = await file.createReadStream();
   const chunks: Buffer[] = [];

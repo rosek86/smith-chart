@@ -112,12 +112,12 @@ when a palette changes. Appearance updates remeasure grid labels without rebuild
 the SVG or resetting the view. The exporter resolves the tokens and includes the
 configured background in standalone files.
 
-## PNG reports
+## Image reports
 
 `Smith.toPng` and `SmithScales.toPng` capture the existing standalone SVG snapshots
-and pass them to the internal `svg/PngExporter`. It rasterizes the snapshots into a
-detached Canvas 2D, composes optional radial scales and a visible-trace legend, and
-returns a PNG Blob. Explicit export backgrounds replace the marked SVG background
+and pass them to the internal `svg/ImageExporter`. It shares report layout between vector SVG composition and rasterization into a
+detached Canvas 2D, stacks optional radial scales centered below the chart and appends a visible-trace legend, and
+returns a PNG Blob or a standalone SVG string. Explicit export backgrounds replace the marked SVG background
 rectangles in the copies. Export dimensions affect only the output image; live SVG
 nodes, chart state, and label density stay unchanged. The demo owns download links
 and export controls, while the library owns image composition and encoding.

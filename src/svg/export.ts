@@ -1,7 +1,7 @@
 import type { SmithScales } from '../scales/SmithScales.js';
 
-export interface PngExportOptions {
-  /** Output pixels. With only one dimension, preserve the complete image's aspect ratio. */
+export interface ImageExportOptions {
+  /** Output pixels. Default: the snapshot dimensions. With only one dimension, preserve the complete image's aspect ratio. */
   width?: number;
   /** With both dimensions, center and fit the image without stretching or cropping. */
   height?: number;
@@ -9,9 +9,9 @@ export interface PngExportOptions {
   background?: string;
 }
 
-export interface SmithPngExportOptions extends PngExportOptions {
+export interface SmithImageExportOptions extends ImageExportOptions {
   /** Include a footer with the names and colors of visible traces. Default: false. */
   legend?: boolean;
-  /** Include mounted radial scales beside the chart, preserving their current layout/readings. */
+  /** Include mounted radial scales centered below the chart, preserving their current layout/readings. */
   scales?: SmithScales;
 }

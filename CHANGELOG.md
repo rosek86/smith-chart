@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Add PNG export for charts and radial scales with configurable dimensions/backgrounds, an optional visible-trace legend, and combined report images; expose these options in the demo export dialog.
+- Add PNG export for charts and radial scales with configurable dimensions/backgrounds, an optional visible-trace legend, and combined report images with scales centered below the chart; default to 3200 px width in the demo and share PNG/SVG options in one Export dialog.
+- Start the demo in dark mode; allow SVG reports to use the same size, background, legend, and combined layout options as PNG.
 
 - Group demo appearance, layers, grid detail, labels, and reference impedance in an accessible Chart settings dialog.
 

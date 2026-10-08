@@ -573,7 +573,7 @@ use `RfCalculations.renormalizeSamples` when the file reference differs from
 `chart.referenceImpedanceOhms`. The parser itself does not renormalize data.
 Multiport data and Touchstone 2.x are not supported.
 
-## PNG export
+## PNG and report export
 
 `chart.toPng(options?)` and `scales.toPng(options?)` return `Promise<Blob>` with MIME
 type `image/png`. Call them in a browser after mounting the components at non-zero
@@ -585,7 +585,7 @@ import { SmithScales } from 'smithkit';
 
 const scales = new SmithScales();
 scales.draw('#scales');
-const png = await chart.toPng({ width: 1600, background: 'white', legend: true });
+const png = await chart.toPng({ width: 3200, background: 'white', legend: true });
 // Use the Blob with your application's download, preview, or upload flow.
 const report = await chart.toPng({ width: 2400, scales, legend: true });
 const scalePng = await scales.toPng({ width: 1200, background: 'transparent' });
@@ -600,23 +600,25 @@ const scalePng = await scales.toPng({ width: 1200, background: 'transparent' });
   configured; choose a suitable chart theme for your report background.
 - `legend` (chart only): append the names and colors of visible traces. Long names
   wrap; hidden traces are omitted. Default: `false`.
-- `scales` (chart only): a mounted `SmithScales` instance to place beside the chart.
+- `scales` (chart only): a mounted `SmithScales` instance to place centered below the chart.
   Its current responsive layout and readings are preserved. Update scales with
   the selected marker before export if the report should include marker readings.
 
-Dimensions must be positive integers, at most 8192 px per side and 16 megapixels
+Dimensions must be positive integers, at most 8192 px per side and 32 megapixels
 in total. Invalid options and unavailable/destroyed components reject the promise.
 PNG export uses browser SVG decoding and Canvas 2D and releases temporary image URLs.
 Fonts must be available to the browser; external font files are not embedded.
 Export size increases resolution; it does not change the current label density.
 
-The demo's **Export PNG** dialog supports chart, scales, or a combined report,
-custom dimensions/background, and the optional trace legend. Existing SVG downloads
-remain available separately.
+The demo's **Export** dialog supports chart, scales, or a combined report,
+custom dimensions/background, and the optional trace legend. The default output width is 3200 px. Choose PNG or SVG in the same dialog; both formats support these report options. The demo starts in dark mode.
 
 ## SVG export
 
-`chart.toSvg()` and `scales.toSvg()` return SVG strings. Call them after `draw()`
+`chart.toSvg(options?)` and `scales.toSvg(options?)` return SVG strings synchronously.
+They accept the same `SmithImageExportOptions` / `ImageExportOptions` as PNG export,
+including size, background, legend, and scales. Omitting options preserves the
+original standalone SVG snapshot. Call them after `draw()`
 while the component is mounted and has a non-zero rendered size; exporting before
 mounting, from a `display: none` container, or after destruction throws an error.
 
@@ -646,7 +648,7 @@ styles are inlined so the application's stylesheet is not required. Text remains
 editable, and curved captions retain their internal path references. Font files
 and surrounding HTML controls/backgrounds are not embedded. Downloading is the
 consumer's responsibility; the library does not create files or modify live nodes.
-The demo provides separate **Export chart SVG** and **Export scales SVG** buttons.
+In the demo, choose **Export → Format → SVG**, then select chart, scales, or the combined report.
 
 ## Development and license
 
