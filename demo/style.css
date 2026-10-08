@@ -568,3 +568,22 @@ footer {
 #image-status:empty {
   display: none;
 }
+
+select,
+#marker-select,
+.settings-select select,
+.comparison-selectors select,
+#image-export-form select {
+  appearance: none;
+  padding-right: 32px;
+  background-color: var(--surface);
+  color: var(--text);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 16px center,
+    right 11px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
