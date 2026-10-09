@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-10-09
 
 - Add Touchstone 1.x `.s2p` import with explicit S11/S22 selection and direct packed `Float64Array` output, keeping object samples as the default. Add `.s1p` serialization in Hz/RI, packed sample renormalization, demo import controls, and a downloadable Touchstone integration example.
 

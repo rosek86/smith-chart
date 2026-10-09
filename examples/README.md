@@ -16,20 +16,17 @@ the TypeScript it executes, rather than a separately maintained snippet.
 
 Use Node.js 24 and npm. This directory can be copied into a separate project.
 
-The compact-input examples and Touchstone example require the current
-local package until those additions are released. To run this gallery now:
+Install the published package and start the gallery:
 
 ```sh
-# From the repository root:
-npm pack
 cd examples
 npm install
-npm install --no-save --package-lock=false ../smithkit-0.4.0.tgz
 npm run dev
 ```
 
-Use the archive's absolute path when running a copied gallery. The declared
-`smithkit@^0.4.0` dependency alone does not yet include compact trace inputs.
+To test local library changes, run `npm pack` from the repository root, then
+`npm install --no-save --package-lock=false ../smithkit-0.5.0.tgz` in `examples`.
+Use the archive's absolute path when running a copied gallery.
 
 `npm run build` creates the complete standalone gallery in `dist/`. It imports the
 installed `smithkit` package and has no aliases to repository source. The basic
