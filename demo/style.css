@@ -587,8 +587,11 @@ select,
 .settings-select select,
 .comparison-selectors select,
 #image-export-form select {
+  -webkit-appearance: none;
   appearance: none;
-  padding-right: 32px;
+  box-sizing: border-box;
+  line-height: 1.4;
+  padding-right: 36px;
   background-color: var(--surface);
   color: var(--text);
   background-image:
@@ -599,6 +602,8 @@ select,
     right 11px center;
   background-size: 5px 5px;
   background-repeat: no-repeat;
+  background-origin: padding-box;
+  background-clip: padding-box;
 }
 
 #image-marker-legend-settings[hidden] {
