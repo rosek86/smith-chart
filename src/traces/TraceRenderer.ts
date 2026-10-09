@@ -1,8 +1,8 @@
-import { line } from 'd3';
+import { pathRound } from 'd3';
 import { SmithGroup } from '../svg/SmithGroup.js';
 import { SmithScaler } from '../svg/SmithScaler.js';
 import type { TraceStyle } from '../measurements.js';
-import type { TraceSamples, TraceSample } from '../samples.js';
+import { TraceBuffer } from './TraceBuffer.js';
 
 export interface TraceTransform {
   x: number;
@@ -18,7 +18,7 @@ export class TraceRenderer {
   private group: SmithGroup;
 
   public constructor(
-    private data: TraceSamples,
+    private data: TraceBuffer,
     private color: string,
     private transform: TraceTransform,
     container: SmithGroup,
@@ -34,7 +34,7 @@ export class TraceRenderer {
     container.append(this.group);
   }
 
-  private drawTrace(data: TraceSamples): SmithGroup {
+  private drawTrace(data: TraceBuffer): SmithGroup {
     const group = new SmithGroup({
       stroke: 'none',
       strokeWidth: 'none',
@@ -43,12 +43,22 @@ export class TraceRenderer {
     group.attr('data-role', 'samples');
     group.attr('data-mode', this.style.mode);
     if (this.style.mode !== 'points') {
-      const path = line<TraceSample>()
-        .x((sample) => this.scaler.x(sample.reflectionCoefficient[0]))
-        .y((sample) => this.scaler.y(sample.reflectionCoefficient[1]));
+      const path = pathRound(3);
+      for (let i = 0; i < data.length; i++) {
+        const x = this.scaler.x(data.real(i));
+        const y = this.scaler.y(data.imaginary(i));
+        if (i === 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
+      }
+      if (data.length === 1) {
+        path.closePath();
+      }
       group.Element.append('path')
         .attr('class', 'trace-line')
-        .attr('d', path(data))
+        .attr('d', path.toString())
         .attr('fill', 'none')
         .attr('stroke', this.color)
         .attr('stroke-width', this.style.lineWidth)
@@ -62,34 +72,35 @@ export class TraceRenderer {
     return group;
   }
 
-  private renderPoints(group: SmithGroup, data: TraceSamples): void {
-    let visible = data;
-    if (data.length > 5000) {
-      const cells = new Set<string>();
-      const cellSize = Math.max(0.5, this.style.pointRadius) / this.viewportScale;
-      const extent = this.scaler.x(1);
-      const margin = this.style.pointRadius / this.viewportScale;
-      visible = data.filter((sample) => {
-        const x =
-          this.scaler.x(sample.reflectionCoefficient[0]) * this.transform.k + this.transform.x;
-        const y =
-          this.scaler.y(sample.reflectionCoefficient[1]) * this.transform.k + this.transform.y;
+  private renderPoints(group: SmithGroup, data: TraceBuffer): void {
+    const visible: number[] = [];
+    const cells = new Set<number>();
+    const cellSize = Math.max(0.5, this.style.pointRadius) / this.viewportScale;
+    const extent = this.scaler.x(1);
+    const margin = this.style.pointRadius / this.viewportScale;
+    const firstCell = Math.floor(-margin / cellSize);
+    const columns = Math.floor((extent + margin) / cellSize) - firstCell + 1;
+    for (let i = 0; i < data.length; i++) {
+      if (data.length > 5000) {
+        const x = this.scaler.x(data.real(i)) * this.transform.k + this.transform.x;
+        const y = this.scaler.y(data.imaginary(i)) * this.transform.k + this.transform.y;
         if (x < -margin || y < -margin || x > extent + margin || y > extent + margin) {
-          return false;
+          continue;
         }
-        const cell = `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
+        const cell =
+          (Math.floor(y / cellSize) - firstCell) * columns + Math.floor(x / cellSize) - firstCell;
         if (cells.has(cell)) {
-          return false;
+          continue;
         }
         cells.add(cell);
-        return true;
-      });
+      }
+      visible.push(i);
     }
     group.Element.selectAll('circle')
       .data(visible)
       .join('circle')
-      .attr('cx', (sample) => this.scaler.x(sample.reflectionCoefficient[0]))
-      .attr('cy', (sample) => this.scaler.y(sample.reflectionCoefficient[1]))
+      .attr('cx', (index) => this.scaler.x(data.real(index)))
+      .attr('cy', (index) => this.scaler.y(data.imaginary(index)))
       .attr('r', this.style.pointRadius / (this.transform.k * this.viewportScale));
   }
 
@@ -167,13 +178,13 @@ export class TraceRenderer {
     this.group.Element.style('display', () => (visible ? null : 'none'));
   }
 
-  public update(data: TraceSamples): void {
+  public update(data: TraceBuffer): void {
     this.data = data;
     this.redraw();
   }
 
   public destroy(): void {
-    this.data = [];
+    this.data = TraceBuffer.empty();
     this.group.Element.remove();
   }
 }

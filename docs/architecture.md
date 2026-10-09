@@ -138,3 +138,13 @@ there is no serialized application session or second configuration schema.
 
 See [the API review](api-review.md) for precedence, events, errors, exports, and the
 compatibility boundary intended for 1.x.
+
+## Trace storage
+
+`traces/TraceBuffer` owns packed Float64 f/re/im triples, validates object/tuple/typed
+array input, and implements indexed reads, nearest-sample selection, and atomic
+renormalization. `TraceModel` owns marker indices rather than sample objects.
+`TraceRenderer` reads coordinates directly and binds visible sample indices to SVG
+points; full lines use every sample. Object snapshots are created for marker readings
+and events, not for every stored sample. The public `TraceInput` type describes input
+formats; the buffer and rendering classes remain internal.

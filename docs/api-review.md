@@ -1,7 +1,7 @@
 # Public API review and compatibility policy
 
-Reviewed against **0.4.0**, including the installed
-integration examples. Version 0.3.0 used positional constructor arguments,
+Reviewed against **0.4.0** and the unreleased compact trace input additions,
+including the installed integration examples. Version 0.3.0 used positional constructor arguments,
 interactive defaults, and an automatic marker. See [migration to 0.4](migration-0.4.md).
 This review defines the compatibility scope intended for **1.x**; it does not
 publish 1.0 or retroactively promise compatibility for 0.x releases.
@@ -106,6 +106,16 @@ Keeping this constructor focused avoids grid/interaction options that do not app
 `reflectionCoefficient: [real, imaginary]`. Input samples are copied; all
 coordinates and frequencies must be finite, and frequencies non-negative.
 An empty trace is invalid. Names and colors are trace metadata, not sample data.
+
+`addTrace` and `updateTrace` also accept `readonly TraceTuple[]` with
+`[frequencyHz, re, im]` entries, or packed `Float64Array` triples in the same order.
+`TraceInput` names the union of these formats and `TraceSamples`. Arrays must be
+homogeneous; packed input length must be a positive multiple of three. Array views
+copy only their own elements. All inputs are defensively copied and validated before
+mutation; callers may reuse their buffers after the synchronous call returns.
+There is no borrowed/zero-copy buffer mode. Output readings/events and RF/parser
+object-sample APIs are unchanged. Input order and first-sample tie breaking are
+preserved regardless of format or frequency sorting.
 
 Trace/marker IDs are opaque, chart-local strings, stable across sample replacement
 and renormalization, and never reused within a chart. Do not depend on their text

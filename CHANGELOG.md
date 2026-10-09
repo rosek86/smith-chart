@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Accept `[frequencyHz, re, im][]` and packed `Float64Array` input in `addTrace()` and `updateTrace()`, alongside existing object samples. Copy and validate all formats into owned packed storage.
+- Store marker sample indices directly, accelerate frequency selection for ascending sweeps, and reduce point-rendering allocations while preserving full data, sample order, tie selection, and atomic renormalization.
+- Add repeatable large-trace benchmarks and demonstrate tuple/packed inputs in the integration gallery.
+
 ## 0.4.0 — 2026-10-08
 
 - Add `Smith.setOptions(SmithOptions)` for validated configuration patches, preserving omitted settings and renormalizing existing data when reference impedance changes. Share validation with the constructor and layer controls.

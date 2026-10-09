@@ -1,23 +1,24 @@
 import type { MarkerSelectionStrategy } from '../measurements.js';
 import type { Point } from '../math/geometry.js';
-import type { TraceSample, TraceSamples } from '../samples.js';
+import type { TraceInput } from '../samples.js';
+import { TraceBuffer } from './TraceBuffer.js';
 
 export interface TraceMarker {
   readonly number: number;
-  selectedPoint: TraceSample;
+  sampleIndex: number;
 }
 
 /** Owns validated samples and marker selections without depending on SVG or D3. */
 export class TraceModel {
-  private samples: TraceSamples;
+  private samples: TraceBuffer;
   private markers: TraceMarker[] = [];
   private markerCount = 0;
 
-  public constructor(samples: TraceSamples) {
-    this.samples = this.copySamples(samples);
+  public constructor(samples: TraceInput) {
+    this.samples = TraceBuffer.from(samples);
   }
 
-  public get Samples(): TraceSamples {
+  public get Samples(): TraceBuffer {
     return this.samples;
   }
 
@@ -27,7 +28,7 @@ export class TraceModel {
 
   public addMarker(sampleIndex: number): TraceMarker {
     this.validateSampleIndex(sampleIndex);
-    const marker = { number: ++this.markerCount, selectedPoint: this.samples[sampleIndex] };
+    const marker = { number: ++this.markerCount, sampleIndex };
     this.markers.push(marker);
     return marker;
   }
@@ -50,7 +51,7 @@ export class TraceModel {
 
   public markerSampleIndex(index: number): number {
     const marker = this.markers[index];
-    return marker ? this.samples.indexOf(marker.selectedPoint) : -1;
+    return marker?.sampleIndex ?? -1;
   }
 
   public setMarkerSample(index: number, sampleIndex: number): TraceMarker | undefined {
@@ -59,7 +60,7 @@ export class TraceModel {
       return;
     }
     this.validateSampleIndex(sampleIndex);
-    marker.selectedPoint = this.samples[sampleIndex];
+    marker.sampleIndex = sampleIndex;
     return marker;
   }
 
@@ -70,7 +71,7 @@ export class TraceModel {
     if (!Number.isFinite(frequencyHz) || frequencyHz < 0) {
       throw new RangeError('Marker frequency must be finite and non-negative.');
     }
-    return this.setMarkerSample(index, this.nearestFrequencyIndex(frequencyHz));
+    return this.setMarkerSample(index, this.samples.nearestFrequency(frequencyHz));
   }
 
   /** Returns false when dragging still selects the same sample. */
@@ -78,83 +79,43 @@ export class TraceModel {
     if (!this.markers.includes(marker)) {
       return false;
     }
-    const sample = this.nearestPoint(point);
-    if (sample === marker.selectedPoint) {
+    const sampleIndex = this.samples.nearestPoint(point);
+    if (sampleIndex === marker.sampleIndex) {
       return false;
     }
-    marker.selectedPoint = sample;
+    marker.sampleIndex = sampleIndex;
     return true;
   }
 
-  public update(values: TraceSamples, strategy: MarkerSelectionStrategy): void {
-    // Validate and copy before mutating either samples or marker selections.
-    const samples = this.copySamples(values);
-    const selectedIndices = this.markers.map((entry) => this.samples.indexOf(entry.selectedPoint));
+  public update(values: TraceInput | TraceBuffer, strategy: MarkerSelectionStrategy): void {
+    // Prepare every selection before replacing data so rejected updates are atomic.
+    const samples = values instanceof TraceBuffer ? values : TraceBuffer.from(values);
+    const selectedIndices = this.markers.map((entry) => {
+      if (strategy === 'sample-index') {
+        return Math.min(entry.sampleIndex, samples.length - 1);
+      }
+      if (strategy === 'reflection') {
+        return samples.nearestPoint([
+          this.samples.real(entry.sampleIndex),
+          this.samples.imaginary(entry.sampleIndex),
+        ]);
+      }
+      return samples.nearestFrequency(this.samples.frequency(entry.sampleIndex));
+    });
     this.samples = samples;
     this.markers.forEach((entry, index) => {
-      if (strategy === 'sample-index') {
-        entry.selectedPoint = samples[Math.min(selectedIndices[index], samples.length - 1)];
-      } else if (strategy === 'reflection') {
-        entry.selectedPoint = this.nearestPoint(entry.selectedPoint.reflectionCoefficient);
-      } else {
-        entry.selectedPoint = samples[this.nearestFrequencyIndex(entry.selectedPoint.frequencyHz)];
-      }
+      entry.sampleIndex = selectedIndices[index];
     });
   }
 
   public clear(): void {
-    this.samples = [];
+    this.samples = TraceBuffer.empty();
     this.markers = [];
-  }
-
-  private nearestFrequencyIndex(frequencyHz: number): number {
-    let closest = 0;
-    let distance = Math.abs(this.samples[0].frequencyHz - frequencyHz);
-    for (let i = 1; i < this.samples.length; i++) {
-      const nextDistance = Math.abs(this.samples[i].frequencyHz - frequencyHz);
-      if (nextDistance < distance) {
-        closest = i;
-        distance = nextDistance;
-      }
-    }
-    return closest;
-  }
-
-  private nearestPoint(point: Readonly<Point>): TraceSample {
-    const distance = (sample: TraceSample) =>
-      Math.hypot(
-        point[0] - sample.reflectionCoefficient[0],
-        point[1] - sample.reflectionCoefficient[1],
-      );
-    return this.samples.reduce((previous, current) =>
-      distance(previous) <= distance(current) ? previous : current,
-    );
   }
 
   private validateSampleIndex(index: number): void {
     if (!Number.isInteger(index) || index < 0 || index >= this.samples.length) {
       throw new RangeError('Sample index is outside this trace.');
     }
-  }
-
-  private copySamples(values: TraceSamples): TraceSamples {
-    if (
-      !values.length ||
-      values.some(
-        ({ frequencyHz, reflectionCoefficient }) =>
-          !Number.isFinite(frequencyHz) ||
-          frequencyHz < 0 ||
-          reflectionCoefficient.length !== 2 ||
-          !reflectionCoefficient.every(Number.isFinite),
-      )
-    ) {
-      throw new RangeError(
-        'A dataset requires samples with a non-negative finite frequency and two finite coordinates.',
-      );
-    }
-    return values.map(({ frequencyHz, reflectionCoefficient }) => ({
-      frequencyHz,
-      reflectionCoefficient: [reflectionCoefficient[0], reflectionCoefficient[1]],
-    }));
   }
 }

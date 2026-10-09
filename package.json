@@ -21,7 +21,8 @@
     "format:check": "prettier . --check",
     "check:package": "node scripts/check-package.mjs",
     "check:example": "node scripts/check-example.mjs",
-    "prepare:release": "node scripts/prepare-release.mjs"
+    "prepare:release": "node scripts/prepare-release.mjs",
+    "benchmark:traces": "node scripts/benchmark-traces.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",

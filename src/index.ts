@@ -1,7 +1,7 @@
 export { Smith, SmithEventType } from './Smith.js';
 export type { SmithEvent } from './Smith.js';
 export { Complex } from './math/Complex.js';
-export type { TraceSamples, TraceSample } from './samples.js';
+export type { TraceSamples, TraceSample, TraceTuple, TraceInput } from './samples.js';
 export { Touchstone } from './io/Touchstone.js';
 export type { TouchstoneData } from './io/Touchstone.js';
 export { SmithScales } from './scales/SmithScales.js';

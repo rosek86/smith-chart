@@ -243,3 +243,10 @@ Add new pages to the input lists in both Vite configurations and to gallery chec
 Each page should focus on one task. `page.ts` displays `main.ts?raw`, so the shown
 TypeScript is the exact integration code being executed. Keep sample data and
 controls local to each example; avoid building application workflows into the demo.
+
+## Performance diagnostics
+
+Run `npm run benchmark:traces` for large-series add/update, marker, and zoom timings.
+See [the benchmark methodology and comparison](docs/performance.md) for workload limits
+and options. Benchmarks are diagnostic; browser correctness tests do not impose
+hardware-dependent timing thresholds.
