@@ -9,6 +9,9 @@ const groupWidth = 40;
 
 /** Peripheral rulers in the chart's 500-unit coordinate system. */
 export class SmithPeripheralScales extends SmithGroup {
+  private captionsVisible = true;
+  private tickLabelsVisible = true;
+
   private static point(radius: number, degrees: number): [number, number] {
     const angle = (degrees * Math.PI) / 180;
     return [250 + radius * Math.cos(angle), 250 - radius * Math.sin(angle)];
@@ -85,11 +88,13 @@ export class SmithPeripheralScales extends SmithGroup {
           .attr('stroke-width', major ? 0.8 : 0.5)
           .attr('vector-effect', 'non-scaling-stroke');
         const captionDistance = Math.abs(((angle - captionAngle + 540) % 360) - 180);
-        if (major && captionDistance > 25) {
+        if (major) {
           const [x, y] = SmithPeripheralScales.point(radius + side * 11, angle);
           const rotation = angle >= 0 ? 90 - angle : -90 - angle;
           labelAxis
             .append('text')
+            .attr('class', 'peripheral-tick-label')
+            .classed('peripheral-caption-sector', captionDistance <= 25)
             .attr('x', x)
             .attr('y', y)
             .attr('transform', `rotate(${rotation},${x},${y})`)
@@ -139,6 +144,33 @@ export class SmithPeripheralScales extends SmithGroup {
         .attr('stroke', 'var(--smithkit-scales-indicatorOutline)')
         .attr('stroke-width', 1);
     });
+    this.updateLabelVisibility();
+  }
+
+  public setCaptionsVisible(visible: boolean): void {
+    this.captionsVisible = visible;
+    this.updateLabelVisibility();
+  }
+
+  public setTickLabelsVisible(visible: boolean): void {
+    this.tickLabelsVisible = visible;
+    this.updateLabelVisibility();
+  }
+
+  private updateLabelVisibility(): void {
+    this.labels.Element.selectAll('.peripheral-caption').attr(
+      'display',
+      this.captionsVisible ? null : 'none',
+    );
+    this.labels.Element.selectAll('.peripheral-tick-label').attr(
+      'display',
+      this.tickLabelsVisible ? null : 'none',
+    );
+    // Fill the reserved caption sectors with numeric labels when captions are hidden.
+    this.labels.Element.selectAll('.peripheral-caption-sector').attr(
+      'display',
+      this.tickLabelsVisible && !this.captionsVisible ? null : 'none',
+    );
   }
 
   public override show(): SmithGroup {

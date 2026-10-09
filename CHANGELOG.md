@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Align demo chart settings with the marker/cursor readout panel on desktop, using a lightly dimmed backdrop while keeping the chart visible.
+
+- Add independent peripheral axis-caption and numeric-tick visibility options to the constructor, `setOptions()`, and scale controls, with matching demo checkboxes and export behavior.
+
 - Add a gallery example with 100,000 packed synthetic samples, zoom/reset controls, and full-data marker selection.
 
 - Accept `[frequencyHz, re, im][]` and packed `Float64Array` input in `addTrace()` and `updateTrace()`, alongside existing object samples. Copy and validate all formats into owned packed storage.

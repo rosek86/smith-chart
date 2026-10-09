@@ -700,7 +700,30 @@ from S11 alone. At \|Γ\| = 0.1 it reads 10 dB, while return loss reads 20 dB.
 
 Peripheral rulers are hidden by default. Enable them with
 `{ peripheralScales: { visible: true } }` or `chart.peripheralScales.setVisible(true)`.
-`chart.peripheralScales` supports `setVisible(boolean)` and `update(Complex | null)`.
+Axis captions and numeric tick labels can be controlled independently, through the
+constructor, `setOptions()`, or the peripheral scale controls:
+
+```ts
+import { Smith } from 'smithkit';
+
+const chart = new Smith({
+  peripheralScales: { visible: true, captionsVisible: false, tickLabelsVisible: true },
+});
+chart.draw('#smith');
+
+chart.setOptions({ peripheralScales: { captionsVisible: true } });
+chart.peripheralScales.setTickLabelsVisible(false); // Captions and rulers remain visible.
+chart.peripheralScales.setCaptionsVisible(false); // Rulers and indicators remain visible.
+```
+
+Both text options default to `true`; the entire group remains hidden by default.
+When captions are hidden, numeric labels fill the sectors normally reserved for them.
+Hiding/re-showing the rulers preserves both preferences. Text controls do not affect
+ruler lines, ticks, indicators, grid labels, or the independent radial parameter scales.
+SVG/PNG exports preserve the current text visibility. The demo exposes **Axis captions**
+and **Tick values** checkboxes in **Chart settings**.
+
+`chart.peripheralScales.update(Complex | null)` supplies or clears the indicators.
 Its four rulers zoom with the chart: reflection phase, voltage transmission phase,
 wavelengths toward generator, and wavelengths toward load. Wavelength rulers start
 at the negative real axis, with 0.5 λ per revolution (generator clockwise, load

@@ -113,6 +113,12 @@ export class Smith {
     if (options.peripheralScales?.visible !== undefined) {
       this.peripheralScales.setVisible(options.peripheralScales.visible);
     }
+    if (options.peripheralScales?.captionsVisible !== undefined) {
+      this.peripheralScales.setCaptionsVisible(options.peripheralScales.captionsVisible);
+    }
+    if (options.peripheralScales?.tickLabelsVisible !== undefined) {
+      this.peripheralScales.setTickLabelsVisible(options.peripheralScales.tickLabelsVisible);
+    }
     for (const name of ['resistance', 'reactance', 'conductance', 'susceptance'] as const) {
       const layer = this.layers[name];
       for (const settings of [options.grid, options.grid?.layers?.[name]]) {

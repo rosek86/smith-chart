@@ -47,6 +47,10 @@ export interface InteractionOptions {
 export interface PeripheralScalesOptions {
   /** Show the peripheral rulers as one group. Default: false. */
   visible?: boolean;
+  /** Show curved axis captions. Default: true. */
+  captionsVisible?: boolean;
+  /** Show numeric tick labels. Default: true. */
+  tickLabelsVisible?: boolean;
 }
 
 export interface SmithOptions {

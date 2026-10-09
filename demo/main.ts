@@ -23,7 +23,24 @@ function element<T extends HTMLElement>(id: string): T {
 
 const settingsDialog = element<HTMLDialogElement>('chart-settings');
 const settingsButton = element<HTMLButtonElement>('open-settings');
-settingsButton.addEventListener('click', () => settingsDialog.showModal());
+function positionSettingsDialog(): void {
+  if (!settingsDialog.open || !window.matchMedia('(min-width: 1000px)').matches) {
+    return;
+  }
+  const anchor = element('parameter-panel').closest<HTMLElement>('.scales-panel')!;
+  const bounds = anchor.getBoundingClientRect();
+  // Align with the readout panel while reserving at least 320 px for settings on short screens.
+  const top = Math.max(16, Math.min(bounds.top, window.innerHeight - 336));
+  settingsDialog.style.setProperty('--settings-top', `${top}px`);
+  settingsDialog.style.setProperty('--settings-left', `${bounds.left}px`);
+  settingsDialog.style.setProperty('--settings-width', `${bounds.width}px`);
+}
+settingsButton.addEventListener('click', () => {
+  settingsDialog.showModal();
+  positionSettingsDialog();
+});
+window.addEventListener('resize', positionSettingsDialog);
+window.addEventListener('scroll', positionSettingsDialog, { passive: true });
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
 const smith = new Smith({
@@ -58,6 +75,21 @@ for (const [id, groups] of layers) {
   const update = () => groups.forEach((group) => group.setVisible(checkbox.checked));
   checkbox.addEventListener('change', update);
   update();
+}
+const peripheralVisible = element<HTMLInputElement>('peripheral-scales');
+for (const [id, key] of [
+  ['peripheral-captions', 'captionsVisible'],
+  ['peripheral-tick-labels', 'tickLabelsVisible'],
+] as const) {
+  const checkbox = element<HTMLInputElement>(id);
+  checkbox.addEventListener('change', () => {
+    smith.setOptions({ peripheralScales: { [key]: checkbox.checked } });
+  });
+  const updateEnabled = () => {
+    checkbox.disabled = !peripheralVisible.checked;
+  };
+  peripheralVisible.addEventListener('change', updateEnabled);
+  updateEnabled();
 }
 const gridLayers = [
   smith.layers.resistance,

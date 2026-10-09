@@ -40,14 +40,14 @@ const chart = new Smith({
 });
 ```
 
-| Responsibility             | Constructor                                                      | Later changes                                                   |
-| -------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
-| Physical reference         | `referenceImpedanceOhms`                                         | `renormalize()` preserves physical impedance                    |
-| Visual defaults            | `appearance`                                                     | `setAppearance()` replaces preset/overrides                     |
-| Interaction                | `interaction.zoom`, `interaction.cursor`                         | `setZoomEnabled()`, `setCursorEnabled()`                        |
-| Impedance/admittance grid  | `grid.detail`, `grid.labelsVisible`, `grid.style`, `grid.layers` | `setGridDetail()` or individual `layers` controls               |
-| Auxiliary constant circles | `circles.q`, `circles.vswr`                                      | `layers.q`, `layers.vswr`                                       |
-| Peripheral rulers          | `peripheralScales.visible`                                       | `peripheralScales.setVisible()`; `update()` supplies indicators |
+| Responsibility             | Constructor                                                        | Later changes                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Physical reference         | `referenceImpedanceOhms`                                           | `renormalize()` preserves physical impedance                                                                      |
+| Visual defaults            | `appearance`                                                       | `setAppearance()` replaces preset/overrides                                                                       |
+| Interaction                | `interaction.zoom`, `interaction.cursor`                           | `setZoomEnabled()`, `setCursorEnabled()`                                                                          |
+| Impedance/admittance grid  | `grid.detail`, `grid.labelsVisible`, `grid.style`, `grid.layers`   | `setGridDetail()` or individual `layers` controls                                                                 |
+| Auxiliary constant circles | `circles.q`, `circles.vswr`                                        | `layers.q`, `layers.vswr`                                                                                         |
+| Peripheral rulers          | `peripheralScales.visible`, `captionsVisible`, `tickLabelsVisible` | `peripheralScales.setVisible()`, `setCaptionsVisible()`, `setTickLabelsVisible()`; `update()` supplies indicators |
 
 The reference impedance remains a single top-level physical quantity rather than
 an otherwise empty RF group. `grid.layers` contains only resistance, reactance,

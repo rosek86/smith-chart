@@ -113,9 +113,13 @@ export class OptionsValidation {
       }
     }
     if (options.peripheralScales !== undefined) {
-      OptionsValidation.object(options.peripheralScales, 'Peripheral scales', ['visible']);
-      if (options.peripheralScales.visible !== undefined) {
-        OptionsValidation.boolean(options.peripheralScales.visible, 'Peripheral scale visibility');
+      const keys = ['visible', 'captionsVisible', 'tickLabelsVisible'] as const;
+      OptionsValidation.object(options.peripheralScales, 'Peripheral scales', keys);
+      for (const key of keys) {
+        const value = options.peripheralScales[key];
+        if (value !== undefined) {
+          OptionsValidation.boolean(value, `Peripheral scales ${key}`);
+        }
       }
     }
     if (options.grid !== undefined) {
