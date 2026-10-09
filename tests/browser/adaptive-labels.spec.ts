@@ -306,7 +306,9 @@ test('peripheral rulers keep complete labels in two outlined groups at every cha
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const svg = host.querySelector('svg')!;
       const viewport = svg.getBoundingClientRect();
-      const labels = [...svg.querySelectorAll('[data-label-layer=peripheral-scales] text')];
+      const labels = [...svg.querySelectorAll('[data-label-layer=peripheral-scales] text')].filter(
+        (label) => getComputedStyle(label).display !== 'none',
+      );
       const boundaries = [...svg.querySelectorAll<SVGCircleElement>('.peripheral-boundary')];
       const rulers = [...svg.querySelectorAll<SVGCircleElement>('.peripheral-ruler')];
       results.push({

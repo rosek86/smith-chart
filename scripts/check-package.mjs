@@ -149,6 +149,14 @@ chart.setMarkerSample(0, 1);
 chart.removeTrace(traceId);
 void [traces, chart.referenceImpedanceOhms];
 chart.setZoomEnabled(false);
+chart.peripheralScales.setCaptionsVisible(false);
+chart.peripheralScales.setTickLabelsVisible(true);
+chart.setOptions({ peripheralScales: { captionsVisible: false, tickLabelsVisible: true } });
+new Smith({ peripheralScales: { visible: true, captionsVisible: true, tickLabelsVisible: false } });
+// @ts-expect-error Caption visibility requires a boolean.
+chart.peripheralScales.setCaptionsVisible('false');
+// @ts-expect-error Tick label visibility requires a boolean.
+chart.setOptions({ peripheralScales: { tickLabelsVisible: 0 } });
 chart.resetView();
 chart.setZoomEnabled(true);
 // @ts-expect-error Zoom must be explicitly enabled/disabled with a boolean.

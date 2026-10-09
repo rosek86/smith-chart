@@ -126,7 +126,11 @@ for (const width of [340, 900]) {
         const labels = [
           ...document.querySelectorAll<SVGTextElement>(`[data-label-layer=${name}] text`),
         ]
-          .filter((label) => getComputedStyle(label).visibility !== 'hidden')
+          .filter(
+            (label) =>
+              getComputedStyle(label).visibility !== 'hidden' &&
+              getComputedStyle(label).display !== 'none',
+          )
           .map((label) => {
             const rect = label.getBoundingClientRect();
             return {

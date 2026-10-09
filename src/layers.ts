@@ -49,6 +49,10 @@ export interface ChartLayers {
 
 export interface PeripheralScales {
   setVisible(visible: boolean): void;
+  /** Show or hide axis captions independently of numeric tick labels. Default: true. */
+  setCaptionsVisible(visible: boolean): void;
+  /** Show or hide numeric tick labels independently of captions. Default: true. */
+  setTickLabelsVisible(visible: boolean): void;
   /** Pass null to clear the indicators. */
   update(reflectionCoefficient: Complex | null): void;
 }

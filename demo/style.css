@@ -464,6 +464,16 @@ footer {
 #image-export::backdrop {
   background: rgb(2 6 23 / 45%);
 }
+@media (min-width: 1000px) {
+  #chart-settings {
+    inset: 16px 16px auto auto;
+    margin: 0;
+    width: min(520px, calc(50vw - 32px));
+  }
+  #chart-settings::backdrop {
+    background: transparent;
+  }
+}
 .settings-heading {
   display: flex;
   align-items: center;

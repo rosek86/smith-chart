@@ -1,3 +1,4 @@
+import { OptionsValidation } from '../OptionsValidation.js';
 import { SvgTheme } from '../appearance/SvgTheme.js';
 import type { SmithTheme } from '../appearance/types.js';
 import * as d3 from 'd3';
@@ -196,6 +197,16 @@ export class SvgChartRenderer {
           this.peripheralScaleRenderer.hide();
         }
         this.labelLayout.update(true);
+      },
+      setCaptionsVisible: (visible) => {
+        assertAlive();
+        OptionsValidation.boolean(visible, 'Peripheral scale caption visibility');
+        this.peripheralScaleRenderer.setCaptionsVisible(visible);
+      },
+      setTickLabelsVisible: (visible) => {
+        assertAlive();
+        OptionsValidation.boolean(visible, 'Peripheral scale tick label visibility');
+        this.peripheralScaleRenderer.setTickLabelsVisible(visible);
       },
       update: (gamma) => {
         assertAlive();

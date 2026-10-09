@@ -59,6 +59,21 @@ for (const [id, groups] of layers) {
   checkbox.addEventListener('change', update);
   update();
 }
+const peripheralVisible = element<HTMLInputElement>('peripheral-scales');
+for (const [id, key] of [
+  ['peripheral-captions', 'captionsVisible'],
+  ['peripheral-tick-labels', 'tickLabelsVisible'],
+] as const) {
+  const checkbox = element<HTMLInputElement>(id);
+  checkbox.addEventListener('change', () => {
+    smith.setOptions({ peripheralScales: { [key]: checkbox.checked } });
+  });
+  const updateEnabled = () => {
+    checkbox.disabled = !peripheralVisible.checked;
+  };
+  peripheralVisible.addEventListener('change', updateEnabled);
+  updateEnabled();
+}
 const gridLayers = [
   smith.layers.resistance,
   smith.layers.reactance,
