@@ -1,0 +1,297 @@
+{
+  "date": "2026-10-09",
+  "implementation": "Coordinate-bound filtering with Math.hypot for candidate norms",
+  "sourceState": "Working-tree implementation based on fb3de70; source and tests are included in the same PR.",
+  "aggregation": "Median of three fresh-page runs; p95 is the median of per-run p95.",
+  "runs": [
+    {
+      "name": "selection",
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "selection": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 2.3,
+            "p95": 2.6
+          },
+          "baselineHypot": {
+            "p50": 6.5,
+            "p95": 6.7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1.1
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 2.2,
+            "p95": 2.5
+          },
+          "baselineHypot": {
+            "p50": 6.5,
+            "p95": 6.7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1.1
+          }
+        }
+      ],
+      "rendering": []
+    },
+    {
+      "name": "drag-chromium",
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "selection": [],
+      "rendering": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "current"
+          },
+          "addMs": 23.7,
+          "updateMs": 21.2,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 5.2,
+            "p95": 6
+          },
+          "drag": {
+            "p50": 5.3,
+            "p95": 6.1
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.6
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 33.4,
+            "p95": 33.5
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "current"
+          },
+          "addMs": 240.4,
+          "updateMs": 200.8,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 4.9,
+            "p95": 5.7
+          },
+          "drag": {
+            "p50": 5.1,
+            "p95": 5.9
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.3
+          },
+          "zoomFrames": {
+            "p50": 1029.2,
+            "p95": 1114.1
+          }
+        }
+      ]
+    },
+    {
+      "name": "webkit",
+      "browser": "webkit",
+      "version": "26.6",
+      "selection": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 3,
+            "p95": 4
+          },
+          "baselineHypot": {
+            "p50": 7,
+            "p95": 7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1
+          },
+          "experimentalMismatches": 0
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 2,
+            "p95": 3
+          },
+          "baselineHypot": {
+            "p50": 6,
+            "p95": 7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1
+          },
+          "experimentalMismatches": 0
+        }
+      ],
+      "rendering": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "current"
+          },
+          "addMs": 33,
+          "updateMs": 23,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 4,
+            "p95": 4
+          },
+          "drag": {
+            "p50": 4,
+            "p95": 5
+          },
+          "dragFrames": {
+            "p50": 32,
+            "p95": 35
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 31,
+            "p95": 33
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "current"
+          },
+          "addMs": 404,
+          "updateMs": 230,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3,
+            "p95": 3
+          },
+          "drag": {
+            "p50": 3,
+            "p95": 3
+          },
+          "dragFrames": {
+            "p50": 350,
+            "p95": 433
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 213,
+            "p95": 217
+          }
+        }
+      ]
+    },
+    {
+      "name": "ring",
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "selection": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "ring"
+          },
+          "direct": {
+            "p50": 6.6,
+            "p95": 6.7
+          },
+          "baselineHypot": {
+            "p50": 6.6,
+            "p95": 6.8
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1.1
+          },
+          "experimentalMismatches": 60
+        }
+      ],
+      "rendering": []
+    },
+    {
+      "name": "ring-webkit",
+      "browser": "webkit",
+      "version": "26.6",
+      "selection": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "ring"
+          },
+          "direct": {
+            "p50": 7,
+            "p95": 8
+          },
+          "baselineHypot": {
+            "p50": 6,
+            "p95": 7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1
+          },
+          "experimentalMismatches": 60
+        }
+      ],
+      "rendering": []
+    }
+  ]
+}

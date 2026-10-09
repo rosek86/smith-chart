@@ -148,11 +148,27 @@ export class TraceBuffer {
   public nearestPoint(point: Readonly<Point>): number {
     let closest = 0;
     let distance = Infinity;
-    for (let i = 0; i < this.length; i++) {
-      const next = Math.hypot(point[0] - this.real(i), point[1] - this.imaginary(i));
+    const [real, imaginary] = point;
+    // A coordinate difference is a lower bound on Euclidean distance. Reject
+    // points outside the current bounding square before evaluating the norm.
+    // Keep the boundary inclusive and compare surviving norms with Math.hypot
+    // to preserve first-input ties, including ties caused by floating-point rounding.
+    for (let offset = 1; offset < this.values.length; offset += 3) {
+      const dx = real - this.values[offset];
+      if (Math.abs(dx) > distance) {
+        continue;
+      }
+      const dy = imaginary - this.values[offset + 1];
+      if (Math.abs(dy) > distance) {
+        continue;
+      }
+      const next = Math.hypot(dx, dy);
       if (next < distance) {
-        closest = i;
+        closest = (offset - 1) / 3;
         distance = next;
+        if (distance === 0) {
+          return closest;
+        }
       }
     }
     return closest;

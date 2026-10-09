@@ -13,7 +13,7 @@ export function samples(count, shape, seed = 1) {
   for (let i = 0; i < count; i++) {
     const t = i / (count - 1);
     const angle = t * 8 * Math.PI + seed * 0.03;
-    const radius = 0.15 + 0.7 * t;
+    const radius = shape === 'ring' ? 0.7 : 0.15 + 0.7 * t;
     values[i * 3] = 1e9 + 2e9 * t;
     values[i * 3 + 1] = radius * Math.cos(angle) + (shape === 'noisy' ? noise() : 0);
     values[i * 3 + 2] = radius * Math.sin(angle) + (shape === 'noisy' ? noise() : 0);
@@ -55,7 +55,21 @@ function create(config) {
   return { chart, ids, marker, inputs, addMs: add.ms };
 }
 
-// Diagnostic only: safe for this bounded dataset, NOT a general replacement for Math.hypot.
+// Preserve the old full scan as an exact selection oracle and timing baseline.
+function nearestHypot(data, point) {
+  let closest = 0;
+  let distance = Infinity;
+  for (let i = 0; i < data.length; i++) {
+    const next = Math.hypot(point[0] - data.real(i), point[1] - data.imaginary(i));
+    if (next < distance) {
+      distance = next;
+      closest = i;
+    }
+  }
+  return closest;
+}
+
+// Diagnostic only: bounded inputs avoid square overflow, but norm rounding/ties may differ.
 function nearestSquared(data, point) {
   let closest = 0;
   let distance = Infinity;
@@ -94,7 +108,11 @@ export async function workload(config) {
   // Instrument the actual full-data search used by dragging, not a stand-in operation.
   TraceBuffer.prototype.nearestPoint = function (point) {
     const result = timed(() =>
-      config.search === 'bounded-squared' ? nearestSquared(this, point) : nearest.call(this, point),
+      config.search === 'bounded-squared'
+        ? nearestSquared(this, point)
+        : config.search === 'baseline-hypot'
+          ? nearestHypot(this, point)
+          : nearest.call(this, point),
     );
     search.push(result.ms);
     return result.value;
@@ -186,30 +204,43 @@ export async function workload(config) {
 // Isolate CPU selection from SVG painting, including an intentionally limited experiment.
 export function selection(config) {
   const data = TraceBuffer.from(samples(config.size, config.shape));
-  const points = Array.from({ length: 80 }, (_, i) => [
-    Math.cos(i * 0.41) * 0.65,
-    Math.sin(i * 0.41) * 0.65,
-  ]);
+  const points = Array.from({ length: 80 }, (_, i) =>
+    config.shape === 'ring' ? [0, 0] : [Math.cos(i * 0.41) * 0.65, Math.sin(i * 0.41) * 0.65],
+  );
   const direct = [];
+  const baseline = [];
   const experiment = [];
+  let experimentalMismatches = 0;
   for (let i = 0; i < points.length; i++) {
-    // Alternate order to avoid consistently favoring a warm cache.
-    const results =
-      i % 2
-        ? [
-            timed(() => nearestSquared(data, points[i])),
-            timed(() => data.nearestPoint(points[i])),
-          ].reverse()
-        : [timed(() => data.nearestPoint(points[i])), timed(() => nearestSquared(data, points[i]))];
+    const methods = [
+      () => data.nearestPoint(points[i]),
+      () => nearestHypot(data, points[i]),
+      () => nearestSquared(data, points[i]),
+    ];
+    const results = [];
+    // Rotate order to avoid consistently favoring a warm cache.
+    for (let j = 0; j < methods.length; j++) {
+      const method = (i + j) % methods.length;
+      results[method] = timed(methods[method]);
+    }
     if (results[0].value !== results[1].value) {
-      throw new Error('Experimental selection differs on the benchmark dataset.');
+      throw new Error('Selection differs from the full scan on the benchmark dataset.');
     }
     if (i >= 20) {
+      if (results[1].value !== results[2].value) {
+        experimentalMismatches++;
+      }
       direct.push(results[0].ms);
-      experiment.push(results[1].ms);
+      baseline.push(results[1].ms);
+      experiment.push(results[2].ms);
     }
   }
-  return { direct: summary(direct), boundedSquaredExperiment: summary(experiment) };
+  return {
+    direct: summary(direct),
+    baselineHypot: summary(baseline),
+    boundedSquaredExperiment: summary(experiment),
+    experimentalMismatches,
+  };
 }
 
 let retained;

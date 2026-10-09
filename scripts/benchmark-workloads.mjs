@@ -7,7 +7,7 @@ import { build } from 'vite';
 import { chromium, webkit } from '@playwright/test';
 
 const engine = process.env.BENCH_BROWSER === 'webkit' ? webkit : chromium;
-const search = process.env.BENCH_SEARCH ?? 'original';
+const search = process.env.BENCH_SEARCH ?? 'current';
 const multiple = process.env.BENCH_MULTIPLE !== '0';
 const memoryCycles = Number(process.env.BENCH_MEMORY_CYCLES ?? 10);
 const runs = Number(process.env.BENCH_RUNS ?? 3);
@@ -25,8 +25,8 @@ if (
   );
 }
 if (
-  !['original', 'bounded-squared'].includes(search) ||
-  !shapes.every((value) => ['smooth', 'noisy'].includes(value)) ||
+  !['current', 'baseline-hypot', 'bounded-squared'].includes(search) ||
+  !shapes.every((value) => ['smooth', 'noisy', 'ring'].includes(value)) ||
   !phases.every((value) => ['selection', 'rendering', 'memory'].includes(value)) ||
   !tolerances.every((value) => Number.isFinite(value) && value >= 0)
 ) {
@@ -57,6 +57,9 @@ const result = {
   ramBytes: totalmem(),
   nodeVersion: process.version,
   libraryCommit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  libraryDirty:
+    execFileSync('git', ['status', '--porcelain', '--', 'src'], { encoding: 'utf8' }).trim()
+      .length > 0,
   recordedAt: new Date().toISOString(),
   runs,
   steps,

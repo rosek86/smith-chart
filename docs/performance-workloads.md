@@ -16,7 +16,7 @@ BENCH_SEARCH=bounded-squared BENCH_SIZES=1000000 BENCH_MULTIPLE=0 BENCH_TOLERANC
 ```
 
 Controls: `BENCH_RUNS` (default 3 fresh pages), `BENCH_STEPS` (20 measured marker
-moves), `BENCH_SIZES` (100000,1000000), `BENCH_SHAPES` (smooth,noisy),
+moves), `BENCH_SIZES` (100000,1000000), `BENCH_SHAPES` (default smooth,noisy; also ring),
 `BENCH_TOLERANCES` (0,0.5), `BENCH_MULTIPLE=0` (omit four-trace cases),
 `BENCH_PHASES` (selection,rendering,memory), and `BENCH_BROWSER` (chromium or webkit).
 Memory diagnostics use Chromium CDP and always use one million samples per trace,
@@ -109,7 +109,7 @@ about a second, and cache preparation added work without reducing the path.
 
 ### Cheaper arithmetic experiment
 
-For the bounded benchmark data only, replacing `Math.hypot(dx, dy)` comparisons with
+For the bounded spiral datasets above, replacing `Math.hypot(dx, dy)` comparisons with
 squared-distance comparisons produced the same answers on 60 independent checked
 queries after 20 warmups. Hot-loop lookup was about 1 ms per million samples in both
 engines. The separate gesture experiment gives a more conservative practical result:
@@ -121,7 +121,8 @@ engines. The separate gesture experiment gives a more conservative practical res
 | WebKit   | smooth            |                 8.0 / 8.0 |                     1.0 / 1.0 |
 
 This experiment changes the benchmark's method temporarily and restores it afterward;
-no production lookup or public API has changed. It is not safe to simply ship this
+the squared-distance experiment is not used by the library. The implemented follow-up
+below retains `Math.hypot` for candidate norms. It is not safe to simply ship this
 formula for every finite input: squared magnitudes can overflow/underflow and
 rounding can change tied results. A production fast path needs numerical-range,
 exact-duplicate and first-input tie tests, including extreme coordinates.
@@ -158,26 +159,59 @@ Process RSS does not return immediately to the initial baseline. For the smooth 
 it rose from about 300 MiB at baseline to 329 MiB after ten cycles and 336 MiB after 100. RSS alone cannot distinguish allocator/raster caches from retained objects;
 these runs are not proof of zero native/GPU leaks or measurements of peak allocation.
 
-## Decision
+## Implemented follow-up: coordinate bounds
 
-**Optimize the existing linear lookup before introducing a spatial index.**
+The library now keeps the linear scan and skips candidates whose absolute difference
+on either axis exceeds the best norm found so far. All surviving candidates still use
+`Math.hypot`; strict improvement and an inclusive boundary preserve the original
+engine's norm ordering and first-input ties. A zero norm can return immediately.
+There is no squared-distance arithmetic in production, no retained index, and no
+extra per-trace memory or rebuild step after updates/renormalization.
 
-- At 100k samples, selection is already about 1–3 ms. Four 250k traces do not turn
-  one marker move into a search over all one million samples.
-- A single million-sample trace costs about 7–10 ms per marker query. This is a
-  meaningful part of a 16.7 ms frame budget, even though the paced benchmark does
-  not demonstrate sustained 60/120 Hz responsiveness.
-- The bounded arithmetic experiment reduces real gesture search to roughly 2–3 ms
-  in Chromium and 1 ms in WebKit without constructing another data structure.
-  Implementing a numerically safe fast path and validating tie behavior is the
-  smaller next step. Keep it separate from this measurement-only change.
-- A spatial index would need build/update cost, memory, and exact tie-selection
-  measurements of its own. Revisit it if a validated faster scan remains too slow
-  on supported hardware or workloads require several million samples per trace.
-- Heavy noisy SVG painting is a separate bottleneck. Neither a faster scan nor an
-  index fixes the full-path zoom and WebKit repaint costs shown above. Keep line
-  simplification opt-in and document cases where its preparation adds work without
-  reducing geometry.
+The follow-up uses the same machine and three fresh pages per case. The drag baseline
+is the earlier full-scan measurement above; the standalone selection phase also
+measures the old norm scan alongside the current method in rotating order.
 
-The [recorded summary](benchmarks/workloads-2026-10-09.json) retains the numeric
-results behind these tables. The commands above write full per-query timings as JSON.
+| Engine   | Shape, 1M samples | Previous drag lookup p50 / p95 | Current drag lookup p50 / p95 |
+| -------- | ----------------- | -----------------------------: | ----------------------------: |
+| Chromium | smooth            |                      9.3 / 9.5 |                     5.2 / 6.0 |
+| Chromium | noisy             |                      9.2 / 9.6 |                     4.9 / 5.7 |
+| WebKit   | smooth            |                      8.0 / 8.0 |                     4.0 / 4.0 |
+| WebKit   | noisy             |                      7.0 / 7.0 |                     3.0 / 3.0 |
+
+Chromium standalone lookup drops from about 6.5 ms to 2.2–2.3 ms. Actual gesture
+lookup improves by roughly 44–57% across these engine/workload combinations. These
+are lookup savings, not equivalent improvements to frame rate; the noisy SVG still
+has the rendering costs described above.
+
+A circle queried at its center is a deliberate worst case: most coordinate bounds
+cannot reject a point. For a million samples, the current/previous standalone scan
+is 6.6/6.6 ms in Chromium and 7/6 ms in WebKit (integer-ms timer). This remains O(N),
+and the checks can add overhead when nearly every candidate survives. On this ring,
+the naive squared-distance experiment chooses a different sample for all 60 measured
+queries in both engines, while the coordinate-bound scan matches the original scan.
+
+Correctness coverage compares against the previous full norm scan across exact
+matches, duplicates, coordinate-boundary ties, near-equal norms, deterministic random
+data, subnormal values, squared-distance overflow ranges and subtraction overflow.
+Public reflection-based marker selection is also checked against the full scan in
+Chromium and WebKit. No API or trace configuration changes are required.
+
+```sh
+# Current selection and actual dragging:
+BENCH_PHASES=selection,rendering BENCH_SIZES=1000000 BENCH_MULTIPLE=0 BENCH_TOLERANCES=0.5 npm run benchmark:workloads -- /tmp/current-lookup.json
+# Reproduce the previous norm scan inside real drag handling:
+BENCH_SEARCH=baseline-hypot BENCH_PHASES=rendering BENCH_SIZES=1000000 BENCH_MULTIPLE=0 BENCH_TOLERANCES=0.5 npm run benchmark:workloads -- /tmp/baseline-lookup.json
+# Worst-case ring queried at its center (repeat with BENCH_BROWSER=webkit):
+BENCH_PHASES=selection BENCH_SHAPES=ring BENCH_SIZES=1000000 npm run benchmark:workloads -- /tmp/ring-lookup.json
+```
+
+`BENCH_SEARCH` now defaults to `current`; `baseline-hypot` and `bounded-squared` are
+benchmark-only overrides. Historical results labeled `original` refer to the old
+full norm scan. Selection diagnostics always compare current and baseline answers;
+experimental squared-distance mismatches are reported separately rather than treated
+as acceptable changes to production selection.
+
+The [follow-up summary](benchmarks/marker-lookup-2026-10-09.json) records these results.
+A spatial index remains deferred: the simpler optimization improves common marker
+interactions without index storage, invalidation or tie-resolution machinery.
