@@ -4,7 +4,7 @@ A standalone application importing only the installed `smithkit` package. It has
 no source aliases, relative imports into the library, or dependency on demo code.
 Use Node.js 24 and npm.
 
-Install the declared `smithkit@^0.4.0` dependency and start the example:
+Install the declared `smithkit@^0.5.0` dependency and start the example:
 
 ```sh
 npm install
@@ -12,7 +12,7 @@ npm run dev
 ```
 
 To test local library changes, run `npm pack` from the repository root, then
-`npm install --no-save --package-lock=false ../../smithkit-0.4.0.tgz` here.
+`npm install --no-save --package-lock=false ../../smithkit-0.5.0.tgz` here.
 The example can be copied into a separate project; use the archive's absolute path
 when testing a copied example against the local checkout.
 

@@ -1,6 +1,6 @@
 # Public API review and compatibility policy
 
-Reviewed against **0.4.0** and the unreleased compact trace input and optional line simplification additions,
+Reviewed against **0.5.0**, including compact trace input, optional line simplification, and Touchstone reflection I/O,
 including the installed integration examples. Version 0.3.0 used positional constructor arguments,
 interactive defaults, and an automatic marker. See [migration to 0.4](migration-0.4.md).
 This review defines the compatibility scope intended for **1.x**; it does not
