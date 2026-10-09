@@ -9,7 +9,7 @@ import { color as parseColor } from 'd3';
 import { SvgChartRenderer } from './rendering/SvgChartRenderer.js';
 import type { SmithData } from './traces/SmithData.js';
 import type { SmithMarker } from './traces/SmithMarker.js';
-import type { TraceSamples } from './samples.js';
+import type { TraceInput, TraceSamples, TraceTuple } from './samples.js';
 import { Complex } from './math/Complex.js';
 import type { ChartLayers, GridDetail, PeripheralScales } from './layers.js';
 import { RfCalculations } from './rf/RfCalculations.js';
@@ -279,7 +279,11 @@ export class Smith {
   }
 
   /** Add a named trace without markers. Use addMarker to create markers explicitly. Returns a chart-local, stable ID. */
-  public addTrace(values: TraceSamples, options: TraceOptions = {}): string {
+  public addTrace(values: TraceSamples, options?: TraceOptions): string;
+  public addTrace(values: readonly TraceTuple[], options?: TraceOptions): string;
+  public addTrace(values: Float64Array, options?: TraceOptions): string;
+  public addTrace(values: TraceInput, options?: TraceOptions): string;
+  public addTrace(values: TraceInput, options: TraceOptions = {}): string {
     this.assertAlive();
     this.validateTraceOptions(options);
     if (!values.length) {
@@ -380,7 +384,15 @@ export class Smith {
   }
 
   /** Replace samples; by default each marker follows its nearest measured frequency. */
-  public updateTrace(id: string, values: TraceSamples, options: TraceUpdateOptions = {}): boolean {
+  public updateTrace(id: string, values: TraceSamples, options?: TraceUpdateOptions): boolean;
+  public updateTrace(
+    id: string,
+    values: readonly TraceTuple[],
+    options?: TraceUpdateOptions,
+  ): boolean;
+  public updateTrace(id: string, values: Float64Array, options?: TraceUpdateOptions): boolean;
+  public updateTrace(id: string, values: TraceInput, options?: TraceUpdateOptions): boolean;
+  public updateTrace(id: string, values: TraceInput, options: TraceUpdateOptions = {}): boolean {
     this.assertAlive();
     const data = this.data[this.traceIndex(id)];
     if (!data) {
@@ -489,7 +501,7 @@ export class Smith {
       return;
     }
     const samples = this.data.map((data) =>
-      RfCalculations.renormalizeSamples(data.Samples, this.referenceOhms, referenceImpedanceOhms),
+      data.Samples.renormalize(this.referenceOhms, referenceImpedanceOhms),
     );
     this.data.forEach((data) => data.Markers.forEach((entry) => entry.marker.cancelDrag()));
     this.referenceOhms = referenceImpedanceOhms;
@@ -503,7 +515,7 @@ export class Smith {
     this.data = [];
   }
 
-  private createSmithData(values: TraceSamples, dataset: number, options: TraceOptions): SmithData {
+  private createSmithData(values: TraceInput, dataset: number, options: TraceOptions): SmithData {
     const color = this.theme.traceColors[dataset % this.theme.traceColors.length];
     const data = this.renderer.createTrace(values, color, options, (marker, dragging) => {
       this.markerDragChanged(marker, dragging);

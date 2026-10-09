@@ -104,6 +104,22 @@ chart.setGridDetail('sparse');
 chart.layers.vswr.setValues(['2']);
 const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true, mode: 'both', lineWidth: 2, pointRadius: 3 };
 const traceId: string = chart.addTrace(samples, options);
+import type { TraceInput, TraceTuple } from 'smithkit';
+const tuples: readonly TraceTuple[] = [[1e9, 0.1, -0.2]];
+const input: TraceInput = new Float64Array([1e9, 0.1, -0.2]);
+chart.addTrace(tuples);
+chart.addTrace([[1e9, 0.1, -0.2]] as const);
+chart.addTrace(input);
+chart.addTrace([1, 2].map(f => ({ frequencyHz: f, reflectionCoefficient: [0, 0] })));
+chart.addTrace([1, 2].map<TraceTuple>(f => [f, 0, 0]));
+chart.updateTrace(traceId, tuples);
+chart.updateTrace(traceId, input);
+// @ts-expect-error Tuples require three values.
+chart.addTrace([[1e9, 0.1]]);
+// @ts-expect-error Mixed object and tuple rows are not supported.
+chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }, [1, 0, 0]]);
+// @ts-expect-error Only Float64Array is a supported packed numeric buffer.
+chart.addTrace(new Float32Array([1e9, 0.1, 0.2]));
 const traces: TraceInfo[] = chart.getTraces();
 const markerId: string | undefined = chart.addMarker(traceId, 0);
 if (markerId) {

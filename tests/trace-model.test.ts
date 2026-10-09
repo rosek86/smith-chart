@@ -14,11 +14,15 @@ describe('trace sample and marker state', () => {
     const model = new TraceModel(input);
     input[0].frequencyHz = 20;
     input[0].reflectionCoefficient[0] = 0.3;
-    expect(model.Samples).toEqual([{ frequencyHz: 10, reflectionCoefficient: [0.1, 0.2] }]);
+    expect(Array.from({ length: model.Samples.length }, (_, i) => model.Samples.sample(i))).toEqual(
+      [{ frequencyHz: 10, reflectionCoefficient: [0.1, 0.2] }],
+    );
     model.update(input, 'frequency');
     input[0].reflectionCoefficient[1] = 0.5;
     input.push({ frequencyHz: 30, reflectionCoefficient: [0, 0] });
-    expect(model.Samples).toEqual([{ frequencyHz: 20, reflectionCoefficient: [0.3, 0.2] }]);
+    expect(Array.from({ length: model.Samples.length }, (_, i) => model.Samples.sample(i))).toEqual(
+      [{ frequencyHz: 20, reflectionCoefficient: [0.3, 0.2] }],
+    );
   });
 
   it.each<{ input: TraceSamples }>([
@@ -32,7 +36,7 @@ describe('trace sample and marker state', () => {
     const before = model.Samples;
     expect(() => model.update(input, 'frequency')).toThrow(RangeError);
     expect(model.Samples).toBe(before);
-    expect(marker.selectedPoint).toBe(before[1]);
+    expect(marker.sampleIndex).toBe(1);
     expect(() => new TraceModel(input)).toThrow(RangeError);
   });
 
@@ -60,7 +64,7 @@ describe('trace sample and marker state', () => {
     model.update(replacement, strategy);
     expect(model.getMarker(0)).toBe(marker);
     expect(model.markerSampleIndex(0)).toBe(expected);
-    expect(marker.selectedPoint).toBe(model.Samples[expected]);
+    expect(marker.sampleIndex).toBe(expected);
   });
 
   it('clamps sample selection when a replacement trace is shorter', () => {
@@ -81,7 +85,9 @@ describe('trace sample and marker state', () => {
     expect(model.addMarker(2).number).toBe(3);
     expect(model.Markers.map((entry) => entry.number)).toEqual([2, 3]);
     model.clear();
-    expect(model.Samples).toEqual([]);
+    expect(Array.from({ length: model.Samples.length }, (_, i) => model.Samples.sample(i))).toEqual(
+      [],
+    );
     expect(model.Markers).toEqual([]);
   });
 

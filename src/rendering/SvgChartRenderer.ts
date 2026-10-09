@@ -26,7 +26,7 @@ import { ConstSwrCircles } from '../grid/ConstSwrCircles.js';
 import { SmithDrawOptions } from '../svg/SmithDrawOptions.js';
 import { SmithScaler } from '../svg/SmithScaler.js';
 
-import { TraceSamples } from '../samples.js';
+import { TraceInput } from '../samples.js';
 import { SmithConstantCircle } from '../rf/SmithConstantCircle.js';
 import { GridDefinitions } from '../grid/GridDefinitions.js';
 
@@ -436,7 +436,7 @@ export class SvgChartRenderer {
 
   /** Construct trace rendering without exposing chart containers or scalers to Smith. */
   public createTrace(
-    values: TraceSamples,
+    values: TraceInput,
     color: string,
     style: Partial<TraceStyle>,
     onMarkerDrag: (marker: SmithMarker, dragging: boolean) => void,

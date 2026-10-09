@@ -313,6 +313,7 @@ footer {
   min-width: 100px;
 }
 .trace-controls input:not([type='checkbox']),
+.trace-controls select,
 .comparison-selectors select {
   border: 1px solid var(--input-border);
   border-radius: 4px;
@@ -570,6 +571,7 @@ footer {
 }
 
 select,
+.trace-controls select,
 #marker-select,
 .settings-select select,
 .comparison-selectors select,

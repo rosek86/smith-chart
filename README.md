@@ -5,7 +5,7 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 [Try the interactive demo](https://rosek86.github.io/smithkit/) or browse the
 [integration examples](https://rosek86.github.io/smithkit/examples/index.html):
-static charts, marker controls, themes, report exports, and lifecycle cleanup.
+static charts, marker controls, a 100,000-sample trace, themes, report exports, and lifecycle cleanup.
 Each example includes its TypeScript source.
 
 Upgrading from 0.3.x? Version 0.4.0 introduces grouped constructor options and
@@ -120,6 +120,68 @@ events work independently.
 `draw(selector | HTMLElement)` moves the existing SVG when called again. A missing
 container throws. Call `chart.destroy()` on unmount; it removes the SVG, releases
 event handlers, and cancels queued notifications. Repeated destruction is safe.
+
+## Trace input formats
+
+`addTrace()` and `updateTrace()` accept the same `TraceInput` union:
+
+- `TraceSamples`: an array of objects with `frequencyHz` and `reflectionCoefficient`.
+- `readonly TraceTuple[]`: `[frequencyHz, re, im]` tuples, including `as const` arrays.
+- `Float64Array`: packed triples in the order `f, re, im, f, re, im, …`.
+
+In every format, frequency is in **Hz** and `re`/`im` are the dimensionless
+voltage reflection coefficient **Γ**, relative to the chart's reference impedance.
+A single input must use one format throughout; mixed tuples and objects are rejected.
+Typed-array views are supported; only values inside the supplied view are copied.
+The packed length must be a positive multiple of three. All formats use the same
+finite-value checks and retain input order, duplicate frequencies, and full sample precision.
+
+```ts
+import { Smith, type TraceTuple } from 'smithkit';
+
+const chart = new Smith();
+chart.draw('#smith');
+const samples: readonly TraceTuple[] = [
+  [1e9, 0.4, -0.4],
+  [1.5e9, 0, 0],
+  [2e9, 0.4, 0.4],
+];
+const traceId = chart.addTrace(samples, { name: 'S11', mode: 'line' });
+
+// A later update may use a different format. Each triple is one sample.
+chart.updateTrace(traceId, new Float64Array([1e9, 0.3, -0.3, 1.5e9, 0, 0, 2e9, 0.3, 0.3]));
+```
+
+For large datasets, fill the packed array directly to avoid creating intermediate
+objects or tuples:
+
+```ts
+import { Smith } from 'smithkit';
+
+const count = 100_000;
+const samples = new Float64Array(count * 3);
+for (let i = 0; i < count; i++) {
+  samples[3 * i] = 1e9 + i * 1e4;
+  samples[3 * i + 1] = 0.7 * Math.cos((i / count) * 10);
+  samples[3 * i + 2] = 0.7 * Math.sin((i / count) * 10);
+}
+const chart = new Smith();
+chart.draw('#smith');
+const traceId = chart.addTrace(samples, { mode: 'points' });
+chart.addMarker(traceId, count - 1);
+```
+
+All inputs are copied into owned packed storage (24 bytes per sample for the numeric
+payload). Modifying the input after adding or updating a trace does not change the
+chart. Marker readings and events keep their existing object shape. `Touchstone`
+and `RfCalculations.renormalizeSamples()` continue returning object samples.
+Invalid replacements leave data, markers, and rendering unchanged.
+
+For more than 5,000 samples, point rendering groups overlapping points into screen
+cells and skips offscreen points; markers still select from the full data. Lines
+retain every sample, so very large SVG paths can remain expensive to render and export.
+Sorted ascending frequencies accelerate frequency selection; unsorted inputs remain
+supported without reordering. There is no automatic interpolation or data reduction.
 
 ## Constructor configuration
 

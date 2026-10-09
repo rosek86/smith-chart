@@ -2,7 +2,8 @@ import { SmithGroup } from '../svg/SmithGroup.js';
 import type { TraceStyle, MarkerSelectionStrategy } from '../measurements.js';
 import { SmithMarker } from './SmithMarker.js';
 import { SmithScaler } from '../svg/SmithScaler.js';
-import type { TraceSamples, TraceSample } from '../samples.js';
+import type { TraceInput, TraceSample } from '../samples.js';
+import { TraceBuffer } from './TraceBuffer.js';
 import { TraceModel, type TraceMarker } from './TraceModel.js';
 import { TraceRenderer, type TraceTransform } from './TraceRenderer.js';
 
@@ -20,7 +21,7 @@ export class SmithData {
   private handler: ((marker: number, data: TraceSample) => void) | null = null;
 
   public constructor(
-    data: TraceSamples,
+    data: TraceInput,
     private color: string,
     private transform: TraceTransform,
     container: SmithGroup,
@@ -113,7 +114,7 @@ export class SmithData {
     return true;
   }
 
-  public get Samples(): TraceSamples {
+  public get Samples(): TraceBuffer {
     return this.model.Samples;
   }
 
@@ -161,7 +162,12 @@ export class SmithData {
 
   private moveMarker(entry: TraceMarker): void {
     const marker = this.markers.get(entry)!;
-    marker.move(this.scaler.point(entry.selectedPoint.reflectionCoefficient));
+    marker.move(
+      this.scaler.point([
+        this.model.Samples.real(entry.sampleIndex),
+        this.model.Samples.imaginary(entry.sampleIndex),
+      ]),
+    );
     this.updateReading(entry, marker);
     this.notifyMarker(entry);
   }
@@ -171,7 +177,7 @@ export class SmithData {
       `${this.name}, marker ${entry.number}`,
       this.model.markerSampleIndex(this.model.markerIndex(entry)),
       this.SampleCount,
-      entry.selectedPoint.frequencyHz,
+      this.model.Samples.frequency(entry.sampleIndex),
     );
   }
 
@@ -192,7 +198,7 @@ export class SmithData {
       this.pendingEvents.delete(entry);
       const index = this.model.markerIndex(entry);
       if (!this.destroyed && index >= 0) {
-        this.handler?.(index, entry.selectedPoint);
+        this.handler?.(index, this.model.Samples.sample(entry.sampleIndex));
       }
     }, 0);
     this.pendingEvents.set(entry, timer);
@@ -203,7 +209,10 @@ export class SmithData {
     this.pendingEvents.clear();
   }
 
-  public update(values: TraceSamples, strategy: MarkerSelectionStrategy = 'frequency'): void {
+  public update(
+    values: TraceInput | TraceBuffer,
+    strategy: MarkerSelectionStrategy = 'frequency',
+  ): void {
     this.assertAlive();
     this.model.update(values, strategy);
     this.cancelEvents();
@@ -227,7 +236,11 @@ export class SmithData {
   }
 
   public get Markers() {
-    return this.model.Markers.map((entry) => ({ ...entry, marker: this.markers.get(entry)! }));
+    return this.model.Markers.map((entry) => ({
+      ...entry,
+      selectedPoint: this.model.Samples.sample(entry.sampleIndex),
+      marker: this.markers.get(entry)!,
+    }));
   }
 
   public setMarkerMoveHandler(handler: (marker: number, data: TraceSample) => void): void {
