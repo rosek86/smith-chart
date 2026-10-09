@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Place demo chart settings on the right on desktop, keeping the chart visible without a dimmed backdrop while editing.
+- Align demo chart settings with the marker/cursor readout panel on desktop, using a lightly dimmed backdrop while keeping the chart visible.
 
 - Add independent peripheral axis-caption and numeric-tick visibility options to the constructor, `setOptions()`, and scale controls, with matching demo checkboxes and export behavior.
 

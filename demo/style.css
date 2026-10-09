@@ -466,12 +466,13 @@ footer {
 }
 @media (min-width: 1000px) {
   #chart-settings {
-    inset: 16px 16px auto auto;
+    inset: var(--settings-top, 16px) auto auto var(--settings-left, calc(50% + 8px));
     margin: 0;
     width: min(520px, calc(50vw - 32px));
+    max-height: calc(100dvh - var(--settings-top, 16px) - 16px);
   }
   #chart-settings::backdrop {
-    background: transparent;
+    background: rgb(2 6 23 / 18%);
   }
 }
 .settings-heading {

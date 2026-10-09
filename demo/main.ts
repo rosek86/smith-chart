@@ -23,7 +23,23 @@ function element<T extends HTMLElement>(id: string): T {
 
 const settingsDialog = element<HTMLDialogElement>('chart-settings');
 const settingsButton = element<HTMLButtonElement>('open-settings');
-settingsButton.addEventListener('click', () => settingsDialog.showModal());
+function positionSettingsDialog(): void {
+  if (!settingsDialog.open || !window.matchMedia('(min-width: 1000px)').matches) {
+    return;
+  }
+  const anchor = element('parameter-panel').closest<HTMLElement>('.scales-panel')!;
+  const bounds = anchor.getBoundingClientRect();
+  // Align with the readout panel while reserving at least 320 px for settings on short screens.
+  const top = Math.max(16, Math.min(bounds.top, window.innerHeight - 336));
+  settingsDialog.style.setProperty('--settings-top', `${top}px`);
+  settingsDialog.style.setProperty('--settings-left', `${bounds.left}px`);
+}
+settingsButton.addEventListener('click', () => {
+  settingsDialog.showModal();
+  positionSettingsDialog();
+});
+window.addEventListener('resize', positionSettingsDialog);
+window.addEventListener('scroll', positionSettingsDialog, { passive: true });
 settingsDialog.addEventListener('close', () => settingsButton.focus({ preventScroll: true }));
 
 const smith = new Smith({
