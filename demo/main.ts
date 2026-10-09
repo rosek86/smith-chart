@@ -33,6 +33,7 @@ function positionSettingsDialog(): void {
   const top = Math.max(16, Math.min(bounds.top, window.innerHeight - 336));
   settingsDialog.style.setProperty('--settings-top', `${top}px`);
   settingsDialog.style.setProperty('--settings-left', `${bounds.left}px`);
+  settingsDialog.style.setProperty('--settings-width', `${bounds.width}px`);
 }
 settingsButton.addEventListener('click', () => {
   settingsDialog.showModal();
