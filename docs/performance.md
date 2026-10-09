@@ -63,11 +63,40 @@ the zoom handler. Input shape alone is not a reliable predictor of rendering cos
 - Point rendering binds sample indices and uses numeric screen-cell keys instead of
   allocating a string for each candidate. Culling still scans the full data on zoom.
 
-## Remaining limit
+## Optional line simplification — 2026-10-09
 
-Lines retain every sample. The million-point SVG path still takes roughly 270 ms
-for the benchmark’s zoom-plus-frames measurement, despite the much smaller numeric
-model. An input format change does not solve browser path tessellation/painting.
-A future rendering optimization should separately evaluate optional screen-space
-line simplification, with explicit accuracy and export semantics. This change does
-not reduce measurement data or silently simplify line geometry.
+`lineTolerancePx` defaults to 0 (full geometry). With a positive tolerance, nested
+radial-distance levels cache ordered sample indices. Each level accounts for the
+accumulated error of earlier levels; selection uses the chart's CSS scale and zoom.
+Panning and zooming within a level do not rewrite the path. Crossing a level rewrites
+only the selected geometry, without scanning all samples to simplify again.
+
+```sh
+BENCH_FORMATS=packed BENCH_SIZES=100000,1000000 BENCH_MODES=line npm run benchmark:traces
+BENCH_FORMATS=packed BENCH_SIZES=100000,1000000 BENCH_MODES=line BENCH_LINE_TOLERANCE_PX=0.5 npm run benchmark:traces
+```
+
+Same local platform and smooth workload as above; medians of three fresh pages.
+The full-data case uses this implementation with simplification disabled.
+
+|   Samples | Tolerance | Vertices after zoom | Add (ms) | Update (ms) | Zoom handler (ms) | Zoom + frames (ms) |
+| --------: | --------: | ------------------: | -------: | ----------: | ----------------: | -----------------: |
+|   100,000 |         0 |             100,000 |     20.2 |        14.8 |               1.2 |               21.8 |
+|   100,000 |    0.5 px |               4,168 |      7.9 |         4.9 |               0.9 |               31.1 |
+| 1,000,000 |         0 |           1,000,000 |    207.0 |       154.1 |               1.3 |              279.9 |
+| 1,000,000 |    0.5 px |               3,908 |     21.1 |        17.2 |               1.3 |               20.3 |
+
+The million-sample case benefits substantially from the smaller SVG path. At 100k,
+frame scheduling dominates this measurement and there is no demonstrated zoom win.
+These are not guarantees for noisy data, multiple traces, or continuous gestures.
+
+Level preparation is synchronous on first use and after data changes, with at most
+21 passes; high-frequency noise may retain every sample and add overhead without
+reducing rendering cost. Stored levels must shrink by at least 20%, bounding their
+index payload to about 16 bytes per original sample in the worst case, plus a temporary
+4-byte-per-sample scratch buffer. Full measurement storage is unchanged. Large zoom
+factors can return to the full path, so this does not guarantee fast deep zoom.
+
+Full-detail export remains the default and can still create a large SVG or expensive
+PNG rasterization. `lineDetail: 'view'` reuses displayed geometry, whose error scales
+with the output size. Point mode still scans the full data for culling on zoom.

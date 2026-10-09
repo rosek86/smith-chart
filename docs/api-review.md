@@ -1,6 +1,6 @@
 # Public API review and compatibility policy
 
-Reviewed against **0.4.0** and the unreleased compact trace input additions,
+Reviewed against **0.4.0** and the unreleased compact trace input and optional line simplification additions,
 including the installed integration examples. Version 0.3.0 used positional constructor arguments,
 interactive defaults, and an automatic marker. See [migration to 0.4](migration-0.4.md).
 This review defines the compatibility scope intended for **1.x**; it does not
@@ -284,3 +284,15 @@ older browser or TypeScript version.
 Complex reference impedances, multiport Touchstone, additional renderers, and
 application session storage are outside the present scope. Their absence does not
 block 1.0; future additions must respect the public boundary above.
+
+## Trace display accuracy
+
+`TraceOptions.lineTolerancePx` is a per-trace display setting, shared by `addTrace()`
+and `setTraceOptions()`, and reported in `TraceInfo`. Its default is zero, retaining
+full line geometry. Finite non-negative CSS pixel values bound additional geometric
+deviation; invalid values throw `RangeError` before mutation. It never changes
+sample counts, RF calculations, or marker selection. Geometry caches are internal.
+
+`SmithImageExportOptions.lineDetail` is shared by SVG and PNG: `full` by default,
+or `view` to keep displayed line geometry. Invalid values throw/reject `TypeError`.
+The view's error scales with export dimensions; export never changes the live chart.

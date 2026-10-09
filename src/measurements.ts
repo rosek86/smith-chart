@@ -9,6 +9,8 @@ export interface TraceStyle {
   lineWidth: number;
   /** Point radius in CSS pixels; remains constant under chart zoom and container resize. Default: 2. */
   pointRadius: number;
+  /** Maximum additional line simplification error in CSS pixels. Zero disables it (default). */
+  lineTolerancePx: number;
 }
 
 export interface TraceOptions extends Partial<TraceStyle> {

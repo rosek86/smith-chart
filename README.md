@@ -370,20 +370,40 @@ after destruction throw; trace/marker lookups return empty or missing results.
 
 ## Trace appearance
 
-Pass `mode: 'points' | 'line' | 'both'`, `lineWidth`, and `pointRadius` to
+Pass `mode: 'points' | 'line' | 'both'`, `lineWidth`, `pointRadius`, and `lineTolerancePx` to
 `addTrace` or `setTraceOptions`. Defaults are points, 2 px line width, and 2 px point radius. Both sizes are
 CSS pixels and remain constant under chart zoom and container resize. Widths and radii must be positive and finite.
 `getTraces()` includes the current style.
 
-Lines connect all samples in input order, without smoothing or frequency sorting.
+By default, lines connect all samples in input order, without smoothing or frequency sorting.
 A line-only trace creates one SVG path and no sample circles, suitable for dense
 sweeps. Points/both render every sample for traces up to 5,000 samples. Larger traces
 render one representative per point-radius-sized display cell and skip points
 outside the viewport; representatives are recalculated during zoom/pan.
 This only simplifies the image: all original samples remain available to markers,
-snapping, readouts, and comparisons. Lines still connect every input sample.
+snapping, readouts, and comparisons.
 Styles do not change marker identity or layer ordering. Hidden traces retain their style after sample replacement.
 The demo exposes the same controls per trace.
+
+For dense lines, opt into `lineTolerancePx` (finite, non-negative; default `0` disables
+simplification):
+
+```ts
+chart.setTraceOptions(traceId, { mode: 'line', lineTolerancePx: 0.5 });
+```
+
+The tolerance bounds additional geometric deviation in **CSS pixels**, accounting for
+chart zoom and container size. It does not include SVG coordinate rounding or browser
+antialiasing. Cached, nested geometry levels retain endpoints and input order; zooming
+in selects finer geometry, while panning reuses the current level. The cache is rebuilt
+when samples change, including reference-impedance renormalization. Markers, frequency
+selection, RF calculations, and sample counts always use the full data. The option
+applies to the line in `line` and `both` modes; point rendering is unchanged.
+
+Preparing levels takes extra CPU and memory, and noisy traces may simplify very little.
+This is an opt-in display optimization, not data compression. See the
+[large-trace example](https://rosek86.github.io/smithkit/examples/large-trace/) to compare
+full geometry with pixel tolerances and [local measurements](docs/performance.md).
 
 ## Events and readings
 
@@ -810,6 +830,11 @@ const scalePng = await scales.toPng({ width: 1200, background: 'transparent' });
 - `background`: omit to keep component backgrounds, or pass a concrete CSS color
   (for example `'#fff'`) or `'transparent'` to replace them. Chart colors stay as
   configured; choose a suitable chart theme for your report background.
+- `lineDetail` (chart only): `'full'` (default) includes every sample in each trace line;
+  `'view'` preserves the currently displayed line geometry, including simplification.
+  Both work for SVG and PNG without changing the live chart. Increasing export dimensions
+  scales the current-view error too; use `'full'` for reports requiring all samples.
+  This option does not change point culling, the viewport, markers, or scales.
 - `legend` (chart only): append the names and colors of visible traces. Long names
   wrap; hidden traces are omitted. Default: `false`.
 - `markerLegend` (chart only): independently append marker descriptions below the chart/scales.

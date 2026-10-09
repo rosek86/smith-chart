@@ -1,21 +1,28 @@
 import { Smith, SmithEventType, SmithFormatter } from 'smithkit';
 
-// A synthetic 1–3 GHz sweep with 100,000 samples, packed as f/re/im triples.
-const count = 100_000;
-const samples = new Float64Array(count * 3);
-for (let i = 0; i < count; i++) {
-  const t = i / (count - 1);
-  const radius = 0.15 + 0.7 * t;
-  const angle = 8 * Math.PI * t;
-  samples[3 * i] = 1e9 + 2e9 * t;
-  samples[3 * i + 1] = radius * Math.cos(angle);
-  samples[3 * i + 2] = radius * Math.sin(angle);
+// A synthetic 1–3 GHz sweep, packed as f/re/im triples.
+function createSamples(count: number): Float64Array {
+  const samples = new Float64Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const t = i / (count - 1);
+    const radius = 0.15 + 0.7 * t;
+    const angle = 8 * Math.PI * t;
+    samples[3 * i] = 1e9 + 2e9 * t;
+    samples[3 * i + 1] = radius * Math.cos(angle);
+    samples[3 * i + 2] = radius * Math.sin(angle);
+  }
+  return samples;
 }
+let count = 100_000;
 
 const chart = new Smith({ interaction: { zoom: true } });
 chart.draw('#chart');
-// Point rendering limits overlapping SVG dots; every measured sample stays available.
-const traceId = chart.addTrace(samples, { name: '100k synthetic sweep', mode: 'points' });
+// Simplify only the displayed line; markers still use every measured sample.
+const traceId = chart.addTrace(createSamples(count), {
+  name: 'Synthetic sweep',
+  mode: 'line',
+  lineTolerancePx: 0.5,
+});
 const markerId = chart.addMarker(traceId)!;
 const slider = document.querySelector<HTMLInputElement>('#sample')!;
 const output = document.querySelector<HTMLOutputElement>('#reading')!;
@@ -37,3 +44,16 @@ document
   .addEventListener('click', () => chart.focusMarker(markerId));
 document.querySelector('#reset-view')!.addEventListener('click', () => chart.resetView());
 renderReading();
+
+const detail = document.querySelector<HTMLSelectElement>('#line-detail')!;
+detail.addEventListener('change', () => {
+  chart.setTraceOptions(traceId, { lineTolerancePx: Number(detail.value) });
+});
+
+const sampleCount = document.querySelector<HTMLSelectElement>('#sample-count')!;
+sampleCount.addEventListener('change', () => {
+  count = Number(sampleCount.value);
+  slider.max = String(count - 1);
+  chart.updateTrace(traceId, createSamples(count));
+  renderReading();
+});

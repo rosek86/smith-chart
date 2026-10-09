@@ -236,9 +236,23 @@ export class SvgChartRenderer {
   }
 
   /** Export the current mounted view as standalone SVG with its configured background. */
-  public toSvg(): string {
+  public toSvg(lineDetail: 'full' | 'view' = 'full'): string {
     this.assertAlive();
-    return SvgExporter.chart(this.svg.Node!);
+    const replacements = new Map<SVGElement, string>();
+    if (lineDetail === 'full') {
+      for (const trace of this.traces) {
+        const replacement = trace.fullExportLine();
+        if (replacement) {
+          replacements.set(replacement.node, replacement.path);
+        }
+      }
+    }
+    return SvgExporter.chart(this.svg.Node!, (original, copy) => {
+      const replacement = replacements.get(original);
+      if (replacement !== undefined) {
+        copy.setAttribute('d', replacement);
+      }
+    });
   }
 
   /** Remove this chart and release its event handlers. Safe to call more than once. */
