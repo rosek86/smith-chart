@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Speed up marker nearest-sample lookup by rejecting candidates outside the current distance bound, while preserving full-data selection, numerical-range handling, and first-input ties.
+
 - Add opt-in `lineTolerancePx` for trace lines, using cached geometry levels that adapt to zoom and resize while keeping full measurement and marker data. Add full/view line detail for SVG/PNG exports, demo controls, and a large-trace comparison with 100,000 or 1,000,000 samples.
 
 - Align demo chart settings with the marker/cursor readout panel on desktop, using a lightly dimmed backdrop while keeping the chart visible.

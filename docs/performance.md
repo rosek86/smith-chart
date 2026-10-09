@@ -1,5 +1,9 @@
 # Large trace performance
 
+See [difficult workloads and marker-selection measurements](performance-workloads.md)
+for noisy data, multiple traces, repeated lifecycle memory checks, and the decision
+on further marker optimization.
+
 ## Reproducing the measurements
 
 ```sh
