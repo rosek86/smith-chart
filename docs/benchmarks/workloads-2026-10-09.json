@@ -1,0 +1,1341 @@
+{
+  "date": "2026-10-09",
+  "libraryCommit": "89061e4",
+  "cpu": "Apple M5 Pro",
+  "ramGiB": 48,
+  "platform": "macOS arm64",
+  "node": "24.21.0",
+  "aggregation": "Median of three fresh-page runs; p95 is the median of run p95 values. Memory follow-ups use one page each.",
+  "runs": [
+    {
+      "name": "chromium",
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "selection": [
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 0.6,
+            "p95": 0.7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 0.1,
+            "p95": 0.2
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 6.4,
+            "p95": 6.6
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1.1
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 0.7,
+            "p95": 0.8
+          },
+          "boundedSquaredExperiment": {
+            "p50": 0.1,
+            "p95": 0.2
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 6.4,
+            "p95": 6.5
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1.1
+          }
+        }
+      ],
+      "rendering": [
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0
+          },
+          "addMs": 20.4,
+          "updateMs": 14.7,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1.6,
+            "p95": 2.6
+          },
+          "drag": {
+            "p50": 2,
+            "p95": 2.9
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.5
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 33.4,
+            "p95": 33.4
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5
+          },
+          "addMs": 9.7,
+          "updateMs": 4.6,
+          "vertices": 8553,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1.7,
+            "p95": 2.2
+          },
+          "drag": {
+            "p50": 2.1,
+            "p95": 2.6
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 34.2
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 33.3,
+            "p95": 33.6
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0
+          },
+          "addMs": 209.2,
+          "updateMs": 164.3,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 9,
+            "p95": 9.2
+          },
+          "drag": {
+            "p50": 9.1,
+            "p95": 9.3
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 34.8
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 250.3,
+            "p95": 264
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5
+          },
+          "addMs": 24.9,
+          "updateMs": 21.1,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 9.3,
+            "p95": 9.5
+          },
+          "drag": {
+            "p50": 9.3,
+            "p95": 9.6
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.8
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.3
+          },
+          "zoomFrames": {
+            "p50": 33.4,
+            "p95": 33.5
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "smooth",
+            "traces": 4,
+            "tolerance": 0
+          },
+          "addMs": 187.5,
+          "updateMs": 154.9,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3.7,
+            "p95": 4.1
+          },
+          "drag": {
+            "p50": 4,
+            "p95": 4.3
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.8
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 159.7,
+            "p95": 161.2
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "smooth",
+            "traces": 4,
+            "tolerance": 0.5
+          },
+          "addMs": 36,
+          "updateMs": 22.7,
+          "vertices": 33208,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3.8,
+            "p95": 4.2
+          },
+          "drag": {
+            "p50": 3.9,
+            "p95": 4.3
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.3
+          },
+          "zoomFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0
+          },
+          "addMs": 21.1,
+          "updateMs": 15.7,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 2.4,
+            "p95": 2.8
+          },
+          "drag": {
+            "p50": 2.7,
+            "p95": 3.2
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.7
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 53.6,
+            "p95": 55.9
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5
+          },
+          "addMs": 26.9,
+          "updateMs": 23.1,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1.8,
+            "p95": 2.8
+          },
+          "drag": {
+            "p50": 2.1,
+            "p95": 3.2
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.6
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 52.9,
+            "p95": 58.2
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0
+          },
+          "addMs": 215.2,
+          "updateMs": 169.5,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 9.3,
+            "p95": 9.6
+          },
+          "drag": {
+            "p50": 9.5,
+            "p95": 9.6
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 1022.9,
+            "p95": 1086.9
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5
+          },
+          "addMs": 247.9,
+          "updateMs": 208.3,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 9.2,
+            "p95": 9.6
+          },
+          "drag": {
+            "p50": 9.2,
+            "p95": 9.7
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.9
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 1046.4,
+            "p95": 1129.3
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "noisy",
+            "traces": 4,
+            "tolerance": 0
+          },
+          "addMs": 194.6,
+          "updateMs": 157.2,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3.6,
+            "p95": 3.9
+          },
+          "drag": {
+            "p50": 3.8,
+            "p95": 4.2
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 586.8,
+            "p95": 594.2
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "noisy",
+            "traces": 4,
+            "tolerance": 0.5
+          },
+          "addMs": 231.6,
+          "updateMs": 186.2,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3.1,
+            "p95": 3.6
+          },
+          "drag": {
+            "p50": 3.2,
+            "p95": 3.8
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.9
+          },
+          "zoom": {
+            "p50": 0.1,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 601.2,
+            "p95": 614.7
+          }
+        }
+      ]
+    },
+    {
+      "name": "webkit",
+      "browser": "webkit",
+      "version": "26.6",
+      "selection": [
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 1,
+            "p95": 1
+          },
+          "boundedSquaredExperiment": {
+            "p50": 0,
+            "p95": 0
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth"
+          },
+          "direct": {
+            "p50": 7,
+            "p95": 7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 1,
+            "p95": 1
+          },
+          "boundedSquaredExperiment": {
+            "p50": 0,
+            "p95": 1
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy"
+          },
+          "direct": {
+            "p50": 7,
+            "p95": 7
+          },
+          "boundedSquaredExperiment": {
+            "p50": 1,
+            "p95": 1
+          }
+        }
+      ],
+      "rendering": [
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 35,
+          "updateMs": 17,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1,
+            "p95": 1
+          },
+          "drag": {
+            "p50": 1,
+            "p95": 1
+          },
+          "dragFrames": {
+            "p50": 48,
+            "p95": 58
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 12,
+          "updateMs": 6,
+          "vertices": 8553,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1,
+            "p95": 1
+          },
+          "drag": {
+            "p50": 1,
+            "p95": 1
+          },
+          "dragFrames": {
+            "p50": 33,
+            "p95": 34
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 502,
+          "updateMs": 148,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 7,
+            "p95": 7
+          },
+          "drag": {
+            "p50": 7,
+            "p95": 8
+          },
+          "dragFrames": {
+            "p50": 366,
+            "p95": 399
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 217,
+            "p95": 217
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 35,
+          "updateMs": 24,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 8,
+            "p95": 8
+          },
+          "drag": {
+            "p50": 8,
+            "p95": 8
+          },
+          "dragFrames": {
+            "p50": 33,
+            "p95": 34
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "smooth",
+            "traces": 4,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 489,
+          "updateMs": 169,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 2,
+            "p95": 2
+          },
+          "drag": {
+            "p50": 2,
+            "p95": 2
+          },
+          "dragFrames": {
+            "p50": 336,
+            "p95": 383
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 200,
+            "p95": 200
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "smooth",
+            "traces": 4,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 56,
+          "updateMs": 21,
+          "vertices": 33208,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 2,
+            "p95": 2
+          },
+          "drag": {
+            "p50": 2,
+            "p95": 2
+          },
+          "dragFrames": {
+            "p50": 33,
+            "p95": 34
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 36,
+          "updateMs": 17,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1,
+            "p95": 1
+          },
+          "drag": {
+            "p50": 1,
+            "p95": 1
+          },
+          "dragFrames": {
+            "p50": 50,
+            "p95": 50
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 100000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 44,
+          "updateMs": 21,
+          "vertices": 100000,
+          "count": 100000,
+          "changed": 25,
+          "search": {
+            "p50": 1,
+            "p95": 1
+          },
+          "drag": {
+            "p50": 1,
+            "p95": 1
+          },
+          "dragFrames": {
+            "p50": 50,
+            "p95": 50
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 537,
+          "updateMs": 166,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 7,
+            "p95": 7
+          },
+          "drag": {
+            "p50": 7,
+            "p95": 7
+          },
+          "dragFrames": {
+            "p50": 367,
+            "p95": 466
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 217,
+            "p95": 234
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 414,
+          "updateMs": 234,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 7,
+            "p95": 7
+          },
+          "drag": {
+            "p50": 7,
+            "p95": 7
+          },
+          "dragFrames": {
+            "p50": 366,
+            "p95": 450
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 217,
+            "p95": 217
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "noisy",
+            "traces": 4,
+            "tolerance": 0,
+            "search": "original"
+          },
+          "addMs": 488,
+          "updateMs": 198,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 2,
+            "p95": 2
+          },
+          "drag": {
+            "p50": 2,
+            "p95": 2
+          },
+          "dragFrames": {
+            "p50": 333,
+            "p95": 416
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 200,
+            "p95": 200
+          }
+        },
+        {
+          "config": {
+            "size": 250000,
+            "shape": "noisy",
+            "traces": 4,
+            "tolerance": 0.5,
+            "search": "original"
+          },
+          "addMs": 579,
+          "updateMs": 199,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 2,
+            "p95": 2
+          },
+          "drag": {
+            "p50": 2,
+            "p95": 2
+          },
+          "dragFrames": {
+            "p50": 333,
+            "p95": 417
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 1
+          },
+          "zoomFrames": {
+            "p50": 200,
+            "p95": 200
+          }
+        }
+      ]
+    },
+    {
+      "name": "experiment",
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "selection": [],
+      "rendering": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "bounded-squared"
+          },
+          "addMs": 25,
+          "updateMs": 22.2,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 3.2,
+            "p95": 4.1
+          },
+          "drag": {
+            "p50": 3.5,
+            "p95": 4.4
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.6
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.3
+          },
+          "zoomFrames": {
+            "p50": 33.3,
+            "p95": 33.4
+          }
+        },
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "noisy",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "bounded-squared"
+          },
+          "addMs": 249,
+          "updateMs": 205.6,
+          "vertices": 1000000,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 2.6,
+            "p95": 4
+          },
+          "drag": {
+            "p50": 2.9,
+            "p95": 4.2
+          },
+          "dragFrames": {
+            "p50": 33.3,
+            "p95": 33.6
+          },
+          "zoom": {
+            "p50": 0.2,
+            "p95": 0.2
+          },
+          "zoomFrames": {
+            "p50": 1109.5,
+            "p95": 1316
+          }
+        }
+      ]
+    },
+    {
+      "name": "experiment-webkit",
+      "browser": "webkit",
+      "version": "26.6",
+      "selection": [],
+      "rendering": [
+        {
+          "config": {
+            "size": 1000000,
+            "shape": "smooth",
+            "traces": 1,
+            "tolerance": 0.5,
+            "search": "bounded-squared"
+          },
+          "addMs": 36,
+          "updateMs": 22,
+          "vertices": 8302,
+          "count": 1000000,
+          "changed": 25,
+          "search": {
+            "p50": 1,
+            "p95": 1
+          },
+          "drag": {
+            "p50": 1,
+            "p95": 1
+          },
+          "dragFrames": {
+            "p50": 33,
+            "p95": 34
+          },
+          "zoom": {
+            "p50": 0,
+            "p95": 0
+          },
+          "zoomFrames": {
+            "p50": 33,
+            "p95": 34
+          }
+        }
+      ]
+    }
+  ],
+  "memory": [
+    {
+      "config": {
+        "size": 1000000,
+        "traces": 1,
+        "shape": "smooth",
+        "tolerance": 0.5
+      },
+      "measurements": [
+        [
+          {
+            "label": "warm-baseline",
+            "usedSize": 1905964,
+            "totalSize": 2949120,
+            "embedderHeapUsedSize": 491168,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 314458112
+          },
+          {
+            "label": "mounted",
+            "usedSize": 2242564,
+            "totalSize": 2949120,
+            "embedderHeapUsedSize": 4285352,
+            "backingStorageSize": 28795517,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 349257728
+          },
+          {
+            "label": "update-1",
+            "usedSize": 2276436,
+            "totalSize": 2949120,
+            "embedderHeapUsedSize": 4232712,
+            "backingStorageSize": 28795517,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 354844672
+          },
+          {
+            "label": "update-5",
+            "usedSize": 2302772,
+            "totalSize": 2686976,
+            "embedderHeapUsedSize": 4232888,
+            "backingStorageSize": 28795517,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 362053632
+          },
+          {
+            "label": "update-10",
+            "usedSize": 2354724,
+            "totalSize": 3735552,
+            "embedderHeapUsedSize": 4232888,
+            "backingStorageSize": 28795517,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 363823104
+          },
+          {
+            "label": "destroyed",
+            "usedSize": 2075472,
+            "totalSize": 2686976,
+            "embedderHeapUsedSize": 486616,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 335806464
+          },
+          {
+            "label": "cycle-1",
+            "usedSize": 2117492,
+            "totalSize": 2686976,
+            "embedderHeapUsedSize": 486616,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 336871424
+          },
+          {
+            "label": "cycle-5",
+            "usedSize": 2196192,
+            "totalSize": 3211264,
+            "embedderHeapUsedSize": 495272,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 344047616
+          },
+          {
+            "label": "cycle-10",
+            "usedSize": 2342540,
+            "totalSize": 3211264,
+            "embedderHeapUsedSize": 495048,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 345407488
+          },
+          {
+            "label": "cycle-25",
+            "usedSize": 2349636,
+            "totalSize": 2949120,
+            "embedderHeapUsedSize": 495224,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 346505216
+          },
+          {
+            "label": "cycle-50",
+            "usedSize": 2365276,
+            "totalSize": 3473408,
+            "embedderHeapUsedSize": 498312,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 347406336
+          },
+          {
+            "label": "cycle-100",
+            "usedSize": 2399768,
+            "totalSize": 3473408,
+            "embedderHeapUsedSize": 495232,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 351797248
+          }
+        ]
+      ]
+    },
+    {
+      "config": {
+        "size": 1000000,
+        "traces": 1,
+        "shape": "noisy",
+        "tolerance": 0.5
+      },
+      "measurements": [
+        [
+          {
+            "label": "warm-baseline",
+            "usedSize": 1907880,
+            "totalSize": 2686976,
+            "embedderHeapUsedSize": 709496,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 344489984
+          },
+          {
+            "label": "mounted",
+            "usedSize": 2215388,
+            "totalSize": 2424832,
+            "embedderHeapUsedSize": 4285928,
+            "backingStorageSize": 26977141,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 475512832
+          },
+          {
+            "label": "update-1",
+            "usedSize": 2242576,
+            "totalSize": 2949120,
+            "embedderHeapUsedSize": 4278824,
+            "backingStorageSize": 26980961,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 501596160
+          },
+          {
+            "label": "update-5",
+            "usedSize": 2264700,
+            "totalSize": 3735552,
+            "embedderHeapUsedSize": 4236256,
+            "backingStorageSize": 26979217,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 560365568
+          },
+          {
+            "label": "update-10",
+            "usedSize": 2333764,
+            "totalSize": 3473408,
+            "embedderHeapUsedSize": 4239088,
+            "backingStorageSize": 26979749,
+            "documents": 1,
+            "nodes": 2258,
+            "jsEventListeners": 28,
+            "mountedSvg": 1,
+            "processRssBytes": 519684096
+          },
+          {
+            "label": "destroyed",
+            "usedSize": 2080888,
+            "totalSize": 2686976,
+            "embedderHeapUsedSize": 614752,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 366837760
+          },
+          {
+            "label": "cycle-1",
+            "usedSize": 2122304,
+            "totalSize": 3211264,
+            "embedderHeapUsedSize": 494616,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 369065984
+          },
+          {
+            "label": "cycle-5",
+            "usedSize": 2201068,
+            "totalSize": 4259840,
+            "embedderHeapUsedSize": 629368,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 373915648
+          },
+          {
+            "label": "cycle-10",
+            "usedSize": 2346280,
+            "totalSize": 5308416,
+            "embedderHeapUsedSize": 636008,
+            "backingStorageSize": 291809,
+            "documents": 1,
+            "nodes": 8,
+            "jsEventListeners": 14,
+            "mountedSvg": 0,
+            "processRssBytes": 375783424
+          }
+        ]
+      ]
+    }
+  ]
+}

@@ -250,3 +250,9 @@ Run `npm run benchmark:traces` for large-series add/update, marker, and zoom tim
 See [the benchmark methodology and comparison](docs/performance.md) for workload limits
 and options. Benchmarks are diagnostic; browser correctness tests do not impose
 hardware-dependent timing thresholds.
+
+Run `npm run benchmark:workloads -- /tmp/smithkit-workloads.json` for deterministic
+noisy data, multiple traces, isolated and interactive marker selection, and Chromium
+memory checks across repeated updates and destruction. See
+[the workload methodology and decision](docs/performance-workloads.md) before
+interpreting results or enabling the bounded-data arithmetic experiment.
