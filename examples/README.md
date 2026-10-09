@@ -6,13 +6,13 @@ the TypeScript it executes, rather than a separately maintained snippet.
 
 | Example                                     | Public API focus                                                 |
 | ------------------------------------------- | ---------------------------------------------------------------- |
-| [Large trace](large-trace/main.ts)          | 100,000 packed samples, zoom, full-data marker selection         |
-| [Touchstone](touchstone/main.ts)            | S11/S22 packed import, one-port renormalization, `.s1p` download |
 | [Static chart](static/main.ts)              | constructor options, `draw`, grid detail, traces                 |
 | [External marker controls](markers/main.ts) | stable marker IDs, `onEvent`, sample selection, focus            |
 | [Themes and overrides](appearance/main.ts)  | `setOptions`, presets, overrides                                 |
+| [Touchstone](touchstone/main.ts)            | S11/S22 packed import, one-port renormalization, `.s1p` download |
 | [Report export](export/main.ts)             | SVG/PNG, image size, background, marker legends                  |
 | [Mount, update, and destroy](basic/main.ts) | subscriptions, data replacement, resize, cleanup                 |
+| [Large trace](large-trace/main.ts)          | 100,000 packed samples, zoom, full-data marker selection         |
 
 Use Node.js 24 and npm. This directory can be copied into a separate project.
 
