@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add Touchstone 1.x `.s2p` import with explicit S11/S22 selection and direct packed `Float64Array` output, keeping object samples as the default. Add `.s1p` serialization in Hz/RI, packed sample renormalization, demo import controls, and a downloadable Touchstone integration example.
+
 - Speed up marker nearest-sample lookup by rejecting candidates outside the current distance bound, while preserving full-data selection, numerical-range handling, and first-input ties.
 
 - Add opt-in `lineTolerancePx` for trace lines, using cached geometry levels that adapt to zoom and resize while keeping full measurement and marker data. Add full/view line detail for SVG/PNG exports, demo controls, and a large-trace comparison with 100,000 or 1,000,000 samples.

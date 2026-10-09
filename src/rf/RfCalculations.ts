@@ -180,32 +180,64 @@ export class RfCalculations {
     return Number.isFinite(re) && Number.isFinite(im) ? Complex.from(re, im) : undefined;
   }
 
-  /** Copy and renormalize every sample; reject invalid/singular data without modifying the input. */
+  /** Copy and renormalize samples, preserving object or packed representation. */
+  public static renormalizeSamples(
+    samples: Float64Array,
+    fromOhms: number,
+    toOhms: number,
+  ): Float64Array;
   public static renormalizeSamples(
     samples: TraceSamples,
     fromOhms: number,
     toOhms: number,
-  ): TraceSamples {
+  ): TraceSamples;
+  public static renormalizeSamples(
+    samples: TraceSamples | Float64Array,
+    fromOhms: number,
+    toOhms: number,
+  ): TraceSamples | Float64Array;
+  public static renormalizeSamples(
+    samples: TraceSamples | Float64Array,
+    fromOhms: number,
+    toOhms: number,
+  ): TraceSamples | Float64Array {
     RfCalculations.validateReference(fromOhms);
     RfCalculations.validateReference(toOhms);
-    return samples.map((sample, index) => {
-      if (
-        !Number.isFinite(sample.frequencyHz) ||
-        sample.frequencyHz < 0 ||
-        sample.reflectionCoefficient.length !== 2
-      ) {
+    const convert = (frequencyHz: number, re: number, im: number, index: number): Complex => {
+      if (!Number.isFinite(frequencyHz) || frequencyHz < 0) {
         throw new RangeError(`Invalid sample at index ${index}.`);
       }
-      const gamma = RfCalculations.renormalizeReflection(
-        Complex.from(...sample.reflectionCoefficient),
-        fromOhms,
-        toOhms,
-      );
+      const gamma = RfCalculations.renormalizeReflection(Complex.from(re, im), fromOhms, toOhms);
       if (!gamma) {
         throw new RangeError(
           `Renormalization is singular or outside the numeric range at sample ${index}.`,
         );
       }
+      return gamma;
+    };
+    if (samples instanceof Float64Array) {
+      if (samples.length % 3 !== 0) {
+        throw new RangeError('Packed samples must contain complete f/re/im triples.');
+      }
+      const result = new Float64Array(samples.length);
+      for (let offset = 0; offset < samples.length; offset += 3) {
+        const gamma = convert(
+          samples[offset],
+          samples[offset + 1],
+          samples[offset + 2],
+          offset / 3,
+        );
+        result[offset] = samples[offset];
+        result[offset + 1] = gamma.re;
+        result[offset + 2] = gamma.im;
+      }
+      return result;
+    }
+    return samples.map((sample, index) => {
+      if (sample.reflectionCoefficient.length !== 2) {
+        throw new RangeError(`Invalid sample at index ${index}.`);
+      }
+      const gamma = convert(sample.frequencyHz, ...sample.reflectionCoefficient, index);
       return { frequencyHz: sample.frequencyHz, reflectionCoefficient: gamma.toVector() };
     });
   }

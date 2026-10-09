@@ -107,3 +107,40 @@ test('fits the chart and radial labels on a narrow screen', async ({ page }) => 
   }
   await page.screenshot({ path: 'test-results/chart-mobile.png', fullPage: true });
 });
+
+test('imports selected S22 as a named reflection trace and keeps s1p imports on S11', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await page.getByLabel('Two-port reflection').selectOption('S22');
+  const selectStyle = await page.getByLabel('Two-port reflection').evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { paddingRight: parseFloat(style.paddingRight), backgroundImage: style.backgroundImage };
+  });
+  expect(selectStyle.paddingRight).toBeGreaterThanOrEqual(36);
+  expect(selectStyle.backgroundImage).toContain('linear-gradient');
+  await page.locator('#file').setInputFiles({
+    name: 'network.S2P',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# GHz S RI R 50\n1 .8 0 .1 0 .2 0 .25 -.5\n2 .7 0 .2 0 .3 0 .5 -.25'),
+  });
+  await expect(page.locator('#file-status')).toContainText('S22: 2 samples loaded');
+  await expect(page.getByLabel('Trace name')).toHaveValue('network.S2P · S22');
+  await page.getByRole('tab', { name: 'Marker', exact: true }).click();
+  await expect(page.locator('#parameter-gamma')).toHaveText('0.250 - 0.500i');
+  await page.getByLabel('Two-port reflection').selectOption('S11');
+  await page.locator('#file').setInputFiles({
+    name: 'network.s2p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# GHz S RI R 50\n1 .8 0 .1 0 .2 0 .25 -.5'),
+  });
+  await expect(page.getByLabel('Trace name').nth(1)).toHaveValue('network.s2p · S11');
+  await page.getByLabel('Two-port reflection').selectOption('S22');
+  await page.locator('#file').setInputFiles({
+    name: 'one.s1p',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('# Hz S RI R 50\n1 0 0'),
+  });
+  await expect(page.locator('#file-status')).toContainText('one.s1p: 1 samples loaded');
+  await expect(page.locator('.trace-controls')).toHaveCount(3);
+});

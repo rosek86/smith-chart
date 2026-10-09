@@ -100,7 +100,14 @@ try {
       await page.setViewportSize({ width: 900, height: 900 });
       await page.goto(url);
       await expect(page.getByRole('heading', { name: 'One example, one task.' })).toBeVisible();
-      for (const example of ['static', 'markers', 'appearance', 'export', 'large-trace']) {
+      for (const example of [
+        'static',
+        'markers',
+        'appearance',
+        'export',
+        'large-trace',
+        'touchstone',
+      ]) {
         await page.goto(`${url}${example}/index.html`);
         await expect(page.locator('#chart svg')).toHaveCount(1);
         await expect(page.locator('#source')).toContainText("from 'smithkit'");

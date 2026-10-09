@@ -458,7 +458,10 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
     return;
   }
   try {
-    const parsed = Touchstone.parse(await file.text());
+    const ports = /\.s2p$/i.test(file.name) ? 2 : 1;
+    const parameter =
+      ports === 2 && element<HTMLSelectElement>('import-parameter').value === 'S22' ? 'S22' : 'S11';
+    const parsed = Touchstone.parse(await file.text(), { ports, parameter, output: 'packed' });
     const reference = smith.referenceImpedanceOhms;
     const mismatch = parsed.referenceImpedanceOhms !== reference;
     if (mismatch && !element<HTMLInputElement>('renormalize-import').checked) {
@@ -469,10 +472,12 @@ element<HTMLInputElement>('file').addEventListener('change', async (event) => {
     const samples = mismatch
       ? RfCalculations.renormalizeSamples(parsed.samples, parsed.referenceImpedanceOhms, reference)
       : parsed.samples;
-    smith.addMarker(smith.addTrace(samples, { name: file.name }));
+    smith.addMarker(
+      smith.addTrace(samples, { name: ports === 2 ? `${file.name} · ${parameter}` : file.name }),
+    );
     refreshMarkerOptions();
     status(
-      `${file.name}: ${samples.length} samples loaded.${mismatch ? ` The file uses ${parsed.referenceImpedanceOhms} Ω; converted to ${reference} Ω.` : ''}`,
+      `${file.name}${ports === 2 ? ` · ${parameter}` : ''}: ${samples.length / 3} samples loaded.${mismatch ? ` The file uses ${parsed.referenceImpedanceOhms} Ω; converted to ${reference} Ω.` : ''}`,
     );
   } catch (error) {
     status(error instanceof Error ? error.message : 'Could not read this file.', true);

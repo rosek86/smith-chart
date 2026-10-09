@@ -14,6 +14,7 @@ export default defineConfig({
         'examples/large-trace/index.html',
         'examples/index.html',
         'examples/static/index.html',
+        'examples/touchstone/index.html',
         'examples/markers/index.html',
         'examples/appearance/index.html',
         'examples/export/index.html',
