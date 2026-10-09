@@ -4,26 +4,31 @@
 main demo's **Examples** link. Each page demonstrates one library task and displays
 the TypeScript it executes, rather than a separately maintained snippet.
 
-| Example                                     | Public API focus                                      |
-| ------------------------------------------- | ----------------------------------------------------- |
-| [Static chart](static/main.ts)              | constructor options, `draw`, grid detail, traces      |
-| [External marker controls](markers/main.ts) | stable marker IDs, `onEvent`, sample selection, focus |
-| [Themes and overrides](appearance/main.ts)  | `setOptions`, presets, overrides                      |
-| [Report export](export/main.ts)             | SVG/PNG, image size, background, marker legends       |
-| [Mount, update, and destroy](basic/main.ts) | subscriptions, data replacement, resize, cleanup      |
+| Example                                     | Public API focus                                         |
+| ------------------------------------------- | -------------------------------------------------------- |
+| [Large trace](large-trace/main.ts)          | 100,000 packed samples, zoom, full-data marker selection |
+| [Static chart](static/main.ts)              | constructor options, `draw`, grid detail, traces         |
+| [External marker controls](markers/main.ts) | stable marker IDs, `onEvent`, sample selection, focus    |
+| [Themes and overrides](appearance/main.ts)  | `setOptions`, presets, overrides                         |
+| [Report export](export/main.ts)             | SVG/PNG, image size, background, marker legends          |
+| [Mount, update, and destroy](basic/main.ts) | subscriptions, data replacement, resize, cleanup         |
 
 Use Node.js 24 and npm. This directory can be copied into a separate project.
 
-Install the declared `smithkit@^0.4.0` dependency and start the gallery:
+The compact-input examples (static, markers, and large trace) require the current
+local package until those additions are released. To run this gallery now:
 
 ```sh
+# From the repository root:
+npm pack
+cd examples
 npm install
+npm install --no-save --package-lock=false ../smithkit-0.4.0.tgz
 npm run dev
 ```
 
-To test local library changes, run `npm pack` from the repository root, then
-`npm install --no-save --package-lock=false ../smithkit-0.4.0.tgz` here.
-Use the archive's absolute path when running a copied example.
+Use the archive's absolute path when running a copied gallery. The declared
+`smithkit@^0.4.0` dependency alone does not yet include compact trace inputs.
 
 `npm run build` creates the complete standalone gallery in `dist/`. It imports the
 installed `smithkit` package and has no aliases to repository source. The basic

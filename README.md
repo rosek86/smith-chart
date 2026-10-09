@@ -5,7 +5,7 @@ interactive SVG Smith charts, RF calculations, and S11 measurement exploration.
 
 [Try the interactive demo](https://rosek86.github.io/smithkit/) or browse the
 [integration examples](https://rosek86.github.io/smithkit/examples/index.html):
-static charts, marker controls, themes, report exports, and lifecycle cleanup.
+static charts, marker controls, a 100,000-sample trace, themes, report exports, and lifecycle cleanup.
 Each example includes its TypeScript source.
 
 Upgrading from 0.3.x? Version 0.4.0 introduces grouped constructor options and

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a gallery example with 100,000 packed synthetic samples, zoom/reset controls, and full-data marker selection.
+
 - Accept `[frequencyHz, re, im][]` and packed `Float64Array` input in `addTrace()` and `updateTrace()`, alongside existing object samples. Copy and validate all formats into owned packed storage.
 - Store marker sample indices directly, accelerate frequency selection for ascending sweeps, and reduce point-rendering allocations while preserving full data, sample order, tie selection, and atomic renormalization.
 - Add repeatable large-trace benchmarks and demonstrate tuple/packed inputs in the integration gallery.

@@ -100,10 +100,15 @@ try {
       await page.setViewportSize({ width: 900, height: 900 });
       await page.goto(url);
       await expect(page.getByRole('heading', { name: 'One example, one task.' })).toBeVisible();
-      for (const example of ['static', 'markers', 'appearance', 'export']) {
+      for (const example of ['static', 'markers', 'appearance', 'export', 'large-trace']) {
         await page.goto(`${url}${example}/index.html`);
         await expect(page.locator('#chart svg')).toHaveCount(1);
         await expect(page.locator('#source')).toContainText("from 'smithkit'");
+        if (example === 'large-trace') {
+          await page.locator('#sample').fill('99999');
+          await expect(page.locator('#reading')).toContainText('Sample 100000 / 100000');
+          await expect(page.locator('#reading')).toContainText('3 GHz');
+        }
         if (example === 'markers') {
           await page.locator('#sample').fill('2');
           await expect(page.locator('#reading')).toContainText('1.5 GHz');

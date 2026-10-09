@@ -6,6 +6,7 @@ export default defineConfig({
     rolldownOptions: {
       input: [
         'index.html',
+        'large-trace/index.html',
         'static/index.html',
         'markers/index.html',
         'appearance/index.html',

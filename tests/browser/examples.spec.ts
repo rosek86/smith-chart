@@ -7,9 +7,10 @@ test('demo links to a gallery with runnable examples and executable source', asy
   await page.goto('');
   await page.getByRole('link', { name: 'Examples', exact: true }).click();
   await expect(page).toHaveURL(/\/smithkit\/examples\/index.html$/);
-  await expect(page.locator('.card')).toHaveCount(5);
+  await expect(page.locator('.card')).toHaveCount(6);
   await page.screenshot({ path: 'test-results/examples-gallery.png', fullPage: true });
   for (const name of [
+    'Large trace',
     'Static chart',
     'External marker controls',
     'Themes and overrides',
@@ -25,10 +26,10 @@ test('demo links to a gallery with runnable examples and executable source', asy
     await page.reload();
     await expect(page.locator('#chart svg')).toHaveCount(1);
     await page.goBack();
-    await expect(page.locator('.card')).toHaveCount(5);
+    await expect(page.locator('.card')).toHaveCount(6);
   }
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic']) {
+  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic', 'large-trace']) {
     await page.goto(`examples/${slug}/index.html`);
     await expect(page.locator('#chart svg')).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
@@ -122,7 +123,7 @@ test('example grid labels contrast with their actual background in light and dar
       const surface = luminance(background);
       return (Math.max(text, surface) + 0.05) / (Math.min(text, surface) + 0.05);
     });
-  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic']) {
+  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic', 'large-trace']) {
     await page.goto(`examples/${slug}/index.html`);
     await expect(page.locator('#chart svg')).toHaveCount(1);
     expect(await contrast()).toBeGreaterThanOrEqual(4.5);
@@ -136,4 +137,29 @@ test('example grid labels contrast with their actual background in light and dar
       expect(await contrast()).toBeGreaterThanOrEqual(4.5);
     }
   }
+});
+
+test('large-trace example selects all 100,000 samples and restores the zoomed view', async ({
+  page,
+}) => {
+  await page.goto('examples/large-trace/index.html');
+  await expect(page.locator('#source')).toContainText('new Float64Array(count * 3)');
+  await expect(page.locator('#reading')).toContainText('Sample 1 / 100000');
+  await page.locator('#sample').fill('99999');
+  await expect(page.locator('#reading')).toContainText('Sample 100000 / 100000');
+  await expect(page.locator('#reading')).toContainText('3 GHz');
+  await page.getByRole('button', { name: 'Focus marker' }).click();
+  await page.keyboard.press('Home');
+  await expect(page.locator('#sample')).toHaveValue('0');
+  await page.keyboard.press('End');
+  await expect(page.locator('#sample')).toHaveValue('99999');
+  const group = page.locator('#chart svg > g').first();
+  const original = await group.getAttribute('transform');
+  await page.locator('#chart').hover();
+  await page.mouse.wheel(0, -240);
+  await expect(group).not.toHaveAttribute('transform', original!);
+  await page.getByRole('button', { name: 'Reset view' }).click();
+  await expect(group).toHaveAttribute('transform', original!);
+  await expect(page.locator('#reading')).toContainText('Sample 100000 / 100000');
+  await page.screenshot({ path: 'test-results/examples-large-trace.png', fullPage: true });
 });
