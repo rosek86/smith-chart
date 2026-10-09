@@ -85,7 +85,7 @@ src/
   traces/                  sample/marker state, trace rendering, and their coordinator
   interaction/             mouse gestures and chart cursor
   scales/                  independent parameter-scale renderer and definitions
-  io/                      Touchstone parser, independent of the UI
+  io/                      Touchstone reflection import/export, independent of the UI
 demo/                      application UI, CSS, and file handling
 tests/                     unit, deployment, and browser tests
 scripts/                   library build and demo deployment tools
@@ -222,8 +222,10 @@ publishing; publisher configuration and the release procedure are described in
   bands; at extremely small sizes their text shrinks with the geometry. Independent
   radial scales use a separate layout.
 - Reference impedances are positive real ohm values. Complex reference impedances,
-  multiport data, and Touchstone 2.x are not supported. The demo can renormalize
-  imported data and existing traces using the public library helpers.
+  full multiport matrices/renormalization, noise blocks, and Touchstone 2.x are not
+  supported. Touchstone 1.x import extracts S11 or S22 from two-port files; export
+  writes a single reflection trace as `.s1p`. The demo can renormalize imported
+  reflection data and existing traces using the public library helpers.
 
 ## Demo hosting
 

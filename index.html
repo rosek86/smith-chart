@@ -116,10 +116,21 @@
         <aside>
           <section class="panel">
             <h2>Measurements</h2>
-            <label class="file-label" for="file">Import Touchstone (.s1p)</label>
-            <input type="file" id="file" accept=".s1p" aria-describedby="file-help file-status" />
+            <label for="import-parameter">Two-port reflection</label>
+            <select id="import-parameter" aria-describedby="file-help">
+              <option value="S11">S11 · input reflection</option>
+              <option value="S22">S22 · output reflection</option>
+            </select>
+            <label class="file-label" for="file">Import Touchstone (.s1p / .s2p)</label>
+            <input
+              type="file"
+              id="file"
+              accept=".s1p,.s2p"
+              aria-describedby="file-help file-status"
+            />
             <p id="file-help" class="hint">
-              One-port RI, MA or DB data. The file reference impedance is read from its header.
+              Touchstone 1.x RI, MA or DB data. For two-port files, select S11 or S22 before
+              importing.
             </p>
             <button id="sample" type="button">Load sample trace</button>
             <p id="file-status" role="status" aria-live="polite">No measurement loaded.</p>

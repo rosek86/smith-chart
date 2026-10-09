@@ -61,6 +61,15 @@ const immutableSamples = [{ frequencyHz: 1e9, reflectionCoefficient: [0, 0] }] a
 const readonlySamples: TraceSamples = immutableSamples;
 Complex.from(immutableSamples[0].reflectionCoefficient);
 void readonlySamples;
+import type { TouchstoneParseOptions, TouchstoneWriteOptions } from 'smithkit';
+const parseOptions: TouchstoneParseOptions = { ports: 2, parameter: 'S22', output: 'packed' };
+const writeOptions: TouchstoneWriteOptions = { referenceImpedanceOhms: 75 };
+const packedTouchstone: TouchstoneData<Float64Array> = Touchstone.parse('# Hz S RI R 50\\n1 0 0 0 0 0 0 .5 0', { ports: 2, parameter: 'S22', output: 'packed' });
+const convertedTouchstone: Float64Array = RfCalculations.renormalizeSamples(packedTouchstone.samples, 50, 75);
+Touchstone.stringify(convertedTouchstone, writeOptions);
+Touchstone.parse('# Hz S RI R 50\\n1 0 0 0 0 0 0 .5 0', parseOptions);
+// @ts-expect-error Transmission coefficients cannot be displayed as reflection traces.
+Touchstone.parse('1 0 0', { parameter: 'S21' });
 const parsed: TouchstoneData = Touchstone.parse('# GHz S RI R 50\\n1 0 0');
 import type { SmithOptions, GridOptions, GridLayerOptions, CircleLayerOptions, CircleOptions, InteractionOptions, PeripheralScalesOptions } from 'smithkit';
 const grid: GridOptions = { detail: 'basic', labelsVisible: true };
@@ -239,6 +248,9 @@ assert.equal(SmithFormatter.number(1e9) + 'Hz', '1 GHz');
 assert.equal(RfCalculations.reactanceToComponent(-50, 1e9).kind, 'capacitor');
 assert.equal(typeof Smith.prototype.formatNumber, 'undefined');
 assert.equal(typeof Touchstone.parse, 'function');
+const packed = Touchstone.parse('# Hz S RI R 50\\n1 0 0 0 0 0 0 .5 0', { ports: 2, parameter: 'S22', output: 'packed' });
+assert.deepEqual(packed.samples, new Float64Array([1, .5, 0]));
+assert.deepEqual(Touchstone.parse(Touchstone.stringify(packed.samples), { output: 'packed' }), packed);
 assert.equal(typeof SmithFormatter.complex, 'function');
 assert.equal(typeof SmithFormatter.polar, 'function');
 const reading = { frequencyHz: 1e9, reflectionCoefficient: Complex.from(0.5), impedanceOhms: Complex.from(150) };

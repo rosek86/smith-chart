@@ -312,6 +312,7 @@ footer {
   flex: 1;
   min-width: 100px;
 }
+#import-parameter,
 .trace-controls input:not([type='checkbox']),
 .trace-controls select,
 .comparison-selectors select {
@@ -583,6 +584,7 @@ footer {
 
 select,
 .trace-controls select,
+#import-parameter,
 #marker-select,
 .settings-select select,
 .comparison-selectors select,
@@ -650,4 +652,10 @@ select,
 .header-heading a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
+}
+
+#import-parameter {
+  display: block;
+  width: 100%;
+  margin: 6px 0 12px;
 }

@@ -281,7 +281,7 @@ older browser or TypeScript version.
 3. Record minimum runtime/compiler support and the agreed compatibility policy in
    the 1.0 release notes. No further architectural rewrite is required by this review.
 
-Complex reference impedances, multiport Touchstone, additional renderers, and
+Complex reference impedances, full multiport Touchstone matrices/renormalization, Touchstone 2.x, additional renderers, and
 application session storage are outside the present scope. Their absence does not
 block 1.0; future additions must respect the public boundary above.
 
@@ -296,3 +296,19 @@ sample counts, RF calculations, or marker selection. Geometry caches are interna
 `SmithImageExportOptions.lineDetail` is shared by SVG and PNG: `full` by default,
 or `view` to keep displayed line geometry. Invalid values throw/reject `TypeError`.
 The view's error scales with export dimensions; export never changes the live chart.
+
+## Touchstone reflection I/O
+
+`Touchstone.parse(text, options?)` retains object samples by default. Explicit
+`ports: 2` selects legacy two-port input and `parameter` selects S11 or S22.
+`output: 'packed'` returns an owned, exact-length `Float64Array` of Hz/re/im triples;
+the overloads preserve the selected output type. Parsing never renormalizes.
+Invalid options throw `TypeError`; invalid/unsupported content throws `Error`.
+
+`Touchstone.stringify(input, options?)` accepts every `TraceInput` representation
+and emits one-port Hz/RI text. Its reference defaults to 50 ohms and must describe
+the supplied samples. Invalid data/references or non-increasing frequencies throw
+`RangeError`; export never sorts, drops samples, or changes their reference.
+`RfCalculations.renormalizeSamples` preserves object/packed representation and
+returns a copy. Extracted S11/S22 renormalization treats the other port's original
+termination as fixed; full network conversion and Touchstone 2.x remain out of scope.

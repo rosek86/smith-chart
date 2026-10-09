@@ -13,7 +13,7 @@ flowchart TB
     API --> Utilities
 
     subgraph Utilities["Stateless public classes · no DOM required"]
-        Touchstone["Touchstone<br/>S11 parsing"]
+        Touchstone["Touchstone<br/>S11/S22 import, S1P export"]
         RF["RfCalculations<br/>Conversions and renormalization"]
         Helpers["MarkerMeasurements · SmithFormatter<br/>Comparisons and formatting"]
     end

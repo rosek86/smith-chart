@@ -7,7 +7,7 @@ test('demo links to a gallery with runnable examples and executable source', asy
   await page.goto('');
   await page.getByRole('link', { name: 'Examples', exact: true }).click();
   await expect(page).toHaveURL(/\/smithkit\/examples\/index.html$/);
-  await expect(page.locator('.card')).toHaveCount(6);
+  await expect(page.locator('.card')).toHaveCount(7);
   await page.screenshot({ path: 'test-results/examples-gallery.png', fullPage: true });
   for (const name of [
     'Large trace',
@@ -15,6 +15,7 @@ test('demo links to a gallery with runnable examples and executable source', asy
     'External marker controls',
     'Themes and overrides',
     'Report export',
+    'Touchstone',
     'Mount, update, and destroy',
   ]) {
     await page
@@ -26,10 +27,18 @@ test('demo links to a gallery with runnable examples and executable source', asy
     await page.reload();
     await expect(page.locator('#chart svg')).toHaveCount(1);
     await page.goBack();
-    await expect(page.locator('.card')).toHaveCount(6);
+    await expect(page.locator('.card')).toHaveCount(7);
   }
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic', 'large-trace']) {
+  for (const slug of [
+    'static',
+    'markers',
+    'appearance',
+    'export',
+    'basic',
+    'large-trace',
+    'touchstone',
+  ]) {
     await page.goto(`examples/${slug}/index.html`);
     await expect(page.locator('#chart svg')).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
@@ -123,7 +132,15 @@ test('example grid labels contrast with their actual background in light and dar
       const surface = luminance(background);
       return (Math.max(text, surface) + 0.05) / (Math.min(text, surface) + 0.05);
     });
-  for (const slug of ['static', 'markers', 'appearance', 'export', 'basic', 'large-trace']) {
+  for (const slug of [
+    'static',
+    'markers',
+    'appearance',
+    'export',
+    'basic',
+    'large-trace',
+    'touchstone',
+  ]) {
     await page.goto(`examples/${slug}/index.html`);
     await expect(page.locator('#chart svg')).toHaveCount(1);
     expect(await contrast()).toBeGreaterThanOrEqual(4.5);
@@ -176,4 +193,26 @@ test('large-trace example switches to one million samples, compares detail and r
   await page.locator('#line-detail').selectOption('0.5');
   expect(await vertices()).toBe(simplifiedCount);
   await page.screenshot({ path: 'test-results/examples-large-trace.png', fullPage: true });
+});
+
+test('Touchstone example downloads the selected, renormalized reflection in s1p format', async ({
+  page,
+}) => {
+  await page.goto('examples/touchstone/index.html');
+  await page.getByLabel('Reflection parameter').selectOption('S22');
+  await page.getByLabel('Trace reference').selectOption('75');
+  await expect(page.locator('#status')).toHaveText('S22: 3 packed samples at 75 Ω.');
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download .s1p' }).click();
+  const download = await downloading;
+  expect(download.suggestedFilename()).toBe('S22-75ohm.s1p');
+  const text = await readFile((await download.path())!, 'utf8');
+  expect(text).toContain('# Hz S RI R 75\n');
+  const lines = text.trim().split('\n');
+  expect(lines).toHaveLength(4);
+  const [frequency, re, im] = lines[2].split(' ').map(Number);
+  expect(frequency).toBe(1.5e9);
+  expect(re).toBeCloseTo((0.1 - 0.2) / (1 - 0.2 * 0.1), 14);
+  expect(im).toBe(0);
+  await page.screenshot({ path: 'test-results/examples-touchstone.png', fullPage: true });
 });

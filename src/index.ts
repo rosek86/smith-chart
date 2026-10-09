@@ -3,7 +3,7 @@ export type { SmithEvent } from './Smith.js';
 export { Complex } from './math/Complex.js';
 export type { TraceSamples, TraceSample, TraceTuple, TraceInput } from './samples.js';
 export { Touchstone } from './io/Touchstone.js';
-export type { TouchstoneData } from './io/Touchstone.js';
+export type { TouchstoneData, TouchstoneParseOptions, TouchstoneWriteOptions } from './io/types.js';
 export { SmithScales } from './scales/SmithScales.js';
 export { MarkerMeasurements } from './MarkerMeasurements.js';
 export type {

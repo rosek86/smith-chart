@@ -8,6 +8,7 @@ export default defineConfig({
         'index.html',
         'large-trace/index.html',
         'static/index.html',
+        'touchstone/index.html',
         'markers/index.html',
         'appearance/index.html',
         'export/index.html',

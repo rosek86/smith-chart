@@ -4,18 +4,19 @@
 main demo's **Examples** link. Each page demonstrates one library task and displays
 the TypeScript it executes, rather than a separately maintained snippet.
 
-| Example                                     | Public API focus                                         |
-| ------------------------------------------- | -------------------------------------------------------- |
-| [Large trace](large-trace/main.ts)          | 100,000 packed samples, zoom, full-data marker selection |
-| [Static chart](static/main.ts)              | constructor options, `draw`, grid detail, traces         |
-| [External marker controls](markers/main.ts) | stable marker IDs, `onEvent`, sample selection, focus    |
-| [Themes and overrides](appearance/main.ts)  | `setOptions`, presets, overrides                         |
-| [Report export](export/main.ts)             | SVG/PNG, image size, background, marker legends          |
-| [Mount, update, and destroy](basic/main.ts) | subscriptions, data replacement, resize, cleanup         |
+| Example                                     | Public API focus                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| [Static chart](static/main.ts)              | constructor options, `draw`, grid detail, traces                 |
+| [External marker controls](markers/main.ts) | stable marker IDs, `onEvent`, sample selection, focus            |
+| [Themes and overrides](appearance/main.ts)  | `setOptions`, presets, overrides                                 |
+| [Touchstone](touchstone/main.ts)            | S11/S22 packed import, one-port renormalization, `.s1p` download |
+| [Report export](export/main.ts)             | SVG/PNG, image size, background, marker legends                  |
+| [Mount, update, and destroy](basic/main.ts) | subscriptions, data replacement, resize, cleanup                 |
+| [Large trace](large-trace/main.ts)          | 100,000 packed samples, zoom, full-data marker selection         |
 
 Use Node.js 24 and npm. This directory can be copied into a separate project.
 
-The compact-input examples (static, markers, and large trace) require the current
+The compact-input examples and Touchstone example require the current
 local package until those additions are released. To run this gallery now:
 
 ```sh
