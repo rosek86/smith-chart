@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `lineTolerancePx` for trace lines, using cached geometry levels that adapt to zoom and resize while keeping full measurement and marker data. Add full/view line detail for SVG/PNG exports, demo controls, and a large-trace comparison with 100,000 or 1,000,000 samples.
+
 - Align demo chart settings with the marker/cursor readout panel on desktop, using a lightly dimmed backdrop while keeping the chart visible.
 
 - Add independent peripheral axis-caption and numeric-tick visibility options to the constructor, `setOptions()`, and scale controls, with matching demo checkboxes and export behavior.

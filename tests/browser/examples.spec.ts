@@ -139,7 +139,7 @@ test('example grid labels contrast with their actual background in light and dar
   }
 });
 
-test('large-trace example selects all 100,000 samples and restores the zoomed view', async ({
+test('large-trace example switches to one million samples, compares detail and restores zoom', async ({
   page,
 }) => {
   await page.goto('examples/large-trace/index.html');
@@ -161,5 +161,19 @@ test('large-trace example selects all 100,000 samples and restores the zoomed vi
   await page.getByRole('button', { name: 'Reset view' }).click();
   await expect(group).toHaveAttribute('transform', original!);
   await expect(page.locator('#reading')).toContainText('Sample 100000 / 100000');
+  await page.locator('#sample-count').selectOption('1000000');
+  await expect(page.locator('#sample')).toHaveAttribute('max', '999999');
+  await page.getByRole('button', { name: 'Focus marker' }).click();
+  await page.keyboard.press('End');
+  await expect(page.locator('#reading')).toContainText('Sample 1000000 / 1000000');
+  await expect(page.locator('#reading')).toContainText('3 GHz');
+  const vertices = () =>
+    page.locator('.trace-line').evaluate((node) => node.getAttribute('d')!.match(/[ML]/g)!.length);
+  const simplifiedCount = await vertices();
+  expect(simplifiedCount).toBeLessThan(20000);
+  await page.locator('#line-detail').selectOption('0');
+  expect(await vertices()).toBe(1_000_000);
+  await page.locator('#line-detail').selectOption('0.5');
+  expect(await vertices()).toBe(simplifiedCount);
   await page.screenshot({ path: 'test-results/examples-large-trace.png', fullPage: true });
 });

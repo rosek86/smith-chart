@@ -160,6 +160,7 @@ exportButton.addEventListener('click', () => {
   exportDialog.showModal();
 });
 function updateMarkerLegendSettings(): void {
+  element<HTMLSelectElement>('image-line-detail').disabled = exportTarget.value === 'scales';
   exportMarkerLegend.disabled = exportTarget.value === 'scales';
   element('image-marker-legend-settings').hidden =
     !exportMarkerLegend.checked || exportMarkerLegend.disabled;
@@ -216,6 +217,7 @@ exportForm.addEventListener('submit', async (event) => {
   const scaleOptions = { ...options, readout };
   const chartOptions = {
     ...options,
+    lineDetail: element<HTMLSelectElement>('image-line-detail').value as 'full' | 'view',
     scaleReadout: target === 'combined' ? readout : undefined,
     legend: exportLegend.checked,
     markerLegend: exportMarkerLegend.checked

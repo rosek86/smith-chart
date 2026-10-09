@@ -102,7 +102,7 @@ new Smith({ circles: {q: { detail: 'basic' }} });
 chart.setGridDetail('sparse');
 // @ts-expect-error Circle values are numeric.
 chart.layers.vswr.setValues(['2']);
-const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true, mode: 'both', lineWidth: 2, pointRadius: 3 };
+const options: TraceOptions = { name: 'Consumer', color: '#123456', visible: true, mode: 'both', lineWidth: 2, pointRadius: 3, lineTolerancePx: 0.5 };
 const traceId: string = chart.addTrace(samples, options);
 import type { TraceInput, TraceTuple } from 'smithkit';
 const tuples: readonly TraceTuple[] = [[1e9, 0.1, -0.2]];
@@ -120,6 +120,13 @@ chart.addTrace([[1e9, 0.1]]);
 chart.addTrace([{ frequencyHz: 1, reflectionCoefficient: [0, 0] }, [1, 0, 0]]);
 // @ts-expect-error Only Float64Array is a supported packed numeric buffer.
 chart.addTrace(new Float32Array([1e9, 0.1, 0.2]));
+chart.setTraceOptions(traceId, { lineTolerancePx: 0 });
+chart.toSvg({ lineDetail: 'full' });
+chart.toPng({ lineDetail: 'view' });
+// @ts-expect-error Tolerance is a numeric CSS pixel value.
+chart.setTraceOptions(traceId, { lineTolerancePx: 'auto' });
+// @ts-expect-error Only full and view line detail are supported.
+chart.toSvg({ lineDetail: 'fast' });
 const traces: TraceInfo[] = chart.getTraces();
 const markerId: string | undefined = chart.addMarker(traceId, 0);
 if (markerId) {

@@ -49,9 +49,12 @@ export class SvgExporter {
     'text-decoration',
   ]);
 
-  public static chart(source: SVGElement): string {
+  public static chart(
+    source: SVGElement,
+    customize?: (original: SVGElement, copy: SVGElement) => void,
+  ): string {
     const bounds = SvgExporter.bounds(source);
-    const copy = SvgExporter.copy(source);
+    const copy = SvgExporter.copy(source, customize);
     SvgExporter.background(copy, source);
     SvgExporter.size(copy, bounds.width, bounds.height);
     return SvgExporter.serialize(copy);
@@ -134,7 +137,10 @@ export class SvgExporter {
     return bounds;
   }
 
-  private static copy(source: SVGElement): SVGElement {
+  private static copy(
+    source: SVGElement,
+    customize?: (original: SVGElement, copy: SVGElement) => void,
+  ): SVGElement {
     const copy = source.cloneNode(true) as SVGElement;
     const originals = [source, ...source.querySelectorAll<SVGElement>('*')];
     const copies = [copy, ...copy.querySelectorAll<SVGElement>('*')];
@@ -188,6 +194,7 @@ export class SvgExporter {
           element.removeAttribute(attribute.name);
         }
       }
+      customize?.(original, element);
     });
     return copy;
   }

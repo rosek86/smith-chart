@@ -15,12 +15,30 @@
         <p class="eyebrow">SMITHKIT EXAMPLES</p>
         <h1>Large trace</h1>
         <p>
-          100,000 synthetic samples from 1 to 3 GHz, supplied as a single Float64Array. Zoom into
-          the spiral, drag the marker, or select any sample below.
+          100,000 or 1,000,000 synthetic samples from 1 to 3 GHz, supplied as a single Float64Array.
+          Zoom into the spiral, drag the marker, or select any sample below.
         </p>
       </header>
       <section class="preview" aria-label="Example preview">
         <div id="chart" aria-label="Smith chart"></div>
+        <div class="controls">
+          <label for="sample-count"
+            >Samples
+            <select id="sample-count">
+              <option value="100000">100,000</option>
+              <option value="1000000">1,000,000</option>
+            </select>
+          </label>
+          <label for="line-detail"
+            >Line accuracy
+            <select id="line-detail">
+              <option value="0">Full data</option>
+              <option value="0.5" selected>0.5 px tolerance</option>
+              <option value="1">1 px tolerance</option>
+              <option value="2">2 px tolerance</option>
+            </select></label
+          >
+        </div>
         <label for="sample"
           >Selected sample
           <input id="sample" type="range" min="0" max="99999" value="0" step="1" /></label
@@ -30,8 +48,9 @@
           <button id="reset-view" type="button">Reset view</button>
         </div>
         <p class="hint">
-          Overlapping dots are grouped for display; marker readings use all 100,000 samples. Focus
-          the marker and press Home or End to reach the first or last sample.
+          Compare the full line with pixel-based simplification while zooming. Marker readings
+          always use all samples. Focus the marker and press Home or End to reach the first or last
+          sample.
         </p>
       </section>
       <section aria-labelledby="code-title">

@@ -1,7 +1,8 @@
-import { pathRound } from 'd3';
+import { path, pathRound } from 'd3';
 import { SmithGroup } from '../svg/SmithGroup.js';
 import { SmithScaler } from '../svg/SmithScaler.js';
 import type { TraceStyle } from '../measurements.js';
+import { TraceLineDetail } from './TraceLineDetail.js';
 import { TraceBuffer } from './TraceBuffer.js';
 
 export interface TraceTransform {
@@ -16,6 +17,8 @@ export class TraceRenderer {
   private viewportScale = 1;
   private visible = true;
   private group: SmithGroup;
+  private lineDetail: TraceLineDetail | undefined;
+  private lineIndices: Uint32Array | undefined;
 
   public constructor(
     private data: TraceBuffer,
@@ -29,6 +32,7 @@ export class TraceRenderer {
       mode: style.mode ?? 'points',
       lineWidth: style.lineWidth ?? 2,
       pointRadius: style.pointRadius ?? 2,
+      lineTolerancePx: style.lineTolerancePx ?? 0,
     };
     this.group = this.drawTrace(data).attr('pointer-events', 'none');
     container.append(this.group);
@@ -43,22 +47,10 @@ export class TraceRenderer {
     group.attr('data-role', 'samples');
     group.attr('data-mode', this.style.mode);
     if (this.style.mode !== 'points') {
-      const path = pathRound(3);
-      for (let i = 0; i < data.length; i++) {
-        const x = this.scaler.x(data.real(i));
-        const y = this.scaler.y(data.imaginary(i));
-        if (i === 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-      if (data.length === 1) {
-        path.closePath();
-      }
+      this.lineIndices = this.selectLineIndices();
       group.Element.append('path')
         .attr('class', 'trace-line')
-        .attr('d', path.toString())
+        .attr('d', this.linePath(this.lineIndices))
         .attr('fill', 'none')
         .attr('stroke', this.color)
         .attr('stroke-width', this.style.lineWidth)
@@ -70,6 +62,62 @@ export class TraceRenderer {
       this.renderPoints(group, data);
     }
     return group;
+  }
+
+  private selectLineIndices(): Uint32Array | undefined {
+    if (this.style.lineTolerancePx === 0) {
+      return;
+    }
+    this.lineDetail ??= new TraceLineDetail(this.data);
+    const unitsToPixels =
+      Math.max(
+        Math.abs(this.scaler.x(1) - this.scaler.x(0)),
+        Math.abs(this.scaler.y(1) - this.scaler.y(0)),
+      ) *
+      this.transform.k *
+      this.viewportScale;
+    return this.lineDetail.select(this.style.lineTolerancePx / unitsToPixels);
+  }
+
+  private linePath(indices?: Uint32Array): string {
+    // Simplified paths retain numeric precision even at high zoom. Full paths keep
+    // the existing SVG serialization; the tolerance measures additional simplification.
+    const line = indices ? path() : pathRound(3);
+    const length = indices?.length ?? this.data.length;
+    for (let position = 0; position < length; position++) {
+      const index = indices ? indices[position] : position;
+      const x = this.scaler.x(this.data.real(index));
+      const y = this.scaler.y(this.data.imaginary(index));
+      if (position === 0) {
+        line.moveTo(x, y);
+      } else {
+        line.lineTo(x, y);
+      }
+    }
+    if (length === 1) {
+      line.closePath();
+    }
+    return line.toString();
+  }
+
+  private updateLine(): void {
+    if (this.style.mode === 'points') {
+      return;
+    }
+    const indices = this.selectLineIndices();
+    if (indices !== this.lineIndices) {
+      this.lineIndices = indices;
+      this.group.Element.select('.trace-line').attr('d', this.linePath(indices));
+    }
+  }
+
+  /** Replace geometry only in the export copy, never in the live SVG. */
+  public fullExportLine(): { node: SVGElement; path: string } | undefined {
+    const node = this.group.Element.select<SVGElement>('.trace-line').node();
+    if (node && this.lineIndices) {
+      return { node, path: this.linePath() };
+    }
+    return;
   }
 
   private renderPoints(group: SmithGroup, data: TraceBuffer): void {
@@ -118,6 +166,7 @@ export class TraceRenderer {
   }
 
   private zoomDataPoints(): void {
+    this.updateLine();
     const k = this.transform.k;
     if (this.style.mode === 'line') {
       return;
@@ -147,11 +196,13 @@ export class TraceRenderer {
       mode: options.mode ?? this.style.mode,
       lineWidth: options.lineWidth ?? this.style.lineWidth,
       pointRadius: options.pointRadius ?? this.style.pointRadius,
+      lineTolerancePx: options.lineTolerancePx ?? this.style.lineTolerancePx,
     };
     if (
       next.mode === this.style.mode &&
       next.lineWidth === this.style.lineWidth &&
-      next.pointRadius === this.style.pointRadius
+      next.pointRadius === this.style.pointRadius &&
+      next.lineTolerancePx === this.style.lineTolerancePx
     ) {
       return;
     }
@@ -180,10 +231,13 @@ export class TraceRenderer {
 
   public update(data: TraceBuffer): void {
     this.data = data;
+    this.lineDetail = undefined;
     this.redraw();
   }
 
   public destroy(): void {
+    this.lineDetail = undefined;
+    this.lineIndices = undefined;
     this.data = TraceBuffer.empty();
     this.group.Element.remove();
   }

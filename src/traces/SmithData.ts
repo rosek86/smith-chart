@@ -140,6 +140,10 @@ export class SmithData {
     this.markers.forEach((marker) => marker.setColor(color));
   }
 
+  public fullExportLine(): { node: SVGElement; path: string } | undefined {
+    return this.renderer.fullExportLine();
+  }
+
   public get Style(): TraceStyle {
     return this.renderer.Style;
   }

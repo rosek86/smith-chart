@@ -189,7 +189,7 @@ export class Smith {
   public toSvg(options?: SmithImageExportOptions): string {
     this.assertAlive();
     this.validateExportOptions(options);
-    const source = this.renderer.toSvg();
+    const source = this.renderer.toSvg(options?.lineDetail ?? 'full');
     if (options === undefined) {
       return source;
     }
@@ -201,6 +201,9 @@ export class Smith {
   }
 
   private validateExportOptions(options: SmithImageExportOptions | undefined): void {
+    if (options?.lineDetail !== undefined && !['full', 'view'].includes(options.lineDetail)) {
+      throw new TypeError('Export line detail must be full or view.');
+    }
     if (options?.scaleReadout !== undefined && !options.scales) {
       throw new TypeError('Scale readout requires included radial scales.');
     }
@@ -224,7 +227,7 @@ export class Smith {
   public async toPng(options: SmithImageExportOptions = {}): Promise<Blob> {
     this.assertAlive();
     this.validateExportOptions(options);
-    const sources = [this.toSvg()];
+    const sources = [this.renderer.toSvg(options.lineDetail ?? 'full')];
     if (options.scales) {
       sources.push(options.scales.toSvg({ readout: options.scaleReadout }));
     }
@@ -346,6 +349,12 @@ export class Smith {
   private validateTraceOptions(options: TraceOptions): void {
     if (options.mode !== undefined && !['points', 'line', 'both'].includes(options.mode)) {
       throw new TypeError('Trace mode must be points, line, or both.');
+    }
+    if (
+      options.lineTolerancePx !== undefined &&
+      (!Number.isFinite(options.lineTolerancePx) || options.lineTolerancePx < 0)
+    ) {
+      throw new RangeError('Line tolerance must be finite and non-negative.');
     }
     for (const key of ['lineWidth', 'pointRadius'] as const) {
       const value = options[key];

@@ -7,6 +7,8 @@ import { chromium, webkit } from '@playwright/test';
 // Run before and after changes on the same machine. Timings are diagnostic, not CI thresholds.
 const engine = process.env.BENCH_BROWSER === 'webkit' ? webkit : chromium;
 const formats = (process.env.BENCH_FORMATS ?? 'objects,tuples,packed').split(',');
+const modes = (process.env.BENCH_MODES ?? 'line,points').split(',');
+const lineTolerancePx = Number(process.env.BENCH_LINE_TOLERANCE_PX ?? 0);
 const sizes = (process.env.BENCH_SIZES ?? '10000,100000,1000000').split(',').map(Number);
 const built = await build({
   configFile: false,
@@ -24,7 +26,7 @@ const results = [];
 try {
   for (const size of sizes) {
     for (const format of formats) {
-      for (const mode of ['line', 'points']) {
+      for (const mode of modes) {
         const runs = [];
         for (let run = 0; run < 3; run++) {
           const page = await browser.newPage({ viewport: { width: 800, height: 800 } });
@@ -32,7 +34,7 @@ try {
           await page.addScriptTag({ content: bundle });
           runs.push(
             await page.evaluate(
-              async ({ size, format, mode }) => {
+              async ({ size, format, mode, lineTolerancePx }) => {
                 const input = format === 'packed' ? new Float64Array(size * 3) : new Array(size);
                 for (let i = 0; i < size; i++) {
                   const f = 1e9 + i * 1000;
@@ -59,7 +61,7 @@ try {
                 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
                 let id;
                 const addMs = measure(() => {
-                  id = chart.addTrace(input, { mode });
+                  id = chart.addTrace(input, { mode, lineTolerancePx });
                 });
                 const marker = chart.addMarker(id);
                 const updateMs = measure(() => chart.updateTrace(id, input));
@@ -110,6 +112,9 @@ try {
                 await frame();
                 const zoomFrameMs = performance.now() - start;
                 const pointCount = document.querySelectorAll('[data-role=samples] circle').length;
+                const lineVertices =
+                  document.querySelector('.trace-line')?.getAttribute('d')?.match(/[ML]/g)
+                    ?.length ?? 0;
                 const sampleCount = chart.getTraces()[0].sampleCount;
                 chart.destroy();
                 return {
@@ -120,11 +125,12 @@ try {
                   zoomMs,
                   zoomFrameMs,
                   pointCount,
+                  lineVertices,
                   sampleCount,
                   selectedIndex,
                 };
               },
-              { size, format, mode },
+              { size, format, mode, lineTolerancePx },
             ),
           );
           await page.close();
@@ -135,9 +141,9 @@ try {
             runs.map((run) => run[key]).sort((a, b) => a - b)[1],
           ]),
         );
-        const result = { size, format, mode, median, runs };
+        const result = { size, format, mode, lineTolerancePx, median, runs };
         results.push(result);
-        console.log(JSON.stringify({ size, format, mode, ...median }));
+        console.log(JSON.stringify({ size, format, mode, lineTolerancePx, ...median }));
       }
     }
   }

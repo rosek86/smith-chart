@@ -32,6 +32,8 @@ export interface MarkerLegendOptions {
 }
 
 export interface SmithImageExportOptions extends ImageExportOptions {
+  /** Full samples (default) or current displayed line geometry. View detail scales with export dimensions. */
+  lineDetail?: 'full' | 'view';
   /** Include a footer with the names and colors of visible traces. Default: false. */
   legend?: boolean;
   /** Include a marker legend below the chart/scales, independently of the trace legend. Default: false. */

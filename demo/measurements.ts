@@ -177,12 +177,13 @@ export class Measurements {
     for (const [key, caption] of [
       ['lineWidth', 'Line width (px)'],
       ['pointRadius', 'Point radius (px)'],
+      ['lineTolerancePx', 'Line tolerance (px, 0 = full)'],
     ] as const) {
       const label = document.createElement('label');
       label.textContent = caption + ' ';
       const input = document.createElement('input');
       input.type = 'number';
-      input.min = '0.1';
+      input.min = key === 'lineTolerancePx' ? '0' : '0.1';
       input.step = 'any';
       input.value = String(trace[key]);
       input.addEventListener('change', () => {
